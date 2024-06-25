@@ -16,14 +16,17 @@ struct Loan {
 contract CCFL {
     address payable public owner;
     IERC20 public usdcAddress;
+    IERC20 public btcwAddress;
     mapping(address => uint) public lenderDeposit;
     mapping(address => Loan[]) public loans;
+    mapping(address => uint) public collateralBTCW;
     uint public loandIds;
 
     event Withdrawal(uint amount, uint when);
 
-    constructor(IERC20 _usdcAddress) payable {
+    constructor(IERC20 _usdcAddress, IERC20 _btcwAddress) payable {
         usdcAddress = _usdcAddress;
+        btcwAddress = _btcwAddress;
         owner = payable(msg.sender);
         loandIds = 1;
     }
@@ -42,6 +45,13 @@ contract CCFL {
     ) public checkUsdcAllowance(_amount) {
         lenderDeposit[msg.sender] += _amount;
         usdcAddress.transferFrom(msg.sender, address(this), _amount);
+    }
+
+    function depositCollateralBTCW(
+        uint _amount
+    ) public checkUsdcAllowance(_amount) {
+        collateralBTCW[msg.sender] += _amount;
+        btcwAddress.transferFrom(msg.sender, address(this), _amount);
     }
 
     function withdrawUsdcTokens(uint _amount) public {
