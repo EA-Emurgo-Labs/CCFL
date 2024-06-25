@@ -28,20 +28,21 @@ struct Loan {
     uint deadline;
 }
 
+/// @title CCFL contract
+/// @author
+/// @notice Link/usd
 contract CCFL {
     address payable public owner;
     IERC20 public usdcAddress;
-    IERC20 public btcwAddress;
+    IERC20 public linkAddress;
     mapping(address => uint) public lenderDeposit;
     mapping(address => Loan[]) public loans;
-    mapping(address => uint) public collateralBTCW;
+    mapping(address => uint) public collateralLink;
     uint public loandIds;
     AggregatorV3Interface internal priceFeed;
     IPoolAddressesProvider public immutable ADDRESSES_PROVIDER;
     IPool public immutable POOL;
 
-    address private immutable linkTokenAddress =
-        0x779877A7B0D9E8603169DdbD7836e478b4624789;
     IERC20 private link;
 
     event LiquiditySupplied(
@@ -64,21 +65,21 @@ contract CCFL {
 
     constructor(
         IERC20 _usdcAddress,
-        IERC20 _btcwAddress,
+        IERC20 _linkAddress,
         address _addressProvider
     ) payable {
+        linkAddress = _linkAddress; // 0x779877A7B0D9E8603169DdbD7836e478b4624789
         usdcAddress = _usdcAddress;
-        btcwAddress = _btcwAddress;
         owner = payable(msg.sender);
         loandIds = 1;
-        // ETH / USD
+        // LINK / USD
         priceFeed = AggregatorV3Interface(
-            0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419
+            0xc59E3633BAAC79493d908e63626716e204A45EdF
         );
         ADDRESSES_PROVIDER = IPoolAddressesProvider(_addressProvider);
         POOL = IPool(ADDRESSES_PROVIDER.getPool());
         owner = payable(msg.sender);
-        link = IERC20(linkTokenAddress);
+        link = IERC20(linkAddress);
     }
 
     // Modifier to check token allowance
@@ -98,7 +99,7 @@ contract CCFL {
             uint256 timeStamp,
             uint80 answeredInRound
         ) = priceFeed.latestRoundData();
-        // for ETH / USD price is scaled up by 10 ** 8
+        // for LINK / USD price is scaled up by 10 ** 8
         return price / 1e8;
     }
 
@@ -109,11 +110,11 @@ contract CCFL {
         usdcAddress.transferFrom(msg.sender, address(this), _amount);
     }
 
-    function depositCollateralBTCW(
+    function depositCollateralLink(
         uint _amount
     ) public checkUsdcAllowance(_amount) {
-        collateralBTCW[msg.sender] += _amount;
-        btcwAddress.transferFrom(msg.sender, address(this), _amount);
+        collateralLink[msg.sender] += _amount;
+        linkAddress.transferFrom(msg.sender, address(this), _amount);
     }
 
     function withdrawUsdcTokens(uint _amount) public {
