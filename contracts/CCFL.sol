@@ -35,7 +35,10 @@ contract CCFL {
     address payable public owner;
     IERC20 public usdcAddress;
     IERC20 public linkAddress;
-    mapping(address => uint) public lenderDeposit;
+    mapping(address => uint) public lenderLockFund;
+    mapping(address => uint) public lenderRemainFund;
+    address[] public lenders;
+
     mapping(address => Loan[]) public loans;
     mapping(address => uint) public collateralLink;
     uint public loandIds;
@@ -106,7 +109,18 @@ contract CCFL {
     function depositUsdcTokens(
         uint _amount
     ) public checkUsdcAllowance(_amount) {
-        lenderDeposit[msg.sender] += _amount;
+        // check a new lender
+        bool existedLender = false;
+        for (uint i = 0; i < lenders.length; i++) {
+            if (lenders[i] == msg.sender) {
+                existedLender = true;
+                break;
+            }
+        }
+        if (!existedLender) {
+            lenders.push(msg.sender);
+        }
+        lenderRemainFund[msg.sender] += _amount;
         usdcAddress.transferFrom(msg.sender, address(this), _amount);
     }
 
@@ -120,9 +134,12 @@ contract CCFL {
     function withdrawUsdcTokens(uint _amount) public {
         // Uncomment this line, and the import of "hardhat/console.sol", to print a log in your terminal
         // console.log("Unlock time is %o and block timestamp is %o", unlockTime, block.timestamp);
-        require(lenderDeposit[msg.sender] >= _amount, "Balance is not enough");
+        require(
+            lenderRemainFund[msg.sender] >= _amount,
+            "Balance is not enough"
+        );
         emit Withdrawal(_amount, block.timestamp);
-        lenderDeposit[msg.sender] -= _amount;
+        lenderRemainFund[msg.sender] -= _amount;
         usdcAddress.transfer(msg.sender, _amount);
     }
 
@@ -136,6 +153,8 @@ contract CCFL {
         }
         if (loanIndex > 0) {
             loans[msg.sender][loanIndex].isPaid = true;
+            // calculate lender remain fund
+
             usdcAddress.transfer(
                 msg.sender,
                 loans[msg.sender][loanIndex].amount
