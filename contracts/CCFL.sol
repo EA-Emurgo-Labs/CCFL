@@ -18,12 +18,14 @@ contract CCFL {
     IERC20 public usdcAddress;
     mapping(address => uint) public lenderDeposit;
     mapping(address => Loan[]) public loans;
+    uint public loandIds;
 
     event Withdrawal(uint amount, uint when);
 
     constructor(IERC20 _usdcAddress) payable {
         usdcAddress = _usdcAddress;
         owner = payable(msg.sender);
+        loandIds = 1;
     }
 
     // Modifier to check token allowance
@@ -51,8 +53,21 @@ contract CCFL {
         usdcAddress.transfer(msg.sender, _amount);
     }
 
-    function withdrawalLoan() public {
-        usdcAddress.transfer(msg.sender, loans[msg.sender][0].amount);
+    function withdrawalLoan(uint _loanId) public {
+        uint loanIndex;
+        for (uint i = 0; i < loans[msg.sender].length; i++) {
+            if (loans[msg.sender][i].loanId == _loanId) {
+                loanIndex = i;
+                break;
+            }
+        }
+        if (loanIndex > 0) {
+            loans[msg.sender][loanIndex].isPaid = true;
+            usdcAddress.transfer(
+                msg.sender,
+                loans[msg.sender][loanIndex].amount
+            );
+        }
     }
 
     function createLoan(
@@ -64,8 +79,9 @@ contract CCFL {
         loan.borrower = _borrower;
         loan.deadline = _deadline;
         loan.amount = _amount;
-        loan.loanId = 1;
+        loan.loanId = loandIds;
         loan.isPaid = false;
         loans[_borrower].push(loan);
+        loandIds++;
     }
 }
