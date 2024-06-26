@@ -81,7 +81,6 @@ contract CCFL {
         );
         ADDRESSES_PROVIDER = IPoolAddressesProvider(_addressProvider);
         POOL = IPool(ADDRESSES_PROVIDER.getPool());
-        owner = payable(msg.sender);
         link = IERC20(linkAddress);
     }
 
@@ -154,6 +153,26 @@ contract CCFL {
         if (loanIndex > 0) {
             loans[msg.sender][loanIndex].isPaid = true;
             // calculate lender remain fund
+            uint totalRemainFund = 0;
+            for (uint i = 0; i < lenders.length; i++) {
+                totalRemainFund += lenderRemainFund[lenders[i]];
+            }
+
+            uint totalLock = 0;
+            for (uint i = 0; i < lenders.length; i++) {
+                if (i != lenders.length - 1) {
+                    uint lockFund = (lenderRemainFund[lenders[i]] /
+                        totalRemainFund) * loans[msg.sender][loanIndex].amount;
+                    lenderLockFund[lenders[i]] += lockFund;
+                    lenderRemainFund[lenders[i]] -= lockFund;
+                    totalLock += lockFund;
+                } else {
+                    uint lockFund = loans[msg.sender][loanIndex].amount -
+                        totalLock;
+                    lenderLockFund[lenders[i]] += lockFund;
+                    lenderRemainFund[lenders[i]] -= lockFund;
+                }
+            }
 
             usdcAddress.transfer(
                 msg.sender,
