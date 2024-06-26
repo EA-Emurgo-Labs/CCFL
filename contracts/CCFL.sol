@@ -35,6 +35,7 @@ contract CCFL {
     address payable public owner;
     IERC20 public usdcAddress;
     IERC20 public linkAddress;
+    AggregatorV3Interface public linkPriceFeed;
     mapping(address => uint) public lenderLockFund;
     mapping(address => uint) public lenderRemainFund;
     address[] public lenders;
@@ -69,16 +70,15 @@ contract CCFL {
     constructor(
         IERC20 _usdcAddress,
         IERC20 _linkAddress,
-        address _addressProvider
+        address _addressProvider,
+        address _linkAggretor
     ) payable {
-        linkAddress = _linkAddress; // 0x779877A7B0D9E8603169DdbD7836e478b4624789
+        linkAddress = _linkAddress;
         usdcAddress = _usdcAddress;
         owner = payable(msg.sender);
         loandIds = 1;
         // LINK / USD
-        priceFeed = AggregatorV3Interface(
-            0xc59E3633BAAC79493d908e63626716e204A45EdF
-        );
+        linkPriceFeed = AggregatorV3Interface(_linkAggretor);
         ADDRESSES_PROVIDER = IPoolAddressesProvider(_addressProvider);
         POOL = IPool(ADDRESSES_PROVIDER.getPool());
         link = IERC20(linkAddress);
