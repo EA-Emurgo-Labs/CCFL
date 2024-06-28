@@ -8,7 +8,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 struct Loan {
     uint loanId;
     address[] lenders;
-    uint[] ratio;
+    uint[] ratios;
     bool isPaid;
 }
 
@@ -23,17 +23,7 @@ contract Pool {
     address[] public lenders;
 
     mapping(uint => Loan) public loans;
-
-    event LiquiditySupplied(
-        address indexed onBehalfOf,
-        address indexed _token,
-        uint256 indexed _amount
-    );
-    event LiquidityWithdrawn(
-        address indexed to,
-        address indexed _token,
-        uint256 indexed _amount
-    );
+    mapping(address => uint) public withdrawBalance;
 
     modifier onlyOwner() {
         require(msg.sender == owner, "only the owner");
@@ -84,11 +74,8 @@ contract Pool {
         usdcAddress.transfer(msg.sender, _amount);
     }
 
-    function withdrawalLoan(uint _loanId) public {
-        uint loanIndex;
-
-        if (loanIndex > 0) {
-            loans[loanIndex].isPaid = true;
+    function lockLoan(uint _loanId, uint _amount, address receiver) public {
+        if (_loanId > 0 && !loans[_loanId].isPaid) {
             // calculate lender remain fund
             uint totalRemainFund = 0;
             for (uint i = 0; i < lenders.length; i++) {
@@ -96,25 +83,41 @@ contract Pool {
             }
 
             uint totalLock = 0;
+            uint totalRatios = 0;
             for (uint i = 0; i < lenders.length; i++) {
                 if (i != lenders.length - 1) {
                     uint lockFund = (lenderRemainFund[lenders[i]] /
-                        totalRemainFund) * loans[msg.sender][loanIndex].amount;
+                        totalRemainFund) * _amount;
                     lenderLockFund[lenders[i]] += lockFund;
                     lenderRemainFund[lenders[i]] -= lockFund;
                     totalLock += lockFund;
+                    loans[_loanId].lenders.push(lenders[i]);
+                    loans[_loanId].ratios.push(
+                        (lenderRemainFund[lenders[i]] / totalRemainFund) * 10000
+                    );
+                    totalRatios =
+                        (lenderRemainFund[lenders[i]] / totalRemainFund) *
+                        10000;
                 } else {
-                    uint lockFund = loans[msg.sender][loanIndex].amount -
-                        totalLock;
+                    uint lockFund = _amount - totalLock;
                     lenderLockFund[lenders[i]] += lockFund;
                     lenderRemainFund[lenders[i]] -= lockFund;
+                    loans[_loanId].lenders.push(lenders[i]);
+                    loans[_loanId].ratios.push(10000 - totalRatios);
                 }
             }
 
-            usdcAddress.transfer(
-                msg.sender,
-                loans[msg.sender][loanIndex].amount
-            );
+            loans[_loanId].isPaid = true;
+
+            withdrawBalance[receiver] += _amount;
+        }
+    }
+
+    function withdrawLoan() public {
+        if (withdrawBalance[msg.sender] > 0) {
+            uint amount = withdrawBalance[msg.sender];
+            withdrawBalance[msg.sender] = 0;
+            usdcAddress.transfer(msg.sender, amount);
         }
     }
 
