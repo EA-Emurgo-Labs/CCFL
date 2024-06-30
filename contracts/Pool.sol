@@ -24,6 +24,7 @@ contract Pool {
 
     mapping(uint => Loan) public loans;
     mapping(address => uint) public withdrawBalance;
+    mapping(address => uint) public monthlyPaymentBalance;
 
     modifier onlyOwner() {
         require(msg.sender == owner, "only the owner");
@@ -111,6 +112,25 @@ contract Pool {
 
             withdrawBalance[receiver] += _amount;
         }
+    }
+
+    function monthlyPaymentUsdcTokens(
+        uint _loanId,
+        uint _amount
+    ) public checkUsdcAllowance(_amount) {
+        // check a new lender
+        bool existedLender = false;
+        for (uint i = 0; i < lenders.length; i++) {
+            if (lenders[i] == msg.sender) {
+                existedLender = true;
+                break;
+            }
+        }
+        if (!existedLender) {
+            lenders.push(msg.sender);
+        }
+        lenderRemainFund[msg.sender] += _amount;
+        usdcAddress.transferFrom(msg.sender, address(this), _amount);
     }
 
     function withdrawLoan() public {

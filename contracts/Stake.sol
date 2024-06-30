@@ -15,11 +15,7 @@ contract Stake {
     address payable public owner;
     IERC20 public usdcAddress;
     IERC20 public linkAddress;
-    mapping(address => uint) public lenderLockFund;
-    mapping(address => uint) public lenderRemainFund;
-    address[] public lenders;
 
-    mapping(address => uint) public collateralLink;
     uint public loandIds;
     IPoolAddressesProvider public immutable ADDRESSES_PROVIDER;
     IPool public immutable POOL;
@@ -74,6 +70,35 @@ contract Stake {
         uint16 referralCode = 0;
         POOL.supply(asset, amount, onBehalfOf, referralCode);
         emit LiquiditySupplied(onBehalfOf, asset, amount);
+    }
+
+    function withdrawLiquidity(
+        address _token,
+        uint256 _amount
+    ) external returns (uint256) {
+        address asset = _token;
+        address to = address(this);
+        uint256 amount = _amount;
+        uint256 withdrawn = POOL.withdraw(asset, amount, to);
+        emit LiquidityWithdrawn(to, asset, amount);
+        return withdrawn;
+    }
+
+    function getUserAccountData(
+        address user
+    )
+        external
+        view
+        returns (
+            uint256 totalCollateralBase,
+            uint256 totalDebtBase,
+            uint256 availableBorrowsBase,
+            uint256 currentLiquidationThreshold,
+            uint256 ltv,
+            uint256 healthFactor
+        )
+    {
+        return POOL.getUserAccountData(user);
     }
 
     receive() external payable {}
