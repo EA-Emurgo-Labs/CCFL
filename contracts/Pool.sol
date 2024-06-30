@@ -33,7 +33,8 @@ contract Pool {
         _;
     }
 
-    event Withdrawal(uint amount, uint when);
+    event Withdraw(address user, uint amount, uint when);
+    event Deposit(address user, uint amount, uint when);
 
     constructor(IERC20 _usdcAddress) payable {
         usdcAddress = _usdcAddress;
@@ -63,6 +64,7 @@ contract Pool {
         if (!existedLender) {
             lenders.push(msg.sender);
         }
+        emit Deposit(msg.sender, _amount, block.timestamp);
         lenderRemainFund[msg.sender] += _amount;
         totalRemainFund += _amount;
         usdcAddress.transferFrom(msg.sender, address(this), _amount);
@@ -73,8 +75,21 @@ contract Pool {
             lenderRemainFund[msg.sender] >= _amount,
             "Balance is not enough"
         );
-        emit Withdrawal(_amount, block.timestamp);
+        emit Withdraw(msg.sender, _amount, block.timestamp);
         lenderRemainFund[msg.sender] -= _amount;
+        if (
+            lenderLockFund[msg.sender] <= 0 && lenderRemainFund[msg.sender] <= 0
+        ) {
+            uint deleteIndex = 0;
+            for (uint i = 0; i < lenders.length; i++) {
+                if (lenders[i] == msg.sender) deleteIndex = i;
+            }
+
+            if (lenders[deleteIndex] == msg.sender) {
+                lenders[deleteIndex] = lenders[lenders.length - 1];
+                delete lenders[lenders.length - 1];
+            }
+        }
         usdcAddress.transfer(msg.sender, _amount);
     }
 
@@ -126,19 +141,20 @@ contract Pool {
         uint _loanId,
         uint _amount
     ) public checkUsdcAllowance(_amount) {
-        // check a new lender
-        bool existedLender = false;
-        for (uint i = 0; i < lenders.length; i++) {
-            if (lenders[i] == msg.sender) {
-                existedLender = true;
-                break;
-            }
-        }
-        if (!existedLender) {
-            lenders.push(msg.sender);
-        }
-        lenderRemainFund[msg.sender] += _amount;
-        usdcAddress.transferFrom(msg.sender, address(this), _amount);
+        // TODO
+        // // check a new lender
+        // bool existedLender = false;
+        // for (uint i = 0; i < lenders.length; i++) {
+        //     if (lenders[i] == msg.sender) {
+        //         existedLender = true;
+        //         break;
+        //     }
+        // }
+        // if (!existedLender) {
+        //     lenders.push(msg.sender);
+        // }
+        // lenderRemainFund[msg.sender] += _amount;
+        // usdcAddress.transferFrom(msg.sender, address(this), _amount);
     }
 
     function withdrawLoan() public {
