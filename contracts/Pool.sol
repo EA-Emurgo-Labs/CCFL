@@ -20,6 +20,8 @@ contract Pool {
     IERC20 public usdcAddress;
     mapping(address => uint) public lenderLockFund;
     mapping(address => uint) public lenderRemainFund;
+    uint public totalLockFund;
+    uint public totalRemainFund;
     address[] public lenders;
 
     mapping(uint => Loan) public loans;
@@ -62,6 +64,7 @@ contract Pool {
             lenders.push(msg.sender);
         }
         lenderRemainFund[msg.sender] += _amount;
+        totalRemainFund += _amount;
         usdcAddress.transferFrom(msg.sender, address(this), _amount);
     }
 
@@ -76,17 +79,21 @@ contract Pool {
     }
 
     function lockLoan(uint _loanId, uint _amount, address receiver) public {
-        if (_loanId > 0 && !loans[_loanId].isPaid) {
-            // calculate lender remain fund
-            uint totalRemainFund = 0;
-            for (uint i = 0; i < lenders.length; i++) {
-                totalRemainFund += lenderRemainFund[lenders[i]];
-            }
-
+        if (
+            _loanId > 0 && !loans[_loanId].isPaid && totalRemainFund >= _amount
+        ) {
             uint totalLock = 0;
             uint totalRatios = 0;
+            uint[] memory emptyFund = new uint[](lenders.length);
+            uint last = 0;
             for (uint i = 0; i < lenders.length; i++) {
-                if (i != lenders.length - 1) {
+                if (lenderRemainFund[lenders[i]] <= 0) {
+                    emptyFund[i] = 1;
+                } else last = i;
+            }
+
+            for (uint i = 0; i < lenders.length; i++) {
+                if (i != last && emptyFund[i] != 1) {
                     uint lockFund = (lenderRemainFund[lenders[i]] /
                         totalRemainFund) * _amount;
                     lenderLockFund[lenders[i]] += lockFund;
@@ -99,7 +106,7 @@ contract Pool {
                     totalRatios =
                         (lenderRemainFund[lenders[i]] / totalRemainFund) *
                         10000;
-                } else {
+                } else if (i == last) {
                     uint lockFund = _amount - totalLock;
                     lenderLockFund[lenders[i]] += lockFund;
                     lenderRemainFund[lenders[i]] -= lockFund;
@@ -111,6 +118,7 @@ contract Pool {
             loans[_loanId].isPaid = true;
 
             withdrawBalance[receiver] += _amount;
+            totalLockFund += _amount;
         }
     }
 
