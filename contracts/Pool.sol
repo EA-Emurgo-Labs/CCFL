@@ -25,7 +25,7 @@ contract Pool {
     address[] public lenders;
 
     mapping(uint => Loan) public loans;
-    mapping(address => uint) public withdrawBalance;
+    mapping(address => uint) public loanBalance;
     mapping(address => uint) public monthlyPaymentBalance;
 
     modifier onlyOwner() {
@@ -35,6 +35,8 @@ contract Pool {
 
     event Withdraw(address user, uint amount, uint when);
     event Deposit(address user, uint amount, uint when);
+    event WithdrawLoan(address user, uint amount, uint when);
+    event LockLoan(uint loanId, uint amount, address borrower, uint when);
 
     constructor(IERC20 _usdcAddress) payable {
         usdcAddress = _usdcAddress;
@@ -93,7 +95,7 @@ contract Pool {
         usdcAddress.transfer(msg.sender, _amount);
     }
 
-    function lockLoan(uint _loanId, uint _amount, address receiver) public {
+    function lockLoan(uint _loanId, uint _amount, address _borrower) public {
         if (
             _loanId > 0 && !loans[_loanId].isPaid && totalRemainFund >= _amount
         ) {
@@ -132,8 +134,9 @@ contract Pool {
 
             loans[_loanId].isPaid = true;
 
-            withdrawBalance[receiver] += _amount;
+            loanBalance[_borrower] += _amount;
             totalLockFund += _amount;
+            emit LockLoan(_loanId, _amount, _borrower, block.timestamp);
         }
     }
 
@@ -158,9 +161,10 @@ contract Pool {
     }
 
     function withdrawLoan() public {
-        if (withdrawBalance[msg.sender] > 0) {
-            uint amount = withdrawBalance[msg.sender];
-            withdrawBalance[msg.sender] = 0;
+        if (loanBalance[msg.sender] > 0) {
+            uint amount = loanBalance[msg.sender];
+            loanBalance[msg.sender] = 0;
+            emit WithdrawLoan(msg.sender, amount, block.timestamp);
             usdcAddress.transfer(msg.sender, amount);
         }
     }
