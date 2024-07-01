@@ -191,6 +191,7 @@ contract CCFLPool is ICCFLPool {
         }
         loans[_loanId].isClosed = true;
         usdcAddress.transferFrom(msg.sender, address(this), _amount);
+        emit CloseLoan(_loanId, _amount, msg.sender, block.timestamp);
     }
 
     function withdrawLoan() public {
