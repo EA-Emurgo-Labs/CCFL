@@ -12,6 +12,8 @@ struct Loan {
     uint[] ratios;
     bool isPaid;
     uint amount;
+    uint monthlyPayment;
+    bool isClosed;
 }
 
 /// @title CCFL contract
@@ -92,7 +94,12 @@ contract CCFLPool is ICCFLPool {
         usdcAddress.transfer(msg.sender, _amount);
     }
 
-    function lockLoan(uint _loanId, uint _amount, address _borrower) public {
+    function lockLoan(
+        uint _loanId,
+        uint _amount,
+        uint _monthlyPayment,
+        address _borrower
+    ) public {
         if (
             _loanId > 0 && !loans[_loanId].isPaid && totalRemainFund >= _amount
         ) {
@@ -131,6 +138,7 @@ contract CCFLPool is ICCFLPool {
 
             loans[_loanId].isPaid = true;
             loans[_loanId].amount = _amount;
+            loans[_loanId].monthlyPayment = _monthlyPayment;
             loanBalance[_borrower] += _amount;
             totalLockFund += _amount;
             emit LockLoan(_loanId, _amount, _borrower, block.timestamp);
@@ -141,22 +149,47 @@ contract CCFLPool is ICCFLPool {
         uint _loanId,
         uint _amount
     ) public checkUsdcAllowance(_amount) {
-        require(_amount == loans[_loanId].amount, "Do not enough amount");
+        require(
+            _amount == loans[_loanId].monthlyPayment,
+            "Do not enough amount"
+        );
         uint pay = 0;
         for (uint i = 0; i < loans[_loanId].lenders.length; i++) {
             if (i != loans[_loanId].lenders.length - 1) {
-                monthlyPaymentBalance[loans[_loanId].lenders[i]] +=
-                    (loans[_loanId].amount * loans[_loanId].ratios[i]) /
-                    10000;
-                pay +=
-                    (loans[_loanId].amount * loans[_loanId].ratios[i]) /
-                    10000;
+                uint returnAmount = (loans[_loanId].monthlyPayment *
+                    loans[_loanId].ratios[i]) / 10000;
+                monthlyPaymentBalance[
+                    loans[_loanId].lenders[i]
+                ] += returnAmount;
+                pay += returnAmount;
             } else {
                 monthlyPaymentBalance[loans[_loanId].lenders[i]] +=
                     loans[_loanId].amount -
                     pay;
             }
         }
+        usdcAddress.transferFrom(msg.sender, address(this), _amount);
+    }
+
+    function closeLoan(
+        uint _loanId,
+        uint _amount
+    ) public checkUsdcAllowance(_amount) {
+        require(_amount == loans[_loanId].amount, "Do not enough amount");
+        uint pay = 0;
+        for (uint i = 0; i < loans[_loanId].lenders.length; i++) {
+            if (i != loans[_loanId].lenders.length - 1) {
+                uint returnAmount = (loans[_loanId].amount *
+                    loans[_loanId].ratios[i]) / 10000;
+                lenderLockFund[lenders[i]] -= returnAmount;
+                lenderRemainFund[lenders[i]] += returnAmount;
+                pay += returnAmount;
+            } else {
+                lenderLockFund[lenders[i]] -= loans[_loanId].amount - pay;
+                lenderRemainFund[lenders[i]] += loans[_loanId].amount - pay;
+            }
+        }
+        loans[_loanId].isClosed = true;
         usdcAddress.transferFrom(msg.sender, address(this), _amount);
     }
 

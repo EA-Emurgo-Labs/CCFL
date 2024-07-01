@@ -116,7 +116,7 @@ contract CCFL {
         loan.monthlyPayment = _monthlyPayment;
         loans[_borrower].push(loan);
         loandIds++;
-        ccflPool.lockLoan(loan.loanId, _amount, _borrower);
+        ccflPool.lockLoan(loan.loanId, _amount, _monthlyPayment, _borrower);
     }
 
     // 3. Monthly payment
@@ -136,7 +136,7 @@ contract CCFL {
         for (uint i = 0; i < loans[msg.sender].length; i++) {
             if (loans[msg.sender][i].loanId == _loanId) {
                 require(
-                    _amount == loans[msg.sender][i].amount,
+                    _amount == loans[msg.sender][i].monthlyPayment,
                     "Wrong monthly payment"
                 );
                 break;
@@ -145,6 +145,22 @@ contract CCFL {
         usdcAddress.transferFrom(msg.sender, address(this), _amount);
         link.approve(address(ccflPool), _amount);
         ccflPool.monthlyPaymentUsdcTokens(_loanId, _amount);
+    }
+
+    // 4. close loan
+    function closeLoan(uint _loanId, uint _amount) external {
+        for (uint i = 0; i < loans[msg.sender].length; i++) {
+            if (loans[msg.sender][i].loanId == _loanId) {
+                require(
+                    _amount == loans[msg.sender][i].amount,
+                    "Wrong loan amount"
+                );
+                break;
+            }
+        }
+        usdcAddress.transferFrom(msg.sender, address(this), _amount);
+        link.approve(address(ccflPool), _amount);
+        ccflPool.closeLoan(_loanId, _amount);
     }
 
     function getLatestPrice() public view returns (int256) {
