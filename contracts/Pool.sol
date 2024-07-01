@@ -10,6 +10,7 @@ struct Loan {
     address[] lenders;
     uint[] ratios;
     bool isPaid;
+    uint amount;
 }
 
 /// @title CCFL contract
@@ -36,6 +37,7 @@ contract Pool {
     event Withdraw(address user, uint amount, uint when);
     event Deposit(address user, uint amount, uint when);
     event WithdrawLoan(address user, uint amount, uint when);
+    event WithdrawMonthlyPayment(address user, uint amount, uint when);
     event LockLoan(uint loanId, uint amount, address borrower, uint when);
 
     constructor(IERC20 _usdcAddress) payable {
@@ -133,7 +135,7 @@ contract Pool {
             }
 
             loans[_loanId].isPaid = true;
-
+            loans[_loanId].amount = _amount;
             loanBalance[_borrower] += _amount;
             totalLockFund += _amount;
             emit LockLoan(_loanId, _amount, _borrower, block.timestamp);
@@ -144,20 +146,23 @@ contract Pool {
         uint _loanId,
         uint _amount
     ) public checkUsdcAllowance(_amount) {
-        // TODO
-        // // check a new lender
-        // bool existedLender = false;
-        // for (uint i = 0; i < lenders.length; i++) {
-        //     if (lenders[i] == msg.sender) {
-        //         existedLender = true;
-        //         break;
-        //     }
-        // }
-        // if (!existedLender) {
-        //     lenders.push(msg.sender);
-        // }
-        // lenderRemainFund[msg.sender] += _amount;
-        // usdcAddress.transferFrom(msg.sender, address(this), _amount);
+        require(_amount == loans[_loanId].amount, "Do not enough amount");
+        uint pay = 0;
+        for (uint i = 0; i < loans[_loanId].lenders.length; i++) {
+            if (i != loans[_loanId].lenders.length - 1) {
+                monthlyPaymentBalance[loans[_loanId].lenders[i]] +=
+                    (loans[_loanId].amount * loans[_loanId].ratios[i]) /
+                    10000;
+                pay +=
+                    (loans[_loanId].amount * loans[_loanId].ratios[i]) /
+                    10000;
+            } else {
+                monthlyPaymentBalance[loans[_loanId].lenders[i]] +=
+                    loans[_loanId].amount -
+                    pay;
+            }
+        }
+        usdcAddress.transferFrom(msg.sender, address(this), _amount);
     }
 
     function withdrawLoan() public {
@@ -165,6 +170,15 @@ contract Pool {
             uint amount = loanBalance[msg.sender];
             loanBalance[msg.sender] = 0;
             emit WithdrawLoan(msg.sender, amount, block.timestamp);
+            usdcAddress.transfer(msg.sender, amount);
+        }
+    }
+
+    function withdrawMonthlyPayment() public {
+        if (monthlyPaymentBalance[msg.sender] > 0) {
+            uint amount = monthlyPaymentBalance[msg.sender];
+            monthlyPaymentBalance[msg.sender] = 0;
+            emit WithdrawMonthlyPayment(msg.sender, amount, block.timestamp);
             usdcAddress.transfer(msg.sender, amount);
         }
     }
