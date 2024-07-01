@@ -8,6 +8,8 @@ import {IPool} from "@aave/core-v3/contracts/interfaces/IPool.sol";
 import {IPoolAddressesProvider} from "@aave/core-v3/contracts/interfaces/IPoolAddressesProvider.sol";
 import "@openzeppelin/contracts/proxy/Clones.sol";
 import "./ICCFLPool.sol";
+import "@openzeppelin/contracts/proxy/Clones.sol";
+import "./ICCFLStake.sol";
 
 interface AggregatorV3Interface {
     function latestRoundData()
@@ -35,6 +37,7 @@ struct Loan {
 /// @author
 /// @notice Link/usd
 contract CCFL {
+    using Clones for address;
     address payable public owner;
     IERC20 public usdcAddress;
     IERC20 public linkAddress;
@@ -42,11 +45,12 @@ contract CCFL {
 
     mapping(address => Loan[]) public loans;
     mapping(address => uint) public collateralLink;
+    mapping(address => uint) public stakeAaveLink;
     uint public loandIds;
     AggregatorV3Interface internal priceFeed;
     ICCFLPool public ccflPool;
-
     IERC20 private link;
+    ICCFLStake public ccflStake;
 
     event LiquiditySupplied(
         address indexed onBehalfOf,
@@ -94,10 +98,14 @@ contract CCFL {
     }
 
     function depositCollateralLink(
-        uint _amount
+        uint _amount,
+        uint _percent
     ) public checkLinkAllowance(_amount) {
-        collateralLink[msg.sender] += _amount;
+        collateralLink[msg.sender] += (_amount * _percent) / 100;
+        stakeAaveLink[msg.sender] += _amount - (_amount * _percent) / 100;
         linkAddress.transferFrom(msg.sender, address(this), _amount);
+        // clone an address to save atoken
+        address aaveStake = address(ccflStake).clone();
     }
 
     // 2. create loan

@@ -7,11 +7,12 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IPool} from "@aave/core-v3/contracts/interfaces/IPool.sol";
 import {IPoolAddressesProvider} from "@aave/core-v3/contracts/interfaces/IPoolAddressesProvider.sol";
 import "@openzeppelin/contracts/proxy/Clones.sol";
+import "./ICCFLStake.sol";
 
 /// @title CCFL contract
 /// @author
 /// @notice Link/usd
-contract Stake {
+contract CCFLStake is ICCFLStake {
     address payable public owner;
     IERC20 public usdcAddress;
     IERC20 public linkAddress;
@@ -21,23 +22,10 @@ contract Stake {
 
     IERC20 private link;
 
-    event LiquiditySupplied(
-        address indexed onBehalfOf,
-        address indexed _token,
-        uint256 indexed _amount
-    );
-    event LiquidityWithdrawn(
-        address indexed to,
-        address indexed _token,
-        uint256 indexed _amount
-    );
-
     modifier onlyOwner() {
         require(msg.sender == owner, "only the owner");
         _;
     }
-
-    event Withdrawal(uint amount, uint when);
 
     constructor(
         IERC20 _usdcAddress,
