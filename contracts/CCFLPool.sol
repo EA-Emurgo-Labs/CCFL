@@ -4,6 +4,7 @@ pragma solidity ^0.8.24;
 // Uncomment this line to use console.log
 import "hardhat/console.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "./ICCFLPool.sol";
 
 struct Loan {
     uint loanId;
@@ -16,7 +17,7 @@ struct Loan {
 /// @title CCFL contract
 /// @author
 /// @notice Link/usd
-contract Pool {
+contract CCFLPool is ICCFLPool {
     address payable public owner;
     IERC20 public usdcAddress;
     mapping(address => uint) public lenderLockFund;
@@ -33,12 +34,6 @@ contract Pool {
         require(msg.sender == owner, "only the owner");
         _;
     }
-
-    event Withdraw(address user, uint amount, uint when);
-    event Deposit(address user, uint amount, uint when);
-    event WithdrawLoan(address user, uint amount, uint when);
-    event WithdrawMonthlyPayment(address user, uint amount, uint when);
-    event LockLoan(uint loanId, uint amount, address borrower, uint when);
 
     constructor(IERC20 _usdcAddress) payable {
         usdcAddress = _usdcAddress;

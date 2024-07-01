@@ -16,7 +16,6 @@ contract Stake {
     IERC20 public usdcAddress;
     IERC20 public linkAddress;
 
-    uint public loandIds;
     IPoolAddressesProvider public immutable ADDRESSES_PROVIDER;
     IPool public immutable POOL;
 
@@ -48,19 +47,9 @@ contract Stake {
         linkAddress = _linkAddress;
         usdcAddress = _usdcAddress;
         owner = payable(msg.sender);
-        loandIds = 1;
         ADDRESSES_PROVIDER = IPoolAddressesProvider(_addressProvider);
         POOL = IPool(ADDRESSES_PROVIDER.getPool());
         link = IERC20(linkAddress);
-    }
-
-    // Modifier to check token allowance
-    modifier checkUsdcAllowance(uint amount) {
-        require(
-            usdcAddress.allowance(msg.sender, address(this)) >= amount,
-            "Error"
-        );
-        _;
     }
 
     function supplyLiquidity(address _token, uint256 _amount) external {
