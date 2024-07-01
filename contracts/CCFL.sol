@@ -119,6 +119,34 @@ contract CCFL {
         ccflPool.lockLoan(loan.loanId, _amount, _borrower);
     }
 
+    // 3. Monthly payment
+    // Modifier to check token allowance
+    modifier checkUsdcAllowance(uint amount) {
+        require(
+            usdcAddress.allowance(msg.sender, address(this)) >= amount,
+            "Error"
+        );
+        _;
+    }
+
+    function depositMonthlyPayment(
+        uint _loanId,
+        uint _amount
+    ) public checkUsdcAllowance(_amount) {
+        for (uint i = 0; i < loans[msg.sender].length; i++) {
+            if (loans[msg.sender][i].loanId == _loanId) {
+                require(
+                    _amount == loans[msg.sender][i].amount,
+                    "Wrong monthly payment"
+                );
+                break;
+            }
+        }
+        usdcAddress.transferFrom(msg.sender, address(this), _amount);
+        link.approve(address(ccflPool), _amount);
+        ccflPool.monthlyPaymentUsdcTokens(_loanId, _amount);
+    }
+
     function getLatestPrice() public view returns (int256) {
         (
             uint80 roundID,
