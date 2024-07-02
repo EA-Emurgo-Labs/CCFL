@@ -10,6 +10,9 @@ import "@openzeppelin/contracts/proxy/Clones.sol";
 import "./ICCFLPool.sol";
 import "@openzeppelin/contracts/proxy/Clones.sol";
 import "./ICCFLStake.sol";
+import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
+import "@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol";
+import "@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol";
 
 interface AggregatorV3Interface {
     function latestRoundData()
@@ -55,6 +58,11 @@ contract CCFL {
     mapping(address => address) public aaveStakeAddresses;
     IPoolAddressesProvider public immutable ADDRESSES_PROVIDER;
     IPool public immutable POOL;
+    IUniswapV3Pool uniswapPool;
+    ISwapRouter public immutable swapRouter;
+    address public constant DAI = 0x6B175474E89094C44Da98b954EedeAC495271d0F;
+    address public constant WETH9 = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
+    uint24 public constant feeTier = 3000;
 
     event LiquiditySupplied(
         address indexed onBehalfOf,
@@ -78,7 +86,8 @@ contract CCFL {
         IERC20 _usdcAddress,
         IERC20 _linkAddress,
         address _linkAggretor,
-        ICCFLPool _ccflPool
+        ICCFLPool _ccflPool,
+        ISwapRouter _swapRouter
     ) payable {
         linkAddress = _linkAddress;
         usdcAddress = _usdcAddress;
@@ -89,6 +98,7 @@ contract CCFL {
         link = IERC20(linkAddress);
         ccflPool = _ccflPool;
         POOL = IPool(ADDRESSES_PROVIDER.getPool());
+        swapRouter = _swapRouter;
     }
 
     // create loan
@@ -218,14 +228,50 @@ contract CCFL {
         return healthFactor;
     }
 
+    function swapWETHForDAI(
+        uint256 amountIn
+    ) public returns (uint256 amountOut) {
+        // Transfer the specified amount of WETH9 to this contract.
+        TransferHelper.safeTransferFrom(
+            WETH9,
+            msg.sender,
+            address(this),
+            amountIn
+        );
+        // Approve the router to spend WETH9.
+        TransferHelper.safeApprove(WETH9, address(swapRouter), amountIn);
+        // Note: To use this example, you should explicitly set slippage limits, omitting for simplicity
+        uint256 minOut = /* Calculate min output */ 0;
+        uint160 priceLimit = /* Calculate price limit */ 0;
+        // Create the params that will be used to execute the swap
+        ISwapRouter.ExactInputSingleParams memory params = ISwapRouter
+            .ExactInputSingleParams({
+                tokenIn: WETH9,
+                tokenOut: DAI,
+                fee: feeTier,
+                recipient: msg.sender,
+                deadline: block.timestamp,
+                amountIn: amountIn,
+                amountOutMinimum: minOut,
+                sqrtPriceLimitX96: priceLimit
+            });
+        // The call to `exactInputSingle` executes the swap.
+        amountOut = swapRouter.exactInputSingle(params);
+    }
+
     function liquidate(address _user) external {
         require(getHealthFactor(_user) < 100, "Can not liquidate");
         // TODO:
         // get collateral from aave
         ICCFLStake staker = ICCFLStake(aaveStakeAddresses[_user]);
         uint balance = staker.getBalance();
-        staker.withdrawLiquidity(balance, address(this));
+        uint reward = staker.withdrawLiquidity(balance, address(this));
+        uint amountShouldSell = ((totalLoans[_user]) * 105) /
+            getLatestPrice() /
+            100;
+
         // sell collateral on uniswap
+        swapWETHForDAI(amountShouldSell);
     }
 
     function liquidateMonthlyPayment(uint _loanId) external {}
