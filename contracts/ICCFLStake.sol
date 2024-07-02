@@ -28,7 +28,6 @@ interface ICCFLStake {
     function supplyLiquidity(address _token, uint256 _amount) external;
 
     function withdrawLiquidity(
-        address _token,
         uint256 _amount,
         address _to
     ) external returns (uint256);
@@ -46,4 +45,6 @@ interface ICCFLStake {
             uint256 ltv,
             uint256 healthFactor
         );
+
+    function getBalance() external returns (uint);
 }

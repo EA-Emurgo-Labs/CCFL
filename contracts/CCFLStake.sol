@@ -20,6 +20,8 @@ contract CCFLStake is ICCFLStake {
     IPoolAddressesProvider public immutable ADDRESSES_PROVIDER;
     IPool public immutable POOL;
 
+    IERC20 public aToken;
+
     IERC20 private link;
 
     modifier onlyOwner() {
@@ -30,7 +32,8 @@ contract CCFLStake is ICCFLStake {
     constructor(
         IERC20 _usdcAddress,
         IERC20 _linkAddress,
-        address _addressProvider
+        address _addressProvider,
+        IERC20 _aToken
     ) payable {
         linkAddress = _linkAddress;
         usdcAddress = _usdcAddress;
@@ -38,6 +41,7 @@ contract CCFLStake is ICCFLStake {
         ADDRESSES_PROVIDER = IPoolAddressesProvider(_addressProvider);
         POOL = IPool(ADDRESSES_PROVIDER.getPool());
         link = IERC20(linkAddress);
+        aToken = _aToken;
     }
 
     function supplyLiquidity(address _token, uint256 _amount) external {
@@ -50,16 +54,17 @@ contract CCFLStake is ICCFLStake {
     }
 
     function withdrawLiquidity(
-        address _token,
         uint256 _amount,
         address _to
     ) external returns (uint256) {
-        address asset = _token;
-        address to = address(this);
         uint256 amount = _amount;
-        uint256 withdrawn = POOL.withdraw(asset, amount, _to);
-        emit LiquidityWithdrawn(_to, asset, amount);
+        uint256 withdrawn = POOL.withdraw(address(aToken), amount, _to);
+        emit LiquidityWithdrawn(_to, address(aToken), amount);
         return withdrawn;
+    }
+
+    function getBalance() external returns (uint) {
+        return link.balanceOf(address(this));
     }
 
     function getUserAccountData(

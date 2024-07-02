@@ -214,11 +214,21 @@ contract CCFL {
         uint healthFactor = (linkPrice * (collateral + stake) * 8) /
             10 /
             totalLoans[user] /
-            1e8;
+            1e6;
         return healthFactor;
     }
 
-    function liquidate() public {}
+    function liquidate(address _user) external {
+        require(getHealthFactor(_user) < 100, "Can not liquidate");
+        // TODO:
+        // get collateral from aave
+        ICCFLStake staker = ICCFLStake(aaveStakeAddresses[_user]);
+        uint balance = staker.getBalance();
+        staker.withdrawLiquidity(balance, address(this));
+        // sell collateral on uniswap
+    }
+
+    function liquidateMonthlyPayment(uint _loanId) external {}
 
     function approveLINK(
         uint256 _amount,
