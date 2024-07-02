@@ -51,13 +51,14 @@ contract CCFLStake is ICCFLStake {
 
     function withdrawLiquidity(
         address _token,
-        uint256 _amount
+        uint256 _amount,
+        address _to
     ) external returns (uint256) {
         address asset = _token;
         address to = address(this);
         uint256 amount = _amount;
-        uint256 withdrawn = POOL.withdraw(asset, amount, to);
-        emit LiquidityWithdrawn(to, asset, amount);
+        uint256 withdrawn = POOL.withdraw(asset, amount, _to);
+        emit LiquidityWithdrawn(_to, asset, amount);
         return withdrawn;
     }
 

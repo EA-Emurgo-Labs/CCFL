@@ -44,6 +44,7 @@ contract CCFL {
     AggregatorV3Interface public linkPriceFeed;
 
     mapping(address => Loan[]) public loans;
+    mapping(address => uint) public totalLoans;
     mapping(address => uint) public collateralLink;
     mapping(address => uint) public stakeAaveLink;
     uint public loandIds;
@@ -51,6 +52,9 @@ contract CCFL {
     ICCFLPool public ccflPool;
     IERC20 private link;
     ICCFLStake public ccflStake;
+    mapping(address => address) public aaveStakeAddresses;
+    IPoolAddressesProvider public immutable ADDRESSES_PROVIDER;
+    IPool public immutable POOL;
 
     event LiquiditySupplied(
         address indexed onBehalfOf,
@@ -84,6 +88,7 @@ contract CCFL {
         linkPriceFeed = AggregatorV3Interface(_linkAggretor);
         link = IERC20(linkAddress);
         ccflPool = _ccflPool;
+        POOL = IPool(ADDRESSES_PROVIDER.getPool());
     }
 
     // create loan
@@ -97,6 +102,17 @@ contract CCFL {
         _;
     }
 
+    // 1.1 add liquidity aave
+    function supplyLiquidity(
+        address _token,
+        uint256 _amount,
+        address _onBehalfOf
+    ) internal {
+        uint16 referralCode = 0;
+        POOL.supply(_token, _amount, _onBehalfOf, referralCode);
+        emit LiquiditySupplied(_onBehalfOf, _token, _amount);
+    }
+
     function depositCollateralLink(
         uint _amount,
         uint _percent
@@ -106,6 +122,12 @@ contract CCFL {
         linkAddress.transferFrom(msg.sender, address(this), _amount);
         // clone an address to save atoken
         address aaveStake = address(ccflStake).clone();
+        aaveStakeAddresses[msg.sender] = aaveStake;
+        supplyLiquidity(
+            address(linkAddress),
+            _amount - (_amount * _percent) / 100,
+            aaveStake
+        );
     }
 
     // 2. create loan
@@ -125,6 +147,7 @@ contract CCFL {
         loans[_borrower].push(loan);
         loandIds++;
         ccflPool.lockLoan(loan.loanId, _amount, _monthlyPayment, _borrower);
+        totalLoans[_borrower] += _amount;
     }
 
     // 3. Monthly payment
@@ -171,7 +194,7 @@ contract CCFL {
         ccflPool.closeLoan(_loanId, _amount);
     }
 
-    function getLatestPrice() public view returns (int256) {
+    function getLatestPrice() public view returns (uint) {
         (
             uint80 roundID,
             int256 price,
@@ -180,8 +203,22 @@ contract CCFL {
             uint80 answeredInRound
         ) = priceFeed.latestRoundData();
         // for LINK / USD price is scaled up by 10 ** 8
-        return price / 1e8;
+        return uint(price);
     }
+
+    // 5. Liquidation
+    function getHealthFactor(address user) public view returns (uint) {
+        uint linkPrice = getLatestPrice();
+        uint collateral = collateralLink[user];
+        uint stake = stakeAaveLink[user];
+        uint healthFactor = (linkPrice * (collateral + stake) * 8) /
+            10 /
+            totalLoans[user] /
+            1e8;
+        return healthFactor;
+    }
+
+    function liquidate() public {}
 
     function approveLINK(
         uint256 _amount,

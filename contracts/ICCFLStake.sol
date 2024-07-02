@@ -29,7 +29,8 @@ interface ICCFLStake {
 
     function withdrawLiquidity(
         address _token,
-        uint256 _amount
+        uint256 _amount,
+        address _to
     ) external returns (uint256);
 
     function getUserAccountData(
