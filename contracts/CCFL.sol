@@ -261,30 +261,58 @@ contract CCFL {
 
     function liquidate(address _user) external {
         require(getHealthFactor(_user) < 100, "Can not liquidate");
-        // TODO:
         // get collateral from aave
         ICCFLStake staker = ICCFLStake(aaveStakeAddresses[_user]);
         uint balance = staker.getBalance();
-        uint reward = staker.withdrawLiquidity(balance, address(this));
+        staker.withdrawLiquidity(balance, address(this));
         uint amountShouldSell = ((totalLoans[_user]) * 105) /
             getLatestPrice() /
             100;
 
         // sell collateral on uniswap
-        uint outAsset = swapWETHForDAI(amountShouldSell);
-        // return loans
+        swapWETHForDAI(amountShouldSell);
+        // close all of loans
         for (uint i = 0; i < loans[_user].length; i++) {
-            usdcAddress.transferFrom(
-                _user,
-                address(this),
-                loans[_user][i].amount
-            );
-            link.approve(address(ccflPool), loans[_user][i].amount);
+            usdcAddress.approve(address(ccflPool), loans[_user][i].amount);
             ccflPool.closeLoan(loans[_user][i].loanId, loans[_user][i].amount);
         }
     }
 
-    function liquidateMonthlyPayment(uint _loanId) external {}
+    function liquidateMonthlyPayment(uint _loanId, address _user) external {
+        // check collater enough
+        uint indexLoan = 0;
+        for (uint i = 0; i < loans[_user].length; i++) {
+            if (loans[_user][i].loanId == _loanId) {
+                indexLoan = i;
+            }
+        }
+        // if not enough withdraw aave
+        if (
+            collateralLink[_user] * getLatestPrice() <
+            loans[_user][indexLoan].amount
+        ) {
+            uint balance = ((loans[_user][indexLoan].amount -
+                collateralLink[_user] *
+                getLatestPrice()) * 105) /
+                getLatestPrice() /
+                100;
+            ICCFLStake staker = ICCFLStake(aaveStakeAddresses[_user]);
+            uint aaveWithdraw = staker.withdrawLiquidity(
+                balance,
+                address(this)
+            );
+            collateralLink[_user] += aaveWithdraw;
+        }
+
+        // sell collateral on uniswap
+        swapWETHForDAI(collateralLink[_user]);
+        // close this loan
+        usdcAddress.approve(address(ccflPool), loans[_user][indexLoan].amount);
+        ccflPool.closeLoan(
+            loans[_user][indexLoan].loanId,
+            loans[_user][indexLoan].amount
+        );
+    }
 
     function approveLINK(
         uint256 _amount,
