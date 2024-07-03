@@ -271,7 +271,17 @@ contract CCFL {
             100;
 
         // sell collateral on uniswap
-        swapWETHForDAI(amountShouldSell);
+        uint outAsset = swapWETHForDAI(amountShouldSell);
+        // return loans
+        for (uint i = 0; i < loans[_user].length; i++) {
+            usdcAddress.transferFrom(
+                _user,
+                address(this),
+                loans[_user][i].amount
+            );
+            link.approve(address(ccflPool), loans[_user][i].amount);
+            ccflPool.closeLoan(loans[_user][i].loanId, loans[_user][i].amount);
+        }
     }
 
     function liquidateMonthlyPayment(uint _loanId) external {}
