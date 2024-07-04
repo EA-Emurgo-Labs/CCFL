@@ -5,6 +5,7 @@ import {
 import { anyValue } from "@nomicfoundation/hardhat-chai-matchers/withArgs";
 import { expect } from "chai";
 import hre from "hardhat";
+import { assert } from "ethers";
 
 describe("CCFL", function () {
   // We define a fixture to reuse the same setup in every test.
@@ -109,7 +110,13 @@ describe("CCFL", function () {
       // borrower lend
       await link.connect(borrower1).approve(ccfl.getAddress(), BigInt(1000e18));
       await ccfl.connect(borrower1).depositCollateralLink(BigInt(1000e18), 100);
-
+      await ccfl
+        .connect(owner)
+        .createLoan(borrower1, BigInt(1000e18), 0, BigInt(100e18));
+      await ccflPool.connect(borrower1).withdrawLoan();
+      expect(BigInt(await usdc.balanceOf(borrower1)).toString()).to.eq(
+        BigInt(1000e18)
+      );
       // borrower return monthly payment
     });
   });
