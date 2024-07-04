@@ -18,7 +18,7 @@ interface AggregatorV3Interface {
 }
 
 contract MockAggregator is AggregatorV3Interface {
-    constructor(uint _unlockTime) payable {}
+    constructor() payable {}
 
     function latestRoundData()
         external

@@ -53,7 +53,6 @@ contract CCFL {
     uint public loandIds;
     AggregatorV3Interface internal priceFeed;
     ICCFLPool public ccflPool;
-    IERC20 private link;
     ICCFLStake public ccflStake;
     mapping(address => address) public aaveStakeAddresses;
     IPoolAddressesProvider public immutable ADDRESSES_PROVIDER;
@@ -85,20 +84,21 @@ contract CCFL {
     constructor(
         IERC20 _usdcAddress,
         IERC20 _linkAddress,
-        address _linkAggretor,
+        AggregatorV3Interface _linkAggregator,
         ICCFLPool _ccflPool,
-        ISwapRouter _swapRouter
-    ) payable {
+        address _swapRouter,
+        IPoolAddressesProvider _poolAddressesProvider
+    ) {
         linkAddress = _linkAddress;
         usdcAddress = _usdcAddress;
         owner = payable(msg.sender);
         loandIds = 1;
         // LINK / USD
-        linkPriceFeed = AggregatorV3Interface(_linkAggretor);
-        link = IERC20(linkAddress);
+        linkPriceFeed = _linkAggregator;
         ccflPool = _ccflPool;
+        ADDRESSES_PROVIDER = _poolAddressesProvider;
         POOL = IPool(ADDRESSES_PROVIDER.getPool());
-        swapRouter = _swapRouter;
+        swapRouter = ISwapRouter(_swapRouter);
     }
 
     // create loan
@@ -184,7 +184,7 @@ contract CCFL {
             }
         }
         usdcAddress.transferFrom(msg.sender, address(this), _amount);
-        link.approve(address(ccflPool), _amount);
+        linkAddress.approve(address(ccflPool), _amount);
         ccflPool.monthlyPaymentUsdcTokens(_loanId, _amount);
     }
 
@@ -200,7 +200,7 @@ contract CCFL {
             }
         }
         usdcAddress.transferFrom(msg.sender, address(this), _amount);
-        link.approve(address(ccflPool), _amount);
+        linkAddress.approve(address(ccflPool), _amount);
         ccflPool.closeLoan(_loanId, _amount);
     }
 
@@ -318,13 +318,13 @@ contract CCFL {
         uint256 _amount,
         address _poolContractAddress
     ) external returns (bool) {
-        return link.approve(_poolContractAddress, _amount);
+        return linkAddress.approve(_poolContractAddress, _amount);
     }
 
     function allowanceLINK(
         address _poolContractAddress
     ) external view returns (uint256) {
-        return link.allowance(address(this), _poolContractAddress);
+        return linkAddress.allowance(address(this), _poolContractAddress);
     }
 
     function getBalance(address _tokenAddress) external view returns (uint256) {
