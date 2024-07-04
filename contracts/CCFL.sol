@@ -128,16 +128,18 @@ contract CCFL {
         uint _percent
     ) public checkLinkAllowance(_amount) {
         collateralLink[msg.sender] += (_amount * _percent) / 100;
-        stakeAaveLink[msg.sender] += _amount - (_amount * _percent) / 100;
+        if (_amount - (_amount * _percent) / 100 > 0) {
+            stakeAaveLink[msg.sender] += _amount - (_amount * _percent) / 100;
+            // clone an address to save atoken
+            address aaveStake = address(ccflStake).clone();
+            aaveStakeAddresses[msg.sender] = aaveStake;
+            supplyLiquidity(
+                address(linkAddress),
+                _amount - (_amount * _percent) / 100,
+                aaveStake
+            );
+        }
         linkAddress.transferFrom(msg.sender, address(this), _amount);
-        // clone an address to save atoken
-        address aaveStake = address(ccflStake).clone();
-        aaveStakeAddresses[msg.sender] = aaveStake;
-        supplyLiquidity(
-            address(linkAddress),
-            _amount - (_amount * _percent) / 100,
-            aaveStake
-        );
     }
 
     // 2. create loan

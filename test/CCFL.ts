@@ -12,7 +12,8 @@ describe("CCFL", function () {
   // and reset Hardhat Network to that snapshot in every test.
   async function deployFixture() {
     // Contracts are deployed using the first signer/account by default
-    const [owner, otherAccount] = await hre.ethers.getSigners();
+    const [owner, borrower1, borrower2, borrower3, lender1, lender2, lender3] =
+      await hre.ethers.getSigners();
 
     const USDC = await hre.ethers.getContractFactory("MyERC20");
     const usdc = await USDC.deploy("USDC", "USDC");
@@ -60,15 +61,61 @@ describe("CCFL", function () {
       await mockPoolAddressesProvider.getAddress()
     );
 
-    return { usdc, ccflPool, ccflStake, ccfl, owner, otherAccount };
+    await link.transfer(borrower1, BigInt(10000e18));
+    await link.transfer(borrower2, BigInt(20000e18));
+    await link.transfer(borrower3, BigInt(30000e18));
+
+    await usdc.transfer(lender1, BigInt(10000e18));
+    await usdc.transfer(lender2, BigInt(20000e18));
+    await usdc.transfer(lender3, BigInt(30000e18));
+
+    return {
+      usdc,
+      link,
+      ccflPool,
+      ccflStake,
+      ccfl,
+      owner,
+      borrower1,
+      borrower2,
+      borrower3,
+      lender1,
+      lender2,
+      lender3,
+    };
   }
 
-  describe("Deployment", function () {
-    it("Should set the right unlockTime", async function () {
-      const { usdc, ccflPool } = await loadFixture(deployFixture);
-      // expect(await lock.unlockTime()).to.equal(unlockTime);
+  describe("Lending", function () {
+    it("Should get loan fund", async function () {
+      const {
+        usdc,
+        link,
+        ccflPool,
+        ccflStake,
+        ccfl,
+        owner,
+        borrower1,
+        borrower2,
+        borrower3,
+        lender1,
+        lender2,
+        lender3,
+      } = await loadFixture(deployFixture);
+      // lender deposit USDC
+      await usdc
+        .connect(lender1)
+        .approve(ccflPool.getAddress(), BigInt(10000e18));
+      await ccflPool.connect(lender1).depositUsdcTokens(BigInt(10000e18));
+      // borrower lend
+      await link.connect(borrower1).approve(ccfl.getAddress(), BigInt(1000e18));
+      await ccfl.connect(borrower1).depositCollateralLink(BigInt(1000e18), 100);
+
+      // borrower return monthly payment
     });
   });
+  describe("Earn", function () {});
+  describe("Liquidation", function () {});
+  describe("Collateral", function () {});
 
   // describe("Deployment", function () {
   //   it("Should set the right unlockTime", async function () {
