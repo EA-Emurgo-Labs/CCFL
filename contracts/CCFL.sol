@@ -34,6 +34,7 @@ struct Loan {
     uint amount;
     uint deadline;
     uint monthlyPayment;
+    uint rateLoan;
 }
 
 /// @title CCFL contract
@@ -41,6 +42,7 @@ struct Loan {
 /// @notice Link/usd
 contract CCFL {
     using Clones for address;
+    uint public rateLoan;
     address payable public owner;
     IERC20 public usdcAddress;
     IERC20 public linkAddress;
@@ -99,6 +101,7 @@ contract CCFL {
         ADDRESSES_PROVIDER = _poolAddressesProvider;
         POOL = IPool(ADDRESSES_PROVIDER.getPool());
         swapRouter = ISwapRouter(_swapRouter);
+        rateLoan = 1200;
     }
 
     // create loan
@@ -143,22 +146,25 @@ contract CCFL {
     }
 
     // 2. create loan
-    function createLoan(
-        address _borrower,
-        uint _amount,
-        uint _deadline,
-        uint _monthlyPayment
-    ) public {
+    function createLoan(uint _amount, uint _days) public {
         Loan memory loan;
+        uint time = _days * (1 days);
+        address _borrower = msg.sender;
         loan.borrower = _borrower;
-        loan.deadline = _deadline;
+        loan.deadline = block.timestamp + time;
         loan.amount = _amount;
         loan.loanId = loandIds;
         loan.isPaid = false;
-        loan.monthlyPayment = _monthlyPayment;
+        loan.monthlyPayment = (_amount * rateLoan) / 10000 / 12;
+        loan.rateLoan = rateLoan;
         loans[_borrower].push(loan);
         loandIds++;
-        ccflPool.lockLoan(loan.loanId, _amount, _monthlyPayment, _borrower);
+        ccflPool.lockLoan(
+            loan.loanId,
+            loan.amount,
+            loan.monthlyPayment,
+            _borrower
+        );
         totalLoans[_borrower] += _amount;
     }
 

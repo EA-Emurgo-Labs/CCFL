@@ -110,9 +110,7 @@ describe("CCFL", function () {
       // borrower lend
       await link.connect(borrower1).approve(ccfl.getAddress(), BigInt(1000e18));
       await ccfl.connect(borrower1).depositCollateralLink(BigInt(1000e18), 100);
-      await ccfl
-        .connect(owner)
-        .createLoan(borrower1, BigInt(1000e18), 0, BigInt(100e18));
+      await ccfl.connect(borrower1).createLoan(BigInt(1000e18), BigInt(90));
       await ccflPool.connect(borrower1).withdrawLoan();
       expect(BigInt(await usdc.balanceOf(borrower1)).toString()).to.eq(
         BigInt(1000e18)
