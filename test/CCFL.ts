@@ -7,7 +7,7 @@ import { expect } from "chai";
 import hre from "hardhat";
 import { assert } from "ethers";
 
-describe("CCFL", function () {
+describe("CCFL system", function () {
   // We define a fixture to reuse the same setup in every test.
   // We use loadFixture to run this setup once, snapshot that state,
   // and reset Hardhat Network to that snapshot in every test.
@@ -128,8 +128,75 @@ describe("CCFL", function () {
       await ccfl.connect(borrower1).closeLoan(1, BigInt(1000e18));
     });
   });
-  describe("Earn", function () {});
-  describe("Liquidation", function () {});
+  describe("Earn", function () {
+    it.only("Should get loan fund", async function () {
+      const {
+        usdc,
+        link,
+        ccflPool,
+        ccflStake,
+        ccfl,
+        owner,
+        borrower1,
+        borrower2,
+        borrower3,
+        lender1,
+        lender2,
+        lender3,
+      } = await loadFixture(deployFixture);
+      // lender deposit USDC
+      await usdc
+        .connect(lender1)
+        .approve(ccflPool.getAddress(), BigInt(10000e18));
+      await ccflPool.connect(lender1).depositUsdcTokens(BigInt(10000e18));
+      // borrower lend
+      await link.connect(borrower1).approve(ccfl.getAddress(), BigInt(1000e18));
+      await ccfl.connect(borrower1).depositCollateralLink(BigInt(1000e18), 50);
+      await ccfl.connect(borrower1).createLoan(BigInt(1000e18), BigInt(90));
+      await ccflPool.connect(borrower1).withdrawLoan();
+      expect(BigInt(await usdc.balanceOf(borrower1)).toString()).to.eq(
+        BigInt(2000e18)
+      );
+      // console.log(await ccfl.loans(borrower1, BigInt(0)));
+      // borrower return monthly payment
+      await usdc.connect(borrower1).approve(ccfl.getAddress(), BigInt(10e18));
+      await ccfl.connect(borrower1).depositMonthlyPayment(1, BigInt(10e18));
+      // close loan
+      await usdc.connect(borrower1).approve(ccfl.getAddress(), BigInt(1000e18));
+      await ccfl.connect(borrower1).closeLoan(1, BigInt(1000e18));
+    });
+  });
+  describe("Liquidation", function () {
+    it.only("Should get loan fund", async function () {
+      const {
+        usdc,
+        link,
+        ccflPool,
+        ccflStake,
+        ccfl,
+        owner,
+        borrower1,
+        borrower2,
+        borrower3,
+        lender1,
+        lender2,
+        lender3,
+      } = await loadFixture(deployFixture);
+      // lender deposit USDC
+      await usdc
+        .connect(lender1)
+        .approve(ccflPool.getAddress(), BigInt(10000e18));
+      await ccflPool.connect(lender1).depositUsdcTokens(BigInt(10000e18));
+      // borrower lend
+      await link.connect(borrower1).approve(ccfl.getAddress(), BigInt(1000e18));
+      await ccfl.connect(borrower1).depositCollateralLink(BigInt(1000e18), 50);
+      await ccfl.connect(borrower1).createLoan(BigInt(1000e18), BigInt(90));
+      await ccflPool.connect(borrower1).withdrawLoan();
+      expect(BigInt(await usdc.balanceOf(borrower1)).toString()).to.eq(
+        BigInt(2000e18)
+      );
+    });
+  });
   describe("Collateral", function () {});
 
   // describe("Deployment", function () {

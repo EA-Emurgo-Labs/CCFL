@@ -45,15 +45,13 @@ contract CCFL {
     uint public rateLoan;
     address payable public owner;
     IERC20 public usdcAddress;
-    IERC20 public linkAddress;
-    AggregatorV3Interface public linkPriceFeed;
-
+    IERC20 public tokenAddress;
+    AggregatorV3Interface public priceFeed;
     mapping(address => Loan[]) public loans;
     mapping(address => uint) public totalLoans;
-    mapping(address => uint) public collateralLink;
-    mapping(address => uint) public stakeAaveLink;
+    mapping(address => uint) public collateral;
+    mapping(address => uint) public stakeAave;
     uint public loandIds;
-    AggregatorV3Interface internal priceFeed;
     ICCFLPool public ccflPool;
     ICCFLStake public ccflStake;
     mapping(address => address) public aaveStakeAddresses;
@@ -85,18 +83,18 @@ contract CCFL {
 
     constructor(
         IERC20 _usdcAddress,
-        IERC20 _linkAddress,
-        AggregatorV3Interface _linkAggregator,
+        IERC20 _tokenAddress,
+        AggregatorV3Interface _aggregator,
         ICCFLPool _ccflPool,
         address _swapRouter,
         IPoolAddressesProvider _poolAddressesProvider
     ) {
-        linkAddress = _linkAddress;
+        tokenAddress = _tokenAddress;
         usdcAddress = _usdcAddress;
         owner = payable(msg.sender);
         loandIds = 1;
         // LINK / USD
-        linkPriceFeed = _linkAggregator;
+        priceFeed = _aggregator;
         ccflPool = _ccflPool;
         ADDRESSES_PROVIDER = _poolAddressesProvider;
         POOL = IPool(ADDRESSES_PROVIDER.getPool());
@@ -107,9 +105,9 @@ contract CCFL {
     // create loan
     // 1. deposit
     // Modifier to check token allowance
-    modifier checkLinkAllowance(uint amount) {
+    modifier checkTokenAllowance(IERC20 _token, uint _amount) {
         require(
-            linkAddress.allowance(msg.sender, address(this)) >= amount,
+            _token.allowance(msg.sender, address(this)) >= _amount,
             "Error"
         );
         _;
@@ -126,23 +124,26 @@ contract CCFL {
         emit LiquiditySupplied(_onBehalfOf, _token, _amount);
     }
 
-    function depositCollateralLink(
+    function depositCollateralToken(
         uint _amount,
         uint _percent
-    ) public checkLinkAllowance(_amount) {
-        collateralLink[msg.sender] += (_amount * _percent) / 100;
+    ) public checkTokenAllowance(tokenAddress, _amount) {
+        collateral[msg.sender] += (_amount * _percent) / 100;
         if (_amount - (_amount * _percent) / 100 > 0) {
-            stakeAaveLink[msg.sender] += _amount - (_amount * _percent) / 100;
-            // clone an address to save atoken
-            address aaveStake = address(ccflStake).clone();
-            aaveStakeAddresses[msg.sender] = aaveStake;
+            stakeAave[msg.sender] += _amount - (_amount * _percent) / 100;
+            if (aaveStakeAddresses[msg.sender] == address(0)) {
+                // clone an address to save atoken
+                address aaveStake = address(ccflStake).clone();
+                aaveStakeAddresses[msg.sender] = aaveStake;
+            }
+
             supplyLiquidity(
-                address(linkAddress),
+                address(tokenAddress),
                 _amount - (_amount * _percent) / 100,
-                aaveStake
+                aaveStakeAddresses[msg.sender]
             );
         }
-        linkAddress.transferFrom(msg.sender, address(this), _amount);
+        tokenAddress.transferFrom(msg.sender, address(this), _amount);
     }
 
     // 2. create loan
@@ -226,10 +227,10 @@ contract CCFL {
 
     // 5. Liquidation
     function getHealthFactor(address user) public view returns (uint) {
-        uint linkPrice = getLatestPrice();
-        uint collateral = collateralLink[user];
-        uint stake = stakeAaveLink[user];
-        uint healthFactor = (linkPrice * (collateral + stake) * 8) /
+        uint tokenPrice = getLatestPrice();
+        uint collateralUser = collateral[user];
+        uint stake = stakeAave[user];
+        uint healthFactor = (tokenPrice * (collateralUser + stake) * 8) /
             10 /
             totalLoans[user] /
             1e6;
@@ -296,11 +297,11 @@ contract CCFL {
         }
         // if not enough withdraw aave
         if (
-            collateralLink[_user] * getLatestPrice() <
+            collateral[_user] * getLatestPrice() <
             loans[_user][indexLoan].amount
         ) {
             uint balance = ((loans[_user][indexLoan].amount -
-                collateralLink[_user] *
+                collateral[_user] *
                 getLatestPrice()) * 105) /
                 getLatestPrice() /
                 100;
@@ -309,11 +310,11 @@ contract CCFL {
                 balance,
                 address(this)
             );
-            collateralLink[_user] += aaveWithdraw;
+            collateral[_user] += aaveWithdraw;
         }
 
         // sell collateral on uniswap
-        swapWETHForDAI(collateralLink[_user]);
+        swapWETHForDAI(collateral[_user]);
         // close this loan
         usdcAddress.approve(address(ccflPool), loans[_user][indexLoan].amount);
         ccflPool.closeLoan(
@@ -322,17 +323,19 @@ contract CCFL {
         );
     }
 
-    function approveLINK(
+    function approveToken(
+        IERC20 _token,
         uint256 _amount,
         address _poolContractAddress
     ) external returns (bool) {
-        return linkAddress.approve(_poolContractAddress, _amount);
+        return _token.approve(_poolContractAddress, _amount);
     }
 
-    function allowanceLINK(
+    function allowanceToken(
+        IERC20 _token,
         address _poolContractAddress
     ) external view returns (uint256) {
-        return linkAddress.allowance(address(this), _poolContractAddress);
+        return _token.allowance(address(this), _poolContractAddress);
     }
 
     function getBalance(address _tokenAddress) external view returns (uint256) {
