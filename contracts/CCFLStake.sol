@@ -6,7 +6,6 @@ import "hardhat/console.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IPool} from "@aave/core-v3/contracts/interfaces/IPool.sol";
 import {IPoolAddressesProvider} from "@aave/core-v3/contracts/interfaces/IPoolAddressesProvider.sol";
-import "@openzeppelin/contracts/proxy/Clones.sol";
 import "./ICCFLStake.sol";
 
 /// @title CCFL contract
@@ -28,17 +27,17 @@ contract CCFLStake is ICCFLStake {
 
     constructor(
         IERC20 _tokenAddress,
-        address _addressProvider,
+        IPoolAddressesProvider _addressProvider,
         IERC20 _aToken
     ) payable {
         tokenAddress = _tokenAddress;
         owner = payable(msg.sender);
-        ADDRESSES_PROVIDER = IPoolAddressesProvider(_addressProvider);
+        ADDRESSES_PROVIDER = _addressProvider;
         POOL = IPool(ADDRESSES_PROVIDER.getPool());
         aToken = _aToken;
     }
 
-    function supplyLiquidity(address _token, uint256 _amount) external {
+    function supplyLiquidity(address _token, uint256 _amount) public {
         address asset = _token;
         uint256 amount = _amount;
         address onBehalfOf = address(this);
@@ -50,21 +49,21 @@ contract CCFLStake is ICCFLStake {
     function withdrawLiquidity(
         uint256 _amount,
         address _to
-    ) external returns (uint256) {
+    ) public returns (uint256) {
         uint256 amount = _amount;
         uint256 withdrawn = POOL.withdraw(address(aToken), amount, _to);
         emit LiquidityWithdrawn(_to, address(aToken), amount);
         return withdrawn;
     }
 
-    function getBalanceAToken() external returns (uint) {
-        return tokenAddress.balanceOf(address(this));
+    function getBalanceAToken(address _user) public view returns (uint) {
+        return aToken.balanceOf(_user);
     }
 
     function getUserAccountData(
         address user
     )
-        external
+        public
         view
         returns (
             uint256 totalCollateralBase,

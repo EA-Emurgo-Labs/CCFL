@@ -26,7 +26,7 @@ describe("CCFL system", function () {
     const aToken = await ATOKEN.deploy("ATOKEN", "ATOKEN");
 
     const CCFLPool = await hre.ethers.getContractFactory("CCFLPool");
-    const ccflPool = await CCFLPool.deploy(usdc.getAddress());
+    const ccflPool = await CCFLPool.deploy(usdc);
 
     const MockAggr = await hre.ethers.getContractFactory("MockAggregator");
     const mockAggr = await MockAggr.deploy();
@@ -46,19 +46,21 @@ describe("CCFL system", function () {
 
     const CCFLStake = await hre.ethers.getContractFactory("CCFLStake");
     const ccflStake = await CCFLStake.deploy(
-      await link.getAddress(),
-      await mockPoolAddressesProvider.getAddress(),
-      await aToken.getAddress()
+      link,
+      mockPoolAddressesProvider,
+      aToken
     );
 
     const CCFL = await hre.ethers.getContractFactory("CCFL");
     const ccfl = await CCFL.deploy(
-      await usdc.getAddress(),
-      await link.getAddress(),
-      await mockAggr.getAddress(),
-      await ccflPool.getAddress(),
-      await mockSwap.getAddress(),
-      await mockPoolAddressesProvider.getAddress()
+      usdc,
+      link,
+      mockAggr,
+      ccflPool,
+      mockSwap,
+      mockPoolAddressesProvider,
+      ccflStake,
+      aToken
     );
 
     await link.transfer(borrower1, BigInt(10000e18));
@@ -87,6 +89,7 @@ describe("CCFL system", function () {
       lender2,
       lender3,
       mockAggr,
+      aToken,
     };
   }
 
@@ -129,7 +132,7 @@ describe("CCFL system", function () {
     });
   });
   describe("Earn", function () {
-    it.only("Should get loan fund", async function () {
+    it("Should get loan fund", async function () {
       const {
         usdc,
         link,
@@ -221,5 +224,45 @@ describe("CCFL system", function () {
       expect(await ccfl.getHealthFactor(borrower1)).to.lessThan(1000);
     });
   });
-  describe("Collateral", function () {});
+  describe("Collateral", function () {
+    it.only("Should remove liquidity", async function () {
+      const {
+        usdc,
+        link,
+        ccflPool,
+        ccflStake,
+        ccfl,
+        owner,
+        borrower1,
+        borrower2,
+        borrower3,
+        lender1,
+        lender2,
+        lender3,
+        mockAggr,
+        aToken,
+      } = await loadFixture(deployFixture);
+      // lender deposit USDC
+      await usdc
+        .connect(lender1)
+        .approve(ccflPool.getAddress(), BigInt(10000e18));
+      await ccflPool.connect(lender1).depositUsdcTokens(BigInt(10000e18));
+      // borrower lend
+      await link.connect(borrower1).approve(ccfl.getAddress(), BigInt(1000e18));
+      await ccfl.connect(borrower1).depositCollateral(BigInt(1000e18), 50);
+      expect(await ccfl.aaveStakeAddresses(borrower1)).to.not.equal("");
+      console.log(await ccfl.aaveStakeAddresses(borrower1));
+      // return atoken
+      await aToken.transfer(
+        await ccfl.aaveStakeAddresses(borrower1),
+        BigInt(600e18)
+      );
+      console.log(
+        await ccflStake.getBalanceAToken(
+          await ccfl.aaveStakeAddresses(borrower1)
+        )
+      );
+      await ccfl.connect(borrower1).withdrawLiquidity();
+    });
+  });
 });

@@ -62,6 +62,7 @@ contract CCFL {
     address public constant DAI = 0x6B175474E89094C44Da98b954EedeAC495271d0F;
     address public constant WETH9 = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
     uint24 public constant feeTier = 3000;
+    IERC20 public aToken;
 
     event LiquiditySupplied(
         address indexed onBehalfOf,
@@ -86,8 +87,10 @@ contract CCFL {
         IERC20 _tokenAddress,
         AggregatorV3Interface _aggregator,
         ICCFLPool _ccflPool,
-        address _swapRouter,
-        IPoolAddressesProvider _poolAddressesProvider
+        ISwapRouter _swapRouter,
+        IPoolAddressesProvider _poolAddressesProvider,
+        ICCFLStake _ccflStake,
+        IERC20 _aToken
     ) {
         tokenAddress = _tokenAddress;
         usdcAddress = _usdcAddress;
@@ -100,6 +103,8 @@ contract CCFL {
         POOL = IPool(ADDRESSES_PROVIDER.getPool());
         swapRouter = ISwapRouter(_swapRouter);
         rateLoan = 1200;
+        ccflStake = _ccflStake;
+        aToken = _aToken;
     }
 
     // create loan
@@ -125,11 +130,15 @@ contract CCFL {
     }
 
     // 2.1 withdrawn all liquidity aave
-    function withdrawLiquidity() internal {
+    function withdrawLiquidity() public {
+        require(
+            aaveStakeAddresses[msg.sender] != address(0),
+            "Do not have satking acc"
+        );
         ICCFLStake staker = ICCFLStake(aaveStakeAddresses[msg.sender]);
-        uint totalBlance = staker.getBalanceAToken();
+        uint256 totalBalance = aToken.balanceOf(aaveStakeAddresses[msg.sender]);
         uint aaveWithdraw = staker.withdrawLiquidity(
-            totalBlance,
+            totalBalance,
             address(this)
         );
         collateral[msg.sender] += aaveWithdraw;
@@ -283,7 +292,7 @@ contract CCFL {
         require(getHealthFactor(_user) < 100, "Can not liquidate");
         // get collateral from aave
         ICCFLStake staker = ICCFLStake(aaveStakeAddresses[_user]);
-        uint balance = staker.getBalanceAToken();
+        uint256 balance = aToken.balanceOf(address(staker));
         staker.withdrawLiquidity(balance, address(this));
         uint amountShouldSell = ((totalLoans[_user]) * 105) /
             getLatestPrice() /
