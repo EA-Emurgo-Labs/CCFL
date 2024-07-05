@@ -113,7 +113,7 @@ describe("CCFL system", function () {
       await ccflPool.connect(lender1).depositUsdcTokens(BigInt(10000e18));
       // borrower lend
       await link.connect(borrower1).approve(ccfl.getAddress(), BigInt(1000e18));
-      await ccfl.connect(borrower1).depositCollateralLink(BigInt(1000e18), 100);
+      await ccfl.connect(borrower1).depositCollateral(BigInt(1000e18), 100);
       await ccfl.connect(borrower1).createLoan(BigInt(1000e18), BigInt(90));
       await ccflPool.connect(borrower1).withdrawLoan();
       expect(BigInt(await usdc.balanceOf(borrower1)).toString()).to.eq(
@@ -151,8 +151,8 @@ describe("CCFL system", function () {
       await ccflPool.connect(lender1).depositUsdcTokens(BigInt(10000e18));
       // borrower lend
       await link.connect(borrower1).approve(ccfl.getAddress(), BigInt(1000e18));
-      await ccfl.connect(borrower1).depositCollateralToken(BigInt(1000e18), 50);
-      console.log(await ccfl.aaveStakeAddresses(borrower1));
+      await ccfl.connect(borrower1).depositCollateral(BigInt(1000e18), 50);
+      expect(await ccfl.aaveStakeAddresses(borrower1)).to.not.equal("");
     });
   });
   describe("Liquidation", function () {

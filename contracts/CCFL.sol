@@ -79,7 +79,7 @@ contract CCFL {
         _;
     }
 
-    event Withdrawal(uint amount, uint when);
+    event Withdraw(address borrower, uint amount, uint when);
 
     constructor(
         IERC20 _usdcAddress,
@@ -135,7 +135,7 @@ contract CCFL {
         collateral[msg.sender] += aaveWithdraw;
     }
 
-    function depositCollateralToken(
+    function depositCollateral(
         uint _amount,
         uint _percent
     ) public checkTokenAllowance(tokenAddress, _amount) {
@@ -332,6 +332,17 @@ contract CCFL {
             loans[_user][indexLoan].loanId,
             loans[_user][indexLoan].amount
         );
+    }
+
+    // .6 withdraw Collateral
+    function withdrawCollateral(uint _amount) public {
+        require(
+            _amount <= collateral[msg.sender],
+            "Do not have enough collateral"
+        );
+        collateral[msg.sender] -= _amount;
+        emit Withdraw(msg.sender, _amount, block.timestamp);
+        tokenAddress.transfer(msg.sender, _amount);
     }
 
     function approveToken(
