@@ -123,6 +123,9 @@ describe("CCFL", function () {
       // borrower return monthly payment
       await usdc.connect(borrower1).approve(ccfl.getAddress(), BigInt(10e18));
       await ccfl.connect(borrower1).depositMonthlyPayment(1, BigInt(10e18));
+      // close loan
+      await usdc.connect(borrower1).approve(ccfl.getAddress(), BigInt(1000e18));
+      await ccfl.connect(borrower1).closeLoan(1, BigInt(1000e18));
     });
   });
   describe("Earn", function () {});
