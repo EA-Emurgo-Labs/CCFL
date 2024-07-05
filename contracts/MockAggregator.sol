@@ -18,7 +18,15 @@ interface AggregatorV3Interface {
 }
 
 contract MockAggregator is AggregatorV3Interface {
-    constructor() payable {}
+    int public price;
+
+    constructor() payable {
+        price = 1423075000;
+    }
+
+    function setPrice(int _price) external {
+        price = _price;
+    }
 
     function latestRoundData()
         external
@@ -32,6 +40,6 @@ contract MockAggregator is AggregatorV3Interface {
             uint80 answeredInRound
         )
     {
-        return (0, 1423075000, 0, 0, 0);
+        return (0, price, 0, 0, 0);
     }
 }

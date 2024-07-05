@@ -87,6 +87,7 @@ describe("CCFL system", function () {
       lender1,
       lender2,
       lender3,
+      mockAggr,
     };
   }
 
@@ -167,7 +168,7 @@ describe("CCFL system", function () {
     });
   });
   describe("Liquidation", function () {
-    it.only("Should get loan fund", async function () {
+    it("Good Health factor", async function () {
       const {
         usdc,
         link,
@@ -196,6 +197,40 @@ describe("CCFL system", function () {
         BigInt(2000e18)
       );
       expect(await ccfl.getHealthFactor(borrower1)).to.greaterThanOrEqual(1000);
+    });
+
+    it.only("Bad Health factor", async function () {
+      const {
+        usdc,
+        link,
+        ccflPool,
+        ccflStake,
+        ccfl,
+        owner,
+        borrower1,
+        borrower2,
+        borrower3,
+        lender1,
+        lender2,
+        lender3,
+        mockAggr,
+      } = await loadFixture(deployFixture);
+      // lender deposit USDC
+      await usdc
+        .connect(lender1)
+        .approve(ccflPool.getAddress(), BigInt(10000e18));
+      await ccflPool.connect(lender1).depositUsdcTokens(BigInt(10000e18));
+      // borrower lend
+      await link.connect(borrower1).approve(ccfl.getAddress(), BigInt(1000e18));
+      await ccfl.connect(borrower1).depositCollateralToken(BigInt(1000e18), 50);
+      await ccfl.connect(borrower1).createLoan(BigInt(1000e18), BigInt(90));
+      await ccflPool.connect(borrower1).withdrawLoan();
+      expect(BigInt(await usdc.balanceOf(borrower1)).toString()).to.eq(
+        BigInt(2000e18)
+      );
+      await mockAggr.setPrice(BigInt(1023075000));
+
+      expect(await ccfl.getHealthFactor(borrower1)).to.lessThan(1000);
     });
   });
   describe("Collateral", function () {});
