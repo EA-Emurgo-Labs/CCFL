@@ -124,6 +124,17 @@ contract CCFL {
         emit LiquiditySupplied(_onBehalfOf, _token, _amount);
     }
 
+    // 2.1 withdrawn all liquidity aave
+    function withdrawLiquidity() internal {
+        ICCFLStake staker = ICCFLStake(aaveStakeAddresses[msg.sender]);
+        uint totalBlance = staker.getBalanceAToken();
+        uint aaveWithdraw = staker.withdrawLiquidity(
+            totalBlance,
+            address(this)
+        );
+        collateral[msg.sender] += aaveWithdraw;
+    }
+
     function depositCollateralToken(
         uint _amount,
         uint _percent
@@ -272,7 +283,7 @@ contract CCFL {
         require(getHealthFactor(_user) < 100, "Can not liquidate");
         // get collateral from aave
         ICCFLStake staker = ICCFLStake(aaveStakeAddresses[_user]);
-        uint balance = staker.getBalance();
+        uint balance = staker.getBalanceAToken();
         staker.withdrawLiquidity(balance, address(this));
         uint amountShouldSell = ((totalLoans[_user]) * 105) /
             getLatestPrice() /

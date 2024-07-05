@@ -14,15 +14,12 @@ import "./ICCFLStake.sol";
 /// @notice Link/usd
 contract CCFLStake is ICCFLStake {
     address payable public owner;
-    IERC20 public usdcAddress;
-    IERC20 public linkAddress;
+    IERC20 public tokenAddress;
 
     IPoolAddressesProvider public immutable ADDRESSES_PROVIDER;
     IPool public immutable POOL;
 
     IERC20 public aToken;
-
-    IERC20 private link;
 
     modifier onlyOwner() {
         require(msg.sender == owner, "only the owner");
@@ -30,17 +27,14 @@ contract CCFLStake is ICCFLStake {
     }
 
     constructor(
-        IERC20 _usdcAddress,
-        IERC20 _linkAddress,
+        IERC20 _tokenAddress,
         address _addressProvider,
         IERC20 _aToken
     ) payable {
-        linkAddress = _linkAddress;
-        usdcAddress = _usdcAddress;
+        tokenAddress = _tokenAddress;
         owner = payable(msg.sender);
         ADDRESSES_PROVIDER = IPoolAddressesProvider(_addressProvider);
         POOL = IPool(ADDRESSES_PROVIDER.getPool());
-        link = IERC20(linkAddress);
         aToken = _aToken;
     }
 
@@ -63,8 +57,8 @@ contract CCFLStake is ICCFLStake {
         return withdrawn;
     }
 
-    function getBalance() external returns (uint) {
-        return link.balanceOf(address(this));
+    function getBalanceAToken() external returns (uint) {
+        return tokenAddress.balanceOf(address(this));
     }
 
     function getUserAccountData(

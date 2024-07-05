@@ -46,5 +46,5 @@ interface ICCFLStake {
             uint256 healthFactor
         );
 
-    function getBalance() external returns (uint);
+    function getBalanceAToken() external returns (uint);
 }

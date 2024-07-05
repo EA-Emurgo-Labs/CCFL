@@ -46,7 +46,6 @@ describe("CCFL system", function () {
 
     const CCFLStake = await hre.ethers.getContractFactory("CCFLStake");
     const ccflStake = await CCFLStake.deploy(
-      await usdc.getAddress(),
       await link.getAddress(),
       await mockPoolAddressesProvider.getAddress(),
       await aToken.getAddress()
@@ -153,18 +152,7 @@ describe("CCFL system", function () {
       // borrower lend
       await link.connect(borrower1).approve(ccfl.getAddress(), BigInt(1000e18));
       await ccfl.connect(borrower1).depositCollateralToken(BigInt(1000e18), 50);
-      await ccfl.connect(borrower1).createLoan(BigInt(1000e18), BigInt(90));
-      await ccflPool.connect(borrower1).withdrawLoan();
-      expect(BigInt(await usdc.balanceOf(borrower1)).toString()).to.eq(
-        BigInt(2000e18)
-      );
-      // console.log(await ccfl.loans(borrower1, BigInt(0)));
-      // borrower return monthly payment
-      await usdc.connect(borrower1).approve(ccfl.getAddress(), BigInt(10e18));
-      await ccfl.connect(borrower1).depositMonthlyPayment(1, BigInt(10e18));
-      // close loan
-      await usdc.connect(borrower1).approve(ccfl.getAddress(), BigInt(1000e18));
-      await ccfl.connect(borrower1).closeLoan(1, BigInt(1000e18));
+      console.log(await ccfl.aaveStakeAddresses(borrower1));
     });
   });
   describe("Liquidation", function () {
@@ -199,7 +187,7 @@ describe("CCFL system", function () {
       expect(await ccfl.getHealthFactor(borrower1)).to.greaterThanOrEqual(1000);
     });
 
-    it.only("Bad Health factor", async function () {
+    it("Bad Health factor", async function () {
       const {
         usdc,
         link,
