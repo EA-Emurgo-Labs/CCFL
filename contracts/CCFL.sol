@@ -192,7 +192,7 @@ contract CCFL {
             }
         }
         usdcAddress.transferFrom(msg.sender, address(this), _amount);
-        linkAddress.approve(address(ccflPool), _amount);
+        usdcAddress.approve(address(ccflPool), _amount);
         ccflPool.monthlyPaymentUsdcTokens(_loanId, _amount);
     }
 

@@ -70,6 +70,10 @@ describe("CCFL", function () {
     await usdc.transfer(lender2, BigInt(20000e18));
     await usdc.transfer(lender3, BigInt(30000e18));
 
+    await usdc.transfer(borrower1, BigInt(1000e18));
+    await usdc.transfer(borrower2, BigInt(2000e18));
+    await usdc.transfer(borrower3, BigInt(3000e18));
+
     return {
       usdc,
       link,
@@ -113,9 +117,12 @@ describe("CCFL", function () {
       await ccfl.connect(borrower1).createLoan(BigInt(1000e18), BigInt(90));
       await ccflPool.connect(borrower1).withdrawLoan();
       expect(BigInt(await usdc.balanceOf(borrower1)).toString()).to.eq(
-        BigInt(1000e18)
+        BigInt(2000e18)
       );
+      // console.log(await ccfl.loans(borrower1, BigInt(0)));
       // borrower return monthly payment
+      await usdc.connect(borrower1).approve(ccfl.getAddress(), BigInt(10e18));
+      await ccfl.connect(borrower1).depositMonthlyPayment(1, BigInt(10e18));
     });
   });
   describe("Earn", function () {});
