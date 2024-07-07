@@ -41,7 +41,9 @@ contract MockAavePool is IPool {
         address asset,
         uint256 amount,
         address to
-    ) external override returns (uint256) {}
+    ) external override returns (uint256) {
+        return amount;
+    }
 
     function borrow(
         address asset,
