@@ -75,6 +75,8 @@ describe("CCFL system", function () {
     await usdc.transfer(borrower2, BigInt(2000e18));
     await usdc.transfer(borrower3, BigInt(3000e18));
 
+    await ccflPool.setCCFL(await ccfl.getAddress());
+
     return {
       usdc,
       link,
@@ -225,7 +227,7 @@ describe("CCFL system", function () {
     });
   });
   describe("Collateral", function () {
-    it.only("Should remove liquidity", async function () {
+    it("Should remove liquidity", async function () {
       const {
         usdc,
         link,

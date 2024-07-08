@@ -31,15 +31,25 @@ contract CCFLPool is ICCFLPool {
     mapping(uint => Loan) public loans;
     mapping(address => uint) public loanBalance;
     mapping(address => uint) public monthlyPaymentBalance;
+    address public CCFL;
 
     modifier onlyOwner() {
         require(msg.sender == owner, "only the owner");
         _;
     }
 
+    modifier onlyCCFL() {
+        require(msg.sender == CCFL, "only the owner");
+        _;
+    }
+
     constructor(IERC20 _usdcAddress) payable {
         usdcAddress = _usdcAddress;
         owner = payable(msg.sender);
+    }
+
+    function setCCFL(address _ccfl) public onlyOwner {
+        CCFL = _ccfl;
     }
 
     // Modifier to check token allowance
@@ -99,7 +109,7 @@ contract CCFLPool is ICCFLPool {
         uint _amount,
         uint _monthlyPayment,
         address _borrower
-    ) public {
+    ) public onlyCCFL {
         if (
             _loanId > 0 && !loans[_loanId].isPaid && totalRemainFund >= _amount
         ) {
@@ -148,7 +158,7 @@ contract CCFLPool is ICCFLPool {
     function monthlyPaymentUsdcTokens(
         uint _loanId,
         uint _amount
-    ) public checkUsdcAllowance(_amount) {
+    ) public onlyCCFL checkUsdcAllowance(_amount) {
         require(
             _amount == loans[_loanId].monthlyPayment,
             "Do not enough amount"
@@ -174,7 +184,7 @@ contract CCFLPool is ICCFLPool {
     function closeLoan(
         uint _loanId,
         uint _amount
-    ) public checkUsdcAllowance(_amount) {
+    ) public onlyCCFL checkUsdcAllowance(_amount) {
         require(_amount == loans[_loanId].amount, "Do not enough amount");
         uint pay = 0;
         for (uint i = 0; i < loans[_loanId].lenders.length; i++) {
