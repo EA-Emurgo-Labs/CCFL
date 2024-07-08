@@ -35,6 +35,8 @@ struct Loan {
     uint deadline;
     uint monthlyPayment;
     uint rateLoan;
+    uint monthPaid;
+    uint amountMonth;
 }
 
 /// @title CCFL contract
@@ -167,9 +169,9 @@ contract CCFL {
     }
 
     // 2. create loan
-    function createLoan(uint _amount, uint _days) public {
+    function createLoan(uint _amount, uint _months) public {
         Loan memory loan;
-        uint time = _days * (1 days);
+        uint time = _months * 30 * (1 days);
         address _borrower = msg.sender;
         loan.borrower = _borrower;
         loan.deadline = block.timestamp + time;
@@ -177,6 +179,8 @@ contract CCFL {
         loan.loanId = loandIds;
         loan.isPaid = false;
         loan.monthlyPayment = (_amount * rateLoan) / 10000 / 12;
+        loan.amountMonth = _months;
+        loan.monthPaid = 0;
         loan.rateLoan = rateLoan;
         loans[_borrower].push(loan);
         loandIds++;
@@ -203,15 +207,18 @@ contract CCFL {
         uint _loanId,
         uint _amount
     ) public checkUsdcAllowance(_amount) {
+        uint index = 0;
         for (uint i = 0; i < loans[msg.sender].length; i++) {
             if (loans[msg.sender][i].loanId == _loanId) {
                 require(
                     _amount == loans[msg.sender][i].monthlyPayment,
                     "Wrong monthly payment"
                 );
+                index = i;
                 break;
             }
         }
+        loans[msg.sender][index].monthPaid += 1;
         usdcAddress.transferFrom(msg.sender, address(this), _amount);
         usdcAddress.approve(address(ccflPool), _amount);
         ccflPool.monthlyPaymentUsdcTokens(_loanId, _amount);
@@ -222,12 +229,15 @@ contract CCFL {
         for (uint i = 0; i < loans[msg.sender].length; i++) {
             if (loans[msg.sender][i].loanId == _loanId) {
                 require(
-                    _amount == loans[msg.sender][i].amount,
-                    "Wrong loan amount"
+                    _amount == loans[msg.sender][i].amount &&
+                        loans[msg.sender][i].monthPaid ==
+                        loans[msg.sender][i].amountMonth,
+                    "Wrong loan amount or not finish monthly payment"
                 );
                 break;
             }
         }
+
         usdcAddress.transferFrom(msg.sender, address(this), _amount);
         usdcAddress.approve(address(ccflPool), _amount);
         ccflPool.closeLoan(_loanId, _amount);
