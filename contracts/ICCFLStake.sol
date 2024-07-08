@@ -47,4 +47,6 @@ interface ICCFLStake {
         );
 
     function getBalanceAToken(address _user) external view returns (uint);
+
+    function initialize(address _owner) external;
 }

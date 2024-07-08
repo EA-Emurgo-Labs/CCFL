@@ -225,7 +225,7 @@ describe("CCFL system", function () {
     });
   });
   describe("Collateral", function () {
-    it("Should remove liquidity", async function () {
+    it.only("Should remove liquidity", async function () {
       const {
         usdc,
         link,
@@ -267,7 +267,7 @@ describe("CCFL system", function () {
       expect(await ccfl.collateral(borrower1)).to.greaterThan(BigInt(600e18));
     });
 
-    it.only("Should withdarw collateral", async function () {
+    it("Should withdarw collateral", async function () {
       const {
         usdc,
         link,

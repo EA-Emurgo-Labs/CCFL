@@ -7,22 +7,25 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IPool} from "@aave/core-v3/contracts/interfaces/IPool.sol";
 import {IPoolAddressesProvider} from "@aave/core-v3/contracts/interfaces/IPoolAddressesProvider.sol";
 import "./ICCFLStake.sol";
+import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
 /// @title CCFL contract
 /// @author
 /// @notice Link/usd
-contract CCFLStake is ICCFLStake {
-    address payable public owner;
+contract CCFLStake is ICCFLStake, Initializable {
+    address public owner;
     IERC20 public tokenAddress;
-
     IPoolAddressesProvider public immutable ADDRESSES_PROVIDER;
     IPool public immutable POOL;
-
     IERC20 public aToken;
 
     modifier onlyOwner() {
         require(msg.sender == owner, "only the owner");
         _;
+    }
+
+    function initialize(address _owner) external initializer {
+        owner = _owner;
     }
 
     constructor(
@@ -37,7 +40,7 @@ contract CCFLStake is ICCFLStake {
         aToken = _aToken;
     }
 
-    function supplyLiquidity(address _token, uint256 _amount) public {
+    function supplyLiquidity(address _token, uint256 _amount) public onlyOwner {
         address asset = _token;
         uint256 amount = _amount;
         address onBehalfOf = address(this);
@@ -49,7 +52,7 @@ contract CCFLStake is ICCFLStake {
     function withdrawLiquidity(
         uint256 _amount,
         address _to
-    ) public returns (uint256) {
+    ) public onlyOwner returns (uint256) {
         uint256 amount = _amount;
         uint256 withdrawn = POOL.withdraw(address(aToken), amount, _to);
         emit LiquidityWithdrawn(_to, address(aToken), amount);

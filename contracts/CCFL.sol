@@ -158,6 +158,8 @@ contract CCFL {
             if (aaveStakeAddresses[msg.sender] == address(0)) {
                 // clone an address to save atoken
                 address aaveStake = address(ccflStake).clone();
+                ICCFLStake cloneSC = ICCFLStake(aaveStake);
+                cloneSC.initialize(address(this));
                 aaveStakeAddresses[msg.sender] = aaveStake;
             }
 
