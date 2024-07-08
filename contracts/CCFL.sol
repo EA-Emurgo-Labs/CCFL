@@ -64,6 +64,7 @@ contract CCFL {
     uint24 public constant feeTier = 3000;
     IERC20 public aToken;
     uint public liquidationThreshold;
+    uint public uniswapFee;
 
     event LiquiditySupplied(
         address indexed onBehalfOf,
@@ -107,6 +108,7 @@ contract CCFL {
         ccflStake = _ccflStake;
         aToken = _aToken;
         liquidationThreshold = 8000;
+        uniswapFee = 2;
     }
 
     // create loan
@@ -314,7 +316,7 @@ contract CCFL {
         ICCFLStake staker = ICCFLStake(aaveStakeAddresses[_user]);
         uint256 balance = aToken.balanceOf(address(staker));
         staker.withdrawLiquidity(balance, address(this));
-        uint amountShouldSell = ((totalLoans[_user]) * 102) /
+        uint amountShouldSell = ((totalLoans[_user]) * (100 + uniswapFee)) /
             getLatestPrice() /
             100;
 
@@ -374,8 +376,8 @@ contract CCFL {
             getHealthFactor(msg.sender) > 100,
             "Do not have good health factor"
         );
-        // emit Withdraw(msg.sender, _amount, block.timestamp);
-        // tokenAddress.transfer(msg.sender, _amount);
+        emit Withdraw(msg.sender, _amount, block.timestamp);
+        tokenAddress.transfer(msg.sender, _amount);
     }
 
     function approveToken(
