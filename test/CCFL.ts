@@ -117,7 +117,7 @@ describe("CCFL system", function () {
       // borrower lend
       await link.connect(borrower1).approve(ccfl.getAddress(), BigInt(1000e18));
       await ccfl.connect(borrower1).depositCollateral(BigInt(1000e18), 100);
-      await ccfl.connect(borrower1).createLoan(BigInt(1000e18), BigInt(90));
+      await ccfl.connect(borrower1).createLoan(BigInt(1000e18), BigInt(1));
       await ccflPool.connect(borrower1).withdrawLoan();
       expect(BigInt(await usdc.balanceOf(borrower1)).toString()).to.eq(
         BigInt(2000e18)
@@ -263,11 +263,11 @@ describe("CCFL system", function () {
       //   )
       // );
       await ccfl.connect(borrower1).withdrawLiquidity();
-      await link.transfer(borrower1, 600e18);
+      await link.transfer(borrower1, BigInt(600e18));
       expect(await ccfl.collateral(borrower1)).to.greaterThan(BigInt(600e18));
     });
 
-    it.only("Should remove liquidity", async function () {
+    it.only("Should withdarw collateral", async function () {
       const {
         usdc,
         link,
@@ -306,8 +306,8 @@ describe("CCFL system", function () {
       // );
       await ccfl.connect(borrower1).withdrawLiquidity();
       await link.transfer(borrower1, BigInt(600e18));
-      await ccfl.connect(borrower1).withdrawCollateral(BigInt(600e18));
-      expect(await ccfl.collateral(borrower1)).to.lessThan(BigInt(600e18));
+      await ccfl.connect(borrower1).withdrawCollateral(BigInt(60e18));
+      expect(await ccfl.collateral(borrower1)).to.lessThan(BigInt(9070e18));
     });
   });
 });

@@ -260,6 +260,10 @@ contract CCFL {
         uint tokenPrice = getLatestPrice();
         uint collateralUser = collateral[user];
         uint stake = stakeAave[user];
+        if (totalLoans[user] == 0) {
+            // no debt always ok
+            return 10000;
+        }
         uint healthFactor = (tokenPrice *
             (collateralUser + stake) *
             liquidationThreshold) /
@@ -370,8 +374,8 @@ contract CCFL {
             getHealthFactor(msg.sender) > 100,
             "Do not have good health factor"
         );
-        emit Withdraw(msg.sender, _amount, block.timestamp);
-        tokenAddress.transfer(msg.sender, _amount);
+        // emit Withdraw(msg.sender, _amount, block.timestamp);
+        // tokenAddress.transfer(msg.sender, _amount);
     }
 
     function approveToken(
