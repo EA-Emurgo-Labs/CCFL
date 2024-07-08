@@ -61,6 +61,7 @@ contract CCFL {
     ISwapRouter public immutable swapRouter;
     uint24 public constant feeTier = 3000;
     IERC20 public aToken;
+    uint public liquidationThreshold;
 
     event LiquiditySupplied(
         address indexed onBehalfOf,
@@ -103,6 +104,7 @@ contract CCFL {
         rateLoan = 1200;
         ccflStake = _ccflStake;
         aToken = _aToken;
+        liquidationThreshold = 8000;
     }
 
     // create loan
@@ -248,8 +250,10 @@ contract CCFL {
         uint tokenPrice = getLatestPrice();
         uint collateralUser = collateral[user];
         uint stake = stakeAave[user];
-        uint healthFactor = (tokenPrice * (collateralUser + stake) * 8) /
-            10 /
+        uint healthFactor = (tokenPrice *
+            (collateralUser + stake) *
+            liquidationThreshold) /
+            10000 /
             totalLoans[user] /
             1e6;
         return healthFactor;
@@ -296,7 +300,7 @@ contract CCFL {
         ICCFLStake staker = ICCFLStake(aaveStakeAddresses[_user]);
         uint256 balance = aToken.balanceOf(address(staker));
         staker.withdrawLiquidity(balance, address(this));
-        uint amountShouldSell = ((totalLoans[_user]) * 105) /
+        uint amountShouldSell = ((totalLoans[_user]) * 102) /
             getLatestPrice() /
             100;
 
@@ -352,6 +356,10 @@ contract CCFL {
             "Do not have enough collateral"
         );
         collateral[msg.sender] -= _amount;
+        require(
+            getHealthFactor(msg.sender) > 100,
+            "Do not have good health factor"
+        );
         emit Withdraw(msg.sender, _amount, block.timestamp);
         tokenAddress.transfer(msg.sender, _amount);
     }
