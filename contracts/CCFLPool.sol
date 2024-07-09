@@ -61,9 +61,7 @@ contract CCFLPool is ICCFLPool {
         _;
     }
 
-    function depositUsdcTokens(
-        uint _amount
-    ) public checkUsdcAllowance(_amount) {
+    function depositUsdc(uint _amount) public checkUsdcAllowance(_amount) {
         // check a new lender
         bool existedLender = false;
         for (uint i = 0; i < lenders.length; i++) {
@@ -81,7 +79,7 @@ contract CCFLPool is ICCFLPool {
         usdcAddress.transferFrom(msg.sender, address(this), _amount);
     }
 
-    function withdrawUsdcTokens(uint _amount) public {
+    function withdrawUsdc(uint _amount) public {
         require(
             lenderRemainFund[msg.sender] >= _amount,
             "Balance is not enough"
@@ -132,11 +130,11 @@ contract CCFLPool is ICCFLPool {
                     totalLock += lockFund;
                     loans[_loanId].lenders.push(lenders[i]);
                     loans[_loanId].ratios.push(
-                        (lenderRemainFund[lenders[i]] / totalRemainFund) * 10000
+                        ((lenderRemainFund[lenders[i]] * 10000) /
+                            totalRemainFund)
                     );
-                    totalRatios =
-                        (lenderRemainFund[lenders[i]] / totalRemainFund) *
-                        10000;
+                    totalRatios = ((lenderRemainFund[lenders[i]] * 10000) /
+                        totalRemainFund);
                 } else if (i == last) {
                     uint lockFund = _amount - totalLock;
                     lenderLockFund[lenders[i]] += lockFund;
@@ -155,7 +153,7 @@ contract CCFLPool is ICCFLPool {
         }
     }
 
-    function monthlyPaymentUsdcTokens(
+    function depositMonthlyPayment(
         uint _loanId,
         uint _amount
     ) public onlyCCFL checkUsdcAllowance(_amount) {
@@ -174,7 +172,7 @@ contract CCFLPool is ICCFLPool {
                 pay += returnAmount;
             } else {
                 monthlyPaymentBalance[loans[_loanId].lenders[i]] +=
-                    loans[_loanId].amount -
+                    loans[_loanId].monthlyPayment -
                     pay;
             }
         }

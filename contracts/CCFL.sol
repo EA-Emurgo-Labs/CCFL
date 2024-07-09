@@ -77,10 +77,10 @@ contract CCFL {
         uint256 indexed _amount
     );
 
-    modifier onlyOwner() {
-        require(msg.sender == owner, "only the owner");
-        _;
-    }
+    // modifier onlyOwner() {
+    //     require(msg.sender == owner, "only the owner");
+    //     _;
+    // }
 
     event Withdraw(address borrower, uint amount, uint when);
 
@@ -225,7 +225,7 @@ contract CCFL {
         loans[msg.sender][index].monthPaid += 1;
         usdcAddress.transferFrom(msg.sender, address(this), _amount);
         usdcAddress.approve(address(ccflPool), _amount);
-        ccflPool.monthlyPaymentUsdcTokens(_loanId, _amount);
+        ccflPool.depositMonthlyPayment(_loanId, _amount);
     }
 
     // 4. close loan
@@ -314,7 +314,7 @@ contract CCFL {
         staker.withdrawLiquidity(balance, address(this));
         uint amountShouldSell = ((totalLoans[_user]) * (100 + uniswapFee)) /
             getLatestPrice() /
-            10e8 /
+            1e8 /
             100;
 
         // sell collateral on uniswap
@@ -336,14 +336,12 @@ contract CCFL {
         }
         // if not enough withdraw aave
         if (
-            collateral[_user] * getLatestPrice() <
+            (collateral[_user] * getLatestPrice()) / 1e8 <
             loans[_user][indexLoan].amount
         ) {
             uint balance = ((loans[_user][indexLoan].amount -
-                collateral[_user] *
-                getLatestPrice()) * 102) /
-                getLatestPrice() /
-                100;
+                (collateral[_user] * getLatestPrice()) /
+                1e8) * 1e8) / getLatestPrice();
             ICCFLStake staker = ICCFLStake(aaveStakeAddresses[_user]);
             uint aaveWithdraw = staker.withdrawLiquidity(
                 balance,
