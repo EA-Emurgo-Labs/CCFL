@@ -40,14 +40,14 @@ contract CCFLStake is ICCFLStake, Initializable {
         aToken = _aToken;
     }
 
-    function supplyLiquidity(address _token, uint256 _amount) public onlyOwner {
-        address asset = _token;
-        uint256 amount = _amount;
-        address onBehalfOf = address(this);
-        uint16 referralCode = 0;
-        POOL.supply(asset, amount, onBehalfOf, referralCode);
-        emit LiquiditySupplied(onBehalfOf, asset, amount);
-    }
+    // function supplyLiquidity(address _token, uint256 _amount) public onlyOwner {
+    //     address asset = _token;
+    //     uint256 amount = _amount;
+    //     address onBehalfOf = address(this);
+    //     uint16 referralCode = 0;
+    //     POOL.supply(asset, amount, onBehalfOf, referralCode);
+    //     emit LiquiditySupplied(onBehalfOf, asset, amount);
+    // }
 
     function withdrawLiquidity(
         uint256 _amount,

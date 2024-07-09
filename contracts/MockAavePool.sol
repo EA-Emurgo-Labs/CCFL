@@ -132,7 +132,9 @@ contract MockAavePool is IPool {
             uint256 ltv,
             uint256 healthFactor
         )
-    {}
+    {
+        return (0, 0, 0, 0, 0, 0);
+    }
 
     function initReserve(
         address asset,

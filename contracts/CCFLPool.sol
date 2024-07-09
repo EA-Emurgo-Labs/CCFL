@@ -9,7 +9,7 @@ import "./ICCFLPool.sol";
 struct Loan {
     uint loanId;
     address[] lenders;
-    uint[] ratios;
+    uint[] lockFund;
     bool isPaid;
     uint amount;
     uint monthlyPayment;
@@ -123,24 +123,19 @@ contract CCFLPool is ICCFLPool {
 
             for (uint i = 0; i < lenders.length; i++) {
                 if (i != last && emptyFund[i] != 1) {
-                    uint lockFund = (lenderRemainFund[lenders[i]] /
-                        totalRemainFund) * _amount;
+                    uint lockFund = (lenderRemainFund[lenders[i]] * _amount) /
+                        totalRemainFund;
                     lenderLockFund[lenders[i]] += lockFund;
                     lenderRemainFund[lenders[i]] -= lockFund;
                     totalLock += lockFund;
                     loans[_loanId].lenders.push(lenders[i]);
-                    loans[_loanId].ratios.push(
-                        ((lenderRemainFund[lenders[i]] * 10000) /
-                            totalRemainFund)
-                    );
-                    totalRatios = ((lenderRemainFund[lenders[i]] * 10000) /
-                        totalRemainFund);
+                    loans[_loanId].lockFund.push(lockFund);
                 } else if (i == last) {
                     uint lockFund = _amount - totalLock;
                     lenderLockFund[lenders[i]] += lockFund;
                     lenderRemainFund[lenders[i]] -= lockFund;
                     loans[_loanId].lenders.push(lenders[i]);
-                    loans[_loanId].ratios.push(10000 - totalRatios);
+                    loans[_loanId].lockFund.push(lockFund);
                 }
             }
 
@@ -165,7 +160,7 @@ contract CCFLPool is ICCFLPool {
         for (uint i = 0; i < loans[_loanId].lenders.length; i++) {
             if (i != loans[_loanId].lenders.length - 1) {
                 uint returnAmount = (loans[_loanId].monthlyPayment *
-                    loans[_loanId].ratios[i]) / 10000;
+                    loans[_loanId].lockFund[i]) / loans[_loanId].amount;
                 monthlyPaymentBalance[
                     loans[_loanId].lenders[i]
                 ] += returnAmount;
@@ -184,18 +179,10 @@ contract CCFLPool is ICCFLPool {
         uint _amount
     ) public onlyCCFL checkUsdcAllowance(_amount) {
         require(_amount == loans[_loanId].amount, "Do not enough amount");
-        uint pay = 0;
         for (uint i = 0; i < loans[_loanId].lenders.length; i++) {
-            if (i != loans[_loanId].lenders.length - 1) {
-                uint returnAmount = (loans[_loanId].amount *
-                    loans[_loanId].ratios[i]) / 10000;
-                lenderLockFund[lenders[i]] -= returnAmount;
-                lenderRemainFund[lenders[i]] += returnAmount;
-                pay += returnAmount;
-            } else {
-                lenderLockFund[lenders[i]] -= loans[_loanId].amount - pay;
-                lenderRemainFund[lenders[i]] += loans[_loanId].amount - pay;
-            }
+            uint returnAmount = loans[_loanId].lockFund[i];
+            lenderLockFund[loans[_loanId].lenders[i]] -= returnAmount;
+            lenderRemainFund[loans[_loanId].lenders[i]] += returnAmount;
         }
         loans[_loanId].isClosed = true;
         usdcAddress.transferFrom(msg.sender, address(this), _amount);

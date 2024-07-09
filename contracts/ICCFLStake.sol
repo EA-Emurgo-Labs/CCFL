@@ -25,7 +25,7 @@ interface ICCFLStake {
 
     event Withdrawal(uint amount, uint when);
 
-    function supplyLiquidity(address _token, uint256 _amount) external;
+    // function supplyLiquidity(address _token, uint256 _amount) external;
 
     function withdrawLiquidity(
         uint256 _amount,
