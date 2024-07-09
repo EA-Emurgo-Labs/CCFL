@@ -112,7 +112,6 @@ contract CCFLPool is ICCFLPool {
             _loanId > 0 && !loans[_loanId].isPaid && totalRemainFund >= _amount
         ) {
             uint totalLock = 0;
-            uint totalRatios = 0;
             uint[] memory emptyFund = new uint[](lenders.length);
             uint last = 0;
             for (uint i = 0; i < lenders.length; i++) {
