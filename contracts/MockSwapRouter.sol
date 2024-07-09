@@ -19,7 +19,7 @@ contract MockSwapRouter is ISwapRouter {
     function exactInputSingle(
         ExactInputSingleParams calldata params
     ) external payable override returns (uint256 amountOut) {
-        return 0;
+        return params.amountIn;
     }
 
     function exactInput(

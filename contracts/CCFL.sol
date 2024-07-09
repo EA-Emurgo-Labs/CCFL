@@ -260,6 +260,7 @@ contract CCFL {
     }
 
     // 5. Liquidation
+    // Good > 100, bad < 100
     function getHealthFactor(address user) public view returns (uint) {
         uint tokenPrice = getLatestPrice();
         uint collateralUser = collateral[user];
@@ -268,25 +269,18 @@ contract CCFL {
             // no debt always ok
             return 10000;
         }
-        uint healthFactor = (tokenPrice *
+        uint healthFactor = ((tokenPrice *
             (collateralUser + stake) *
-            liquidationThreshold) /
+            liquidationThreshold) * 100) /
             10000 /
             totalLoans[user] /
-            1e6;
+            1e8;
         return healthFactor;
     }
 
     function swapTokenForUSDC(
         uint256 amountIn
     ) public returns (uint256 amountOut) {
-        // Transfer the specified amount of token to this contract.
-        TransferHelper.safeTransferFrom(
-            address(tokenAddress),
-            msg.sender,
-            address(this),
-            amountIn
-        );
         // Approve the router to spend token.
         TransferHelper.safeApprove(
             address(tokenAddress),
@@ -320,6 +314,7 @@ contract CCFL {
         staker.withdrawLiquidity(balance, address(this));
         uint amountShouldSell = ((totalLoans[_user]) * (100 + uniswapFee)) /
             getLatestPrice() /
+            10e8 /
             100;
 
         // sell collateral on uniswap
@@ -346,7 +341,7 @@ contract CCFL {
         ) {
             uint balance = ((loans[_user][indexLoan].amount -
                 collateral[_user] *
-                getLatestPrice()) * 105) /
+                getLatestPrice()) * 102) /
                 getLatestPrice() /
                 100;
             ICCFLStake staker = ICCFLStake(aaveStakeAddresses[_user]);
@@ -380,25 +375,6 @@ contract CCFL {
         );
         emit Withdraw(msg.sender, _amount, block.timestamp);
         tokenAddress.transfer(msg.sender, _amount);
-    }
-
-    function approveToken(
-        IERC20 _token,
-        uint256 _amount,
-        address _poolContractAddress
-    ) external returns (bool) {
-        return _token.approve(_poolContractAddress, _amount);
-    }
-
-    function allowanceToken(
-        IERC20 _token,
-        address _poolContractAddress
-    ) external view returns (uint256) {
-        return _token.allowance(address(this), _poolContractAddress);
-    }
-
-    function getBalance(address _tokenAddress) external view returns (uint256) {
-        return IERC20(_tokenAddress).balanceOf(address(this));
     }
 
     receive() external payable {}
