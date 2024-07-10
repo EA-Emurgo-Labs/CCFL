@@ -382,5 +382,9 @@ contract CCFL {
         tokenAddress.transfer(msg.sender, _amount);
     }
 
+    function withdrawLoan() external {
+        ccflPool.withdrawLoanByCCFL(msg.sender);
+    }
+
     receive() external payable {}
 }

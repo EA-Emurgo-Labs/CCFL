@@ -197,6 +197,15 @@ contract CCFLPool is ICCFLPool {
         }
     }
 
+    function withdrawLoanByCCFL(address claimer) public onlyCCFL {
+        if (loanBalance[claimer] > 0) {
+            uint amount = loanBalance[msg.sender];
+            loanBalance[claimer] = 0;
+            emit WithdrawLoan(claimer, amount, block.timestamp);
+            usdcAddress.transfer(claimer, amount);
+        }
+    }
+
     function withdrawMonthlyPayment() public {
         if (monthlyPaymentBalance[msg.sender] > 0) {
             uint amount = monthlyPaymentBalance[msg.sender];
