@@ -393,8 +393,8 @@ describe("CCFL system", function () {
         .approve(ccflPool.getAddress(), BigInt(10000e18));
       await ccflPool.connect(lender1).depositUsdc(BigInt(10000e18));
       // borrower lend
-      await link.connect(borrower1).approve(ccfl.getAddress(), BigInt(100e18));
-      await ccfl.connect(borrower1).depositCollateral(BigInt(100e18), 50);
+      await link.connect(borrower1).approve(ccfl.getAddress(), BigInt(1000e18));
+      await ccfl.connect(borrower1).depositCollateral(BigInt(1000e18), 50);
       await ccfl.connect(borrower1).createLoan(BigInt(1000e18), BigInt(90));
       await ccflPool.connect(borrower1).withdrawLoan();
       expect(BigInt(await usdc.balanceOf(borrower1)).toString()).to.eq(

@@ -64,6 +64,7 @@ contract CCFL {
     uint24 public constant feeTier = 3000;
     IERC20 public aToken;
     uint public liquidationThreshold;
+    uint public LTV;
     uint public uniswapFee;
 
     event LiquiditySupplied(
@@ -109,6 +110,7 @@ contract CCFL {
         aToken = _aToken;
         liquidationThreshold = 8000;
         uniswapFee = 2;
+        LTV = 6000;
     }
 
     // create loan
@@ -174,6 +176,11 @@ contract CCFL {
 
     // 2. create loan
     function createLoan(uint _amount, uint _months) public {
+        require(
+            (collateral[msg.sender] * getLatestPrice() * LTV) / 1e8 / 10000 >
+                totalLoans[msg.sender] + _amount,
+            "Don't have enough collateral"
+        );
         Loan memory loan;
         uint time = _months * 30 * (1 days);
         address _borrower = msg.sender;
