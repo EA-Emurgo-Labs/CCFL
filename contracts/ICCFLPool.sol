@@ -35,7 +35,7 @@ interface ICCFLPool {
 
     function closeLoan(uint _loanId, uint _amount) external;
 
-    function setCCFL(address _ccfl) external;
+    function setCCFL(address _ccfl, bool active) external;
 
     function withdrawLoanByCCFL(address claimer) external;
 }

@@ -58,7 +58,7 @@ contract CCFL {
     ICCFLStake public ccflStake;
     mapping(address => address) public aaveStakeAddresses;
     IPoolAddressesProvider public immutable ADDRESSES_PROVIDER;
-    IPool public immutable POOL;
+    IPool public immutable aavePool;
     IUniswapV3Pool uniswapPool;
     ISwapRouter public immutable swapRouter;
     uint24 public constant feeTier = 3000;
@@ -103,7 +103,7 @@ contract CCFL {
         priceFeed = _aggregator;
         ccflPool = _ccflPool;
         ADDRESSES_PROVIDER = _poolAddressesProvider;
-        POOL = IPool(ADDRESSES_PROVIDER.getPool());
+        aavePool = IPool(ADDRESSES_PROVIDER.getPool());
         swapRouter = ISwapRouter(_swapRouter);
         rateLoan = 1200;
         ccflStake = _ccflStake;
@@ -131,7 +131,7 @@ contract CCFL {
         address _onBehalfOf
     ) internal {
         uint16 referralCode = 0;
-        POOL.supply(_token, _amount, _onBehalfOf, referralCode);
+        aavePool.supply(_token, _amount, _onBehalfOf, referralCode);
         emit LiquiditySupplied(_onBehalfOf, _token, _amount);
     }
 

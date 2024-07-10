@@ -75,7 +75,7 @@ describe("CCFL system", function () {
     await usdc.transfer(borrower2, BigInt(2000e18));
     await usdc.transfer(borrower3, BigInt(3000e18));
 
-    await ccflPool.setCCFL(await ccfl.getAddress());
+    await ccflPool.setCCFL(await ccfl.getAddress(), true);
 
     return {
       usdc,

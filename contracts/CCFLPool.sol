@@ -31,7 +31,7 @@ contract CCFLPool is ICCFLPool {
     mapping(uint => Loan) public loans;
     mapping(address => uint) public loanBalance;
     mapping(address => uint) public monthlyPaymentBalance;
-    address public CCFL;
+    mapping(address => bool) public CCFLs;
 
     modifier onlyOwner() {
         require(msg.sender == owner, "only the owner");
@@ -39,7 +39,7 @@ contract CCFLPool is ICCFLPool {
     }
 
     modifier onlyCCFL() {
-        require(msg.sender == CCFL, "only the owner");
+        require(true == CCFLs[msg.sender], "only the ccfl");
         _;
     }
 
@@ -48,8 +48,8 @@ contract CCFLPool is ICCFLPool {
         owner = payable(msg.sender);
     }
 
-    function setCCFL(address _ccfl) public onlyOwner {
-        CCFL = _ccfl;
+    function setCCFL(address _ccfl, bool active) public onlyOwner {
+        CCFLs[_ccfl] = active;
     }
 
     // Modifier to check token allowance
