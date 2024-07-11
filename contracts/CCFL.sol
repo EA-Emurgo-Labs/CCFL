@@ -38,6 +38,7 @@ struct Loan {
     uint rateLoan;
     uint monthPaid;
     uint amountMonth;
+    IERC20 stableCoin;
 }
 
 /// @title CCFL contract
@@ -47,15 +48,15 @@ contract CCFL is Initializable {
     using Clones for address;
     uint public rateLoan;
     address payable public owner;
-    IERC20 public usdcAddress;
     IERC20 public tokenAddress;
-    AggregatorV3Interface public priceFeed;
+    mapping(IERC20 => AggregatorV3Interface) public priceFeeds;
     mapping(address => Loan[]) public loans;
     mapping(address => uint) public totalLoans;
     mapping(address => uint) public collateral;
     mapping(address => uint) public stakeAave;
     uint public loandIds;
-    ICCFLPool public ccflPool;
+    mapping(IERC20 => ICCFLPool) public ccflPools;
+    IERC20[] public ccflPoolStableCoins;
     ICCFLStake public ccflStake;
     mapping(address => address) public aaveStakeAddresses;
     IPoolAddressesProvider public ADDRESSES_PROVIDER;
@@ -87,22 +88,23 @@ contract CCFL is Initializable {
     event Withdraw(address borrower, uint amount, uint when);
 
     function initialize(
-        IERC20 _usdcAddress,
         IERC20 _tokenAddress,
-        AggregatorV3Interface _aggregator,
-        ICCFLPool _ccflPool,
+        AggregatorV3Interface[] memory _aggregators,
+        IERC20[] memory _ccflPoolStableCoin,
+        ICCFLPool[] memory _ccflPools,
         ISwapRouter _swapRouter,
         IPoolAddressesProvider _poolAddressesProvider,
         ICCFLStake _ccflStake,
         IERC20 _aToken
     ) external initializer {
         tokenAddress = _tokenAddress;
-        usdcAddress = _usdcAddress;
+        ccflPoolStableCoins = _ccflPoolStableCoin;
         owner = payable(msg.sender);
         loandIds = 1;
-        // LINK / USD
-        priceFeed = _aggregator;
-        ccflPool = _ccflPool;
+        for (uint i = 0; i < _ccflPoolStableCoin.length; i++) {
+            ccflPools[_ccflPoolStableCoin[i]] = _ccflPools[i];
+            priceFeeds[_ccflPoolStableCoin[i]] = _aggregators[i];
+        }
         rateLoan = 1200;
         ccflStake = _ccflStake;
         aToken = _aToken;
@@ -176,9 +178,11 @@ contract CCFL is Initializable {
     }
 
     // 2. create loan
-    function createLoan(uint _amount, uint _months) public {
+    function createLoan(uint _amount, uint _months, IERC20 _stableCoin) public {
         require(
-            (collateral[msg.sender] * getLatestPrice() * LTV) / 1e8 / 10000 >
+            (collateral[msg.sender] * getLatestPrice(_stableCoin) * LTV) /
+                1e8 /
+                10000 >
                 totalLoans[msg.sender] + _amount,
             "Don't have enough collateral"
         );
@@ -196,7 +200,7 @@ contract CCFL is Initializable {
         loan.rateLoan = rateLoan;
         loans[_borrower].push(loan);
         loandIds++;
-        ccflPool.lockLoan(
+        ccflPools[_stableCoin].lockLoan(
             loan.loanId,
             loan.amount,
             loan.monthlyPayment,
@@ -207,9 +211,9 @@ contract CCFL is Initializable {
 
     // 3. Monthly payment
     // Modifier to check token allowance
-    modifier checkUsdcAllowance(uint amount) {
+    modifier checkUsdcAllowance(uint _amount, IERC20 _stableCoin) {
         require(
-            usdcAddress.allowance(msg.sender, address(this)) >= amount,
+            _stableCoin.allowance(msg.sender, address(this)) >= _amount,
             "Error"
         );
         _;
@@ -217,8 +221,9 @@ contract CCFL is Initializable {
 
     function depositMonthlyPayment(
         uint _loanId,
-        uint _amount
-    ) public checkUsdcAllowance(_amount) {
+        uint _amount,
+        IERC20 _stableCoin
+    ) public checkUsdcAllowance(_amount, _stableCoin) {
         uint index = 0;
         for (uint i = 0; i < loans[msg.sender].length; i++) {
             if (loans[msg.sender][i].loanId == _loanId) {
@@ -231,13 +236,17 @@ contract CCFL is Initializable {
             }
         }
         loans[msg.sender][index].monthPaid += 1;
-        usdcAddress.transferFrom(msg.sender, address(this), _amount);
-        usdcAddress.approve(address(ccflPool), _amount);
-        ccflPool.depositMonthlyPayment(_loanId, _amount);
+        _stableCoin.transferFrom(msg.sender, address(this), _amount);
+        _stableCoin.approve(address(ccflPools[_stableCoin]), _amount);
+        ccflPools[_stableCoin].depositMonthlyPayment(_loanId, _amount);
     }
 
     // 4. close loan
-    function closeLoan(uint _loanId, uint _amount) external {
+    function closeLoan(
+        uint _loanId,
+        uint _amount,
+        IERC20 _stableCoin
+    ) external {
         for (uint i = 0; i < loans[msg.sender].length; i++) {
             if (loans[msg.sender][i].loanId == _loanId) {
                 require(
@@ -250,27 +259,30 @@ contract CCFL is Initializable {
             }
         }
 
-        usdcAddress.transferFrom(msg.sender, address(this), _amount);
-        usdcAddress.approve(address(ccflPool), _amount);
-        ccflPool.closeLoan(_loanId, _amount);
+        _stableCoin.transferFrom(msg.sender, address(this), _amount);
+        _stableCoin.approve(address(ccflPools[_stableCoin]), _amount);
+        ccflPools[_stableCoin].closeLoan(_loanId, _amount);
     }
 
-    function getLatestPrice() public view returns (uint) {
+    function getLatestPrice(IERC20 _stableCoin) public view returns (uint) {
         (
             uint80 roundID,
             int256 price,
             uint256 startedAt,
             uint256 timeStamp,
             uint80 answeredInRound
-        ) = priceFeed.latestRoundData();
+        ) = priceFeeds[_stableCoin].latestRoundData();
         // for LINK / USD price is scaled up by 10 ** 8
         return uint(price);
     }
 
     // 5. Liquidation
     // Good > 100, bad < 100
-    function getHealthFactor(address user) public view returns (uint) {
-        uint tokenPrice = getLatestPrice();
+    function getHealthFactor(
+        address user,
+        IERC20 _stableCoin
+    ) public view returns (uint) {
+        uint tokenPrice = getLatestPrice(_stableCoin);
         uint collateralUser = collateral[user];
         uint stake = stakeAave[user];
         if (totalLoans[user] == 0) {
@@ -294,7 +306,8 @@ contract CCFL is Initializable {
     /// @return amountIn The amount of DAI actually spent in the swap.
     function swapTokenForUSDC(
         uint256 amountOut,
-        uint256 amountInMaximum
+        uint256 amountInMaximum,
+        IERC20 stableCoin
     ) public returns (uint256 amountIn) {
         // Approve the router to spend the specifed `amountInMaximum` of DAI.
         // In production, you should choose the maximum amount to spend based on oracles or other data sources to acheive a better swap.
@@ -307,7 +320,7 @@ contract CCFL is Initializable {
         ISwapRouter.ExactOutputSingleParams memory params = ISwapRouter
             .ExactOutputSingleParams({
                 tokenIn: address(tokenAddress),
-                tokenOut: address(usdcAddress),
+                tokenOut: address(stableCoin),
                 fee: feeTier,
                 recipient: msg.sender,
                 deadline: block.timestamp,
@@ -330,8 +343,8 @@ contract CCFL is Initializable {
         }
     }
 
-    function liquidate(address _user) external {
-        require(getHealthFactor(_user) < 100, "Can not liquidate");
+    function liquidate(address _user, IERC20 _stableCoin) external {
+        require(getHealthFactor(_user, _stableCoin) < 100, "Can not liquidate");
         // get collateral from aave
         ICCFLStake staker = ICCFLStake(aaveStakeAddresses[_user]);
         uint256 balance = aToken.balanceOf(address(staker));
@@ -339,15 +352,25 @@ contract CCFL is Initializable {
         collateral[_user] += aaveWithdraw;
 
         // sell collateral on uniswap
-        swapTokenForUSDC(totalLoans[_user], collateral[_user]);
+        swapTokenForUSDC(totalLoans[_user], collateral[_user], _stableCoin);
         // close all of loans
         for (uint i = 0; i < loans[_user].length; i++) {
-            usdcAddress.approve(address(ccflPool), loans[_user][i].amount);
-            ccflPool.closeLoan(loans[_user][i].loanId, loans[_user][i].amount);
+            _stableCoin.approve(
+                address(ccflPools[_stableCoin]),
+                loans[_user][i].amount
+            );
+            ccflPools[_stableCoin].closeLoan(
+                loans[_user][i].loanId,
+                loans[_user][i].amount
+            );
         }
     }
 
-    function liquidateMonthlyPayment(uint _loanId, address _user) external {
+    function liquidateMonthlyPayment(
+        uint _loanId,
+        address _user,
+        IERC20 _stableCoin
+    ) external {
         // check collater enough
         uint indexLoan = 0;
         for (uint i = 0; i < loans[_user].length; i++) {
@@ -357,14 +380,14 @@ contract CCFL is Initializable {
         }
         // if not enough withdraw aave
         if (
-            (collateral[_user] * getLatestPrice()) / 1e8 <
+            (collateral[_user] * getLatestPrice(_stableCoin)) / 1e8 <
             loans[_user][indexLoan].amount
         ) {
             // buffer 2%
             uint balance = (((loans[_user][indexLoan].amount * 102) /
                 100 -
-                (collateral[_user] * getLatestPrice()) /
-                1e8) * 1e8) / getLatestPrice();
+                (collateral[_user] * getLatestPrice(_stableCoin)) /
+                1e8) * 1e8) / getLatestPrice(_stableCoin);
             ICCFLStake staker = ICCFLStake(aaveStakeAddresses[_user]);
             uint aaveWithdraw = staker.withdrawLiquidity(
                 balance,
@@ -374,32 +397,39 @@ contract CCFL is Initializable {
         }
 
         // sell collateral on uniswap
-        swapTokenForUSDC(loans[_user][indexLoan].amount, collateral[_user]);
+        swapTokenForUSDC(
+            loans[_user][indexLoan].amount,
+            collateral[_user],
+            _stableCoin
+        );
         // close this loan
-        usdcAddress.approve(address(ccflPool), loans[_user][indexLoan].amount);
-        ccflPool.closeLoan(
+        _stableCoin.approve(
+            address(ccflPools[_stableCoin]),
+            loans[_user][indexLoan].amount
+        );
+        ccflPools[_stableCoin].closeLoan(
             loans[_user][indexLoan].loanId,
             loans[_user][indexLoan].amount
         );
     }
 
     // .6 withdraw Collateral
-    function withdrawCollateral(uint _amount) public {
+    function withdrawCollateral(uint _amount, IERC20 _stableCoin) public {
         require(
             _amount <= collateral[msg.sender],
             "Do not have enough collateral"
         );
         collateral[msg.sender] -= _amount;
         require(
-            getHealthFactor(msg.sender) > 100,
+            getHealthFactor(msg.sender, _stableCoin) > 100,
             "Do not have good health factor"
         );
         emit Withdraw(msg.sender, _amount, block.timestamp);
         tokenAddress.transfer(msg.sender, _amount);
     }
 
-    function withdrawLoan() external {
-        ccflPool.withdrawLoanByCCFL(msg.sender);
+    function withdrawLoan(IERC20 _stableCoin) external {
+        ccflPools[_stableCoin].withdrawLoanByCCFL(msg.sender);
     }
 
     receive() external payable {}
