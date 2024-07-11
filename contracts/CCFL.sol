@@ -285,32 +285,48 @@ contract CCFL {
         return healthFactor;
     }
 
+    /// @notice swapExactOutputSingle swaps a minimum possible amount of DAI for a fixed amount of WETH.
+    /// @dev The calling address must approve this contract to spend its DAI for this function to succeed. As the amount of input DAI is variable,
+    /// the calling address will need to approve for a slightly higher amount, anticipating some variance.
+    /// @param amountOut The exact amount of WETH9 to receive from the swap.
+    /// @param amountInMaximum The amount of DAI we are willing to spend to receive the specified amount of WETH9.
+    /// @return amountIn The amount of DAI actually spent in the swap.
     function swapTokenForUSDC(
-        uint256 amountIn
-    ) public returns (uint256 amountOut) {
-        // Approve the router to spend token.
+        uint256 amountOut,
+        uint256 amountInMaximum
+    ) public returns (uint256 amountIn) {
+        // Approve the router to spend the specifed `amountInMaximum` of DAI.
+        // In production, you should choose the maximum amount to spend based on oracles or other data sources to acheive a better swap.
         TransferHelper.safeApprove(
             address(tokenAddress),
             address(swapRouter),
-            amountIn
+            amountInMaximum
         );
-        // Note: To use this example, you should explicitly set slippage limits, omitting for simplicity
-        uint256 minOut = /* Calculate min output */ 0;
-        uint160 priceLimit = /* Calculate price limit */ 0;
-        // Create the params that will be used to execute the swap
-        ISwapRouter.ExactInputSingleParams memory params = ISwapRouter
-            .ExactInputSingleParams({
+
+        ISwapRouter.ExactOutputSingleParams memory params = ISwapRouter
+            .ExactOutputSingleParams({
                 tokenIn: address(tokenAddress),
                 tokenOut: address(usdcAddress),
                 fee: feeTier,
                 recipient: msg.sender,
                 deadline: block.timestamp,
-                amountIn: amountIn,
-                amountOutMinimum: minOut,
-                sqrtPriceLimitX96: priceLimit
+                amountOut: amountOut,
+                amountInMaximum: amountInMaximum,
+                sqrtPriceLimitX96: 0
             });
-        // The call to `exactInputSingle` executes the swap.
-        amountOut = swapRouter.exactInputSingle(params);
+
+        // Executes the swap returning the amountIn needed to spend to receive the desired amountOut.
+        amountIn = swapRouter.exactOutputSingle(params);
+
+        // For exact output swaps, the amountInMaximum may not have all been spent.
+        // If the actual amount spent (amountIn) is less than the specified maximum amount, we must refund the msg.sender and approve the swapRouter to spend 0.
+        if (amountIn < amountInMaximum) {
+            TransferHelper.safeApprove(
+                address(tokenAddress),
+                address(swapRouter),
+                0
+            );
+        }
     }
 
     function liquidate(address _user) external {
@@ -318,14 +334,11 @@ contract CCFL {
         // get collateral from aave
         ICCFLStake staker = ICCFLStake(aaveStakeAddresses[_user]);
         uint256 balance = aToken.balanceOf(address(staker));
-        staker.withdrawLiquidity(balance, address(this));
-        uint amountShouldSell = ((totalLoans[_user]) * (100 + uniswapFee)) /
-            getLatestPrice() /
-            1e8 /
-            100;
+        uint aaveWithdraw = staker.withdrawLiquidity(balance, address(this));
+        collateral[_user] += aaveWithdraw;
 
         // sell collateral on uniswap
-        swapTokenForUSDC(amountShouldSell);
+        swapTokenForUSDC(totalLoans[_user], collateral[_user]);
         // close all of loans
         for (uint i = 0; i < loans[_user].length; i++) {
             usdcAddress.approve(address(ccflPool), loans[_user][i].amount);
@@ -346,7 +359,9 @@ contract CCFL {
             (collateral[_user] * getLatestPrice()) / 1e8 <
             loans[_user][indexLoan].amount
         ) {
-            uint balance = ((loans[_user][indexLoan].amount -
+            // buffer 2%
+            uint balance = (((loans[_user][indexLoan].amount * 102) /
+                100 -
                 (collateral[_user] * getLatestPrice()) /
                 1e8) * 1e8) / getLatestPrice();
             ICCFLStake staker = ICCFLStake(aaveStakeAddresses[_user]);
@@ -358,7 +373,7 @@ contract CCFL {
         }
 
         // sell collateral on uniswap
-        swapTokenForUSDC(collateral[_user]);
+        swapTokenForUSDC(loans[_user][indexLoan].amount, collateral[_user]);
         // close this loan
         usdcAddress.approve(address(ccflPool), loans[_user][indexLoan].amount);
         ccflPool.closeLoan(
