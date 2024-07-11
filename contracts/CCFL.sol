@@ -13,6 +13,7 @@ import "./ICCFLStake.sol";
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 import "@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol";
 import "@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol";
+import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
 interface AggregatorV3Interface {
     function latestRoundData()
@@ -42,7 +43,7 @@ struct Loan {
 /// @title CCFL contract
 /// @author
 /// @notice Link/usd
-contract CCFL {
+contract CCFL is Initializable {
     using Clones for address;
     uint public rateLoan;
     address payable public owner;
@@ -57,10 +58,10 @@ contract CCFL {
     ICCFLPool public ccflPool;
     ICCFLStake public ccflStake;
     mapping(address => address) public aaveStakeAddresses;
-    IPoolAddressesProvider public immutable ADDRESSES_PROVIDER;
-    IPool public immutable aavePool;
+    IPoolAddressesProvider public ADDRESSES_PROVIDER;
+    IPool public aavePool;
     IUniswapV3Pool uniswapPool;
-    ISwapRouter public immutable swapRouter;
+    ISwapRouter public swapRouter;
     uint24 public constant feeTier = 3000;
     IERC20 public aToken;
     uint public liquidationThreshold;
@@ -85,7 +86,7 @@ contract CCFL {
 
     event Withdraw(address borrower, uint amount, uint when);
 
-    constructor(
+    function initialize(
         IERC20 _usdcAddress,
         IERC20 _tokenAddress,
         AggregatorV3Interface _aggregator,
@@ -94,7 +95,7 @@ contract CCFL {
         IPoolAddressesProvider _poolAddressesProvider,
         ICCFLStake _ccflStake,
         IERC20 _aToken
-    ) {
+    ) external initializer {
         tokenAddress = _tokenAddress;
         usdcAddress = _usdcAddress;
         owner = payable(msg.sender);
@@ -102,15 +103,15 @@ contract CCFL {
         // LINK / USD
         priceFeed = _aggregator;
         ccflPool = _ccflPool;
-        ADDRESSES_PROVIDER = _poolAddressesProvider;
-        aavePool = IPool(ADDRESSES_PROVIDER.getPool());
-        swapRouter = ISwapRouter(_swapRouter);
         rateLoan = 1200;
         ccflStake = _ccflStake;
         aToken = _aToken;
         liquidationThreshold = 8000;
         uniswapFee = 2;
         LTV = 6000;
+        ADDRESSES_PROVIDER = _poolAddressesProvider;
+        aavePool = IPool(ADDRESSES_PROVIDER.getPool());
+        swapRouter = ISwapRouter(_swapRouter);
     }
 
     // create loan

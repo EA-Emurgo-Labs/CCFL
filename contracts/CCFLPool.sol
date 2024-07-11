@@ -21,14 +21,14 @@ struct Loan {
 /// @notice Link/usd
 contract CCFLPool is ICCFLPool {
     address payable public owner;
-    IERC20 public usdcAddress;
+    IERC20 public stableCoinAddress;
     mapping(address => uint) public lenderLockFund;
     mapping(address => uint) public lenderRemainFund;
     uint public totalLockFund;
     uint public totalRemainFund;
     address[] public lenders;
 
-    mapping(uint => Loan) public loans;
+    mapping(address => mapping(uint => Loan)) public loans;
     mapping(address => uint) public loanBalance;
     mapping(address => uint) public monthlyPaymentBalance;
     mapping(address => bool) public CCFLs;
@@ -43,8 +43,8 @@ contract CCFLPool is ICCFLPool {
         _;
     }
 
-    constructor(IERC20 _usdcAddress) payable {
-        usdcAddress = _usdcAddress;
+    constructor(IERC20 _stableCoinAddress) payable {
+        stableCoinAddress = _stableCoinAddress;
         owner = payable(msg.sender);
     }
 
@@ -55,7 +55,7 @@ contract CCFLPool is ICCFLPool {
     // Modifier to check token allowance
     modifier checkUsdcAllowance(uint amount) {
         require(
-            usdcAddress.allowance(msg.sender, address(this)) >= amount,
+            stableCoinAddress.allowance(msg.sender, address(this)) >= amount,
             "Error"
         );
         _;
@@ -76,7 +76,7 @@ contract CCFLPool is ICCFLPool {
         emit Deposit(msg.sender, _amount, block.timestamp);
         lenderRemainFund[msg.sender] += _amount;
         totalRemainFund += _amount;
-        usdcAddress.transferFrom(msg.sender, address(this), _amount);
+        stableCoinAddress.transferFrom(msg.sender, address(this), _amount);
     }
 
     function withdrawUsdc(uint _amount) public {
@@ -99,7 +99,7 @@ contract CCFLPool is ICCFLPool {
                 delete lenders[lenders.length - 1];
             }
         }
-        usdcAddress.transfer(msg.sender, _amount);
+        stableCoinAddress.transfer(msg.sender, _amount);
     }
 
     function lockLoan(
@@ -109,7 +109,9 @@ contract CCFLPool is ICCFLPool {
         address _borrower
     ) public onlyCCFL {
         if (
-            _loanId > 0 && !loans[_loanId].isPaid && totalRemainFund >= _amount
+            _loanId > 0 &&
+            !loans[msg.sender][_loanId].isPaid &&
+            totalRemainFund >= _amount
         ) {
             uint totalLock = 0;
             uint[] memory emptyFund = new uint[](lenders.length);
@@ -127,20 +129,20 @@ contract CCFLPool is ICCFLPool {
                     lenderLockFund[lenders[i]] += lockFund;
                     lenderRemainFund[lenders[i]] -= lockFund;
                     totalLock += lockFund;
-                    loans[_loanId].lenders.push(lenders[i]);
-                    loans[_loanId].lockFund.push(lockFund);
+                    loans[msg.sender][_loanId].lenders.push(lenders[i]);
+                    loans[msg.sender][_loanId].lockFund.push(lockFund);
                 } else if (i == last) {
                     uint lockFund = _amount - totalLock;
                     lenderLockFund[lenders[i]] += lockFund;
                     lenderRemainFund[lenders[i]] -= lockFund;
-                    loans[_loanId].lenders.push(lenders[i]);
-                    loans[_loanId].lockFund.push(lockFund);
+                    loans[msg.sender][_loanId].lenders.push(lenders[i]);
+                    loans[msg.sender][_loanId].lockFund.push(lockFund);
                 }
             }
 
-            loans[_loanId].isPaid = true;
-            loans[_loanId].amount = _amount;
-            loans[_loanId].monthlyPayment = _monthlyPayment;
+            loans[msg.sender][_loanId].isPaid = true;
+            loans[msg.sender][_loanId].amount = _amount;
+            loans[msg.sender][_loanId].monthlyPayment = _monthlyPayment;
             loanBalance[_borrower] += _amount;
             totalLockFund += _amount;
             emit LockLoan(_loanId, _amount, _borrower, block.timestamp);
@@ -152,39 +154,47 @@ contract CCFLPool is ICCFLPool {
         uint _amount
     ) public onlyCCFL checkUsdcAllowance(_amount) {
         require(
-            _amount == loans[_loanId].monthlyPayment,
+            _amount == loans[msg.sender][_loanId].monthlyPayment,
             "Do not enough amount"
         );
         uint pay = 0;
-        for (uint i = 0; i < loans[_loanId].lenders.length; i++) {
-            if (i != loans[_loanId].lenders.length - 1) {
-                uint returnAmount = (loans[_loanId].monthlyPayment *
-                    loans[_loanId].lockFund[i]) / loans[_loanId].amount;
+        for (uint i = 0; i < loans[msg.sender][_loanId].lenders.length; i++) {
+            if (i != loans[msg.sender][_loanId].lenders.length - 1) {
+                uint returnAmount = (loans[msg.sender][_loanId].monthlyPayment *
+                    loans[msg.sender][_loanId].lockFund[i]) /
+                    loans[msg.sender][_loanId].amount;
                 monthlyPaymentBalance[
-                    loans[_loanId].lenders[i]
+                    loans[msg.sender][_loanId].lenders[i]
                 ] += returnAmount;
                 pay += returnAmount;
             } else {
-                monthlyPaymentBalance[loans[_loanId].lenders[i]] +=
-                    loans[_loanId].monthlyPayment -
+                monthlyPaymentBalance[loans[msg.sender][_loanId].lenders[i]] +=
+                    loans[msg.sender][_loanId].monthlyPayment -
                     pay;
             }
         }
-        usdcAddress.transferFrom(msg.sender, address(this), _amount);
+        stableCoinAddress.transferFrom(msg.sender, address(this), _amount);
     }
 
     function closeLoan(
         uint _loanId,
         uint _amount
     ) public onlyCCFL checkUsdcAllowance(_amount) {
-        require(_amount == loans[_loanId].amount, "Do not enough amount");
-        for (uint i = 0; i < loans[_loanId].lenders.length; i++) {
-            uint returnAmount = loans[_loanId].lockFund[i];
-            lenderLockFund[loans[_loanId].lenders[i]] -= returnAmount;
-            lenderRemainFund[loans[_loanId].lenders[i]] += returnAmount;
+        require(
+            _amount == loans[msg.sender][_loanId].amount,
+            "Do not enough amount"
+        );
+        for (uint i = 0; i < loans[msg.sender][_loanId].lenders.length; i++) {
+            uint returnAmount = loans[msg.sender][_loanId].lockFund[i];
+            lenderLockFund[
+                loans[msg.sender][_loanId].lenders[i]
+            ] -= returnAmount;
+            lenderRemainFund[
+                loans[msg.sender][_loanId].lenders[i]
+            ] += returnAmount;
         }
-        loans[_loanId].isClosed = true;
-        usdcAddress.transferFrom(msg.sender, address(this), _amount);
+        loans[msg.sender][_loanId].isClosed = true;
+        stableCoinAddress.transferFrom(msg.sender, address(this), _amount);
         emit CloseLoan(_loanId, _amount, msg.sender, block.timestamp);
     }
 
@@ -193,7 +203,7 @@ contract CCFLPool is ICCFLPool {
             uint amount = loanBalance[msg.sender];
             loanBalance[msg.sender] = 0;
             emit WithdrawLoan(msg.sender, amount, block.timestamp);
-            usdcAddress.transfer(msg.sender, amount);
+            stableCoinAddress.transfer(msg.sender, amount);
         }
     }
 
@@ -202,7 +212,7 @@ contract CCFLPool is ICCFLPool {
             uint amount = loanBalance[msg.sender];
             loanBalance[claimer] = 0;
             emit WithdrawLoan(claimer, amount, block.timestamp);
-            usdcAddress.transfer(claimer, amount);
+            stableCoinAddress.transfer(claimer, amount);
         }
     }
 
@@ -211,7 +221,7 @@ contract CCFLPool is ICCFLPool {
             uint amount = monthlyPaymentBalance[msg.sender];
             monthlyPaymentBalance[msg.sender] = 0;
             emit WithdrawMonthlyPayment(msg.sender, amount, block.timestamp);
-            usdcAddress.transfer(msg.sender, amount);
+            stableCoinAddress.transfer(msg.sender, amount);
         }
     }
 
