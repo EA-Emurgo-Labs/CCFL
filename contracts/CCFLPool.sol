@@ -12,7 +12,6 @@ struct Loan {
     uint[] lockFund;
     bool isPaid;
     uint amount;
-    uint monthlyPayment;
     bool isClosed;
 }
 
@@ -28,10 +27,9 @@ contract CCFLPool is ICCFLPool {
     uint public totalRemainFund;
     address[] public lenders;
 
-    mapping(address => mapping(uint => Loan)) public loans;
+    mapping(uint => Loan) public loans;
     mapping(address => uint) public loanBalance;
-    mapping(address => uint) public monthlyPaymentBalance;
-    mapping(address => bool) public CCFLs;
+    address public CCFL;
 
     modifier onlyOwner() {
         require(msg.sender == owner, "only the owner");
@@ -39,7 +37,7 @@ contract CCFLPool is ICCFLPool {
     }
 
     modifier onlyCCFL() {
-        require(true == CCFLs[msg.sender], "only the ccfl");
+        require(CCFL == msg.sender, "only the ccfl");
         _;
     }
 
@@ -48,8 +46,8 @@ contract CCFLPool is ICCFLPool {
         owner = payable(msg.sender);
     }
 
-    function setCCFL(address _ccfl, bool active) public onlyOwner {
-        CCFLs[_ccfl] = active;
+    function setCCFL(address _ccfl) public onlyOwner {
+        CCFL = _ccfl;
     }
 
     // Modifier to check token allowance
@@ -149,33 +147,6 @@ contract CCFLPool is ICCFLPool {
         }
     }
 
-    function depositMonthlyPayment(
-        uint _loanId,
-        uint _amount
-    ) public onlyCCFL checkUsdcAllowance(_amount) {
-        require(
-            _amount == loans[msg.sender][_loanId].monthlyPayment,
-            "Do not enough amount"
-        );
-        uint pay = 0;
-        for (uint i = 0; i < loans[msg.sender][_loanId].lenders.length; i++) {
-            if (i != loans[msg.sender][_loanId].lenders.length - 1) {
-                uint returnAmount = (loans[msg.sender][_loanId].monthlyPayment *
-                    loans[msg.sender][_loanId].lockFund[i]) /
-                    loans[msg.sender][_loanId].amount;
-                monthlyPaymentBalance[
-                    loans[msg.sender][_loanId].lenders[i]
-                ] += returnAmount;
-                pay += returnAmount;
-            } else {
-                monthlyPaymentBalance[loans[msg.sender][_loanId].lenders[i]] +=
-                    loans[msg.sender][_loanId].monthlyPayment -
-                    pay;
-            }
-        }
-        stableCoinAddress.transferFrom(msg.sender, address(this), _amount);
-    }
-
     function closeLoan(
         uint _loanId,
         uint _amount
@@ -207,22 +178,8 @@ contract CCFLPool is ICCFLPool {
         }
     }
 
-    function withdrawLoanByCCFL(address claimer) public onlyCCFL {
-        if (loanBalance[claimer] > 0) {
-            uint amount = loanBalance[msg.sender];
-            loanBalance[claimer] = 0;
-            emit WithdrawLoan(claimer, amount, block.timestamp);
-            stableCoinAddress.transfer(claimer, amount);
-        }
-    }
-
     function withdrawMonthlyPayment() public {
-        if (monthlyPaymentBalance[msg.sender] > 0) {
-            uint amount = monthlyPaymentBalance[msg.sender];
-            monthlyPaymentBalance[msg.sender] = 0;
-            emit WithdrawMonthlyPayment(msg.sender, amount, block.timestamp);
-            stableCoinAddress.transfer(msg.sender, amount);
-        }
+        // TODO: check signature from BE
     }
 
     receive() external payable {}

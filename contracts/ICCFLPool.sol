@@ -27,15 +27,11 @@ interface ICCFLPool {
         address _borrower
     ) external;
 
-    function depositMonthlyPayment(uint _loanId, uint _amount) external;
-
     function withdrawLoan() external;
 
     function withdrawMonthlyPayment() external;
 
     function closeLoan(uint _loanId, uint _amount) external;
 
-    function setCCFL(address _ccfl, bool active) external;
-
-    function withdrawLoanByCCFL(address claimer) external;
+    function setCCFL(address _ccfl) external;
 }
