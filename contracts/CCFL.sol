@@ -114,14 +114,14 @@ contract CCFL is Initializable {
     }
 
     // 1.1 add liquidity aave
-    function supplyLiquidity(
-        address _token,
-        uint256 _amount,
-        address _onBehalfOf
-    ) internal {
-        uint16 referralCode = 0;
-        // aavePool.supply(_token, _amount, _onBehalfOf, referralCode);
-        emit LiquiditySupplied(_onBehalfOf, _token, _amount);
+    function makeYieldGenerating(uint _loanId) public {
+        ICCFLLoan loan = loans[_loanId];
+        loan.supplyLiquidity();
+    }
+
+    function makeRiskFree(uint _loanId) public {
+        ICCFLLoan loan = loans[_loanId];
+        loan.withdrawLiquidity();
     }
 
     function depositCollateral(
@@ -229,9 +229,9 @@ contract CCFL is Initializable {
         //     }
         // }
         // loans[msg.sender][index].monthPaid += 1;
-        // _stableCoin.transferFrom(msg.sender, address(this), _amount);
-        // _stableCoin.approve(address(ccflPools[_stableCoin]), _amount);
-        // ccflPools[_stableCoin].depositMonthlyPayment(_loanId, _amount);
+        // TODO update on loan sc this payment
+        _stableCoin.transferFrom(msg.sender, address(this), _amount);
+        _stableCoin.transfer(address(ccflPools[_stableCoin]), _amount);
     }
 
     // 4. close loan
@@ -255,6 +255,7 @@ contract CCFL is Initializable {
         _stableCoin.transferFrom(msg.sender, address(this), _amount);
         _stableCoin.approve(address(ccflPools[_stableCoin]), _amount);
         ccflPools[_stableCoin].closeLoan(_loanId, _amount);
+        // update loan sc close
     }
 
     // .6 withdraw Collateral
@@ -269,7 +270,10 @@ contract CCFL is Initializable {
     }
 
     // .6 withdraw Collateral
-    function withdrawCollateralOnLoan(uint _amount) public {
+    function withdrawCollateralOnLoan(uint _loanId, uint _amount) public {
+        // check owner
+        // check LTV
+        // get back collateral
         // require(
         //     _amount <= collateral[msg.sender],
         //     "Do not have enough collateral"

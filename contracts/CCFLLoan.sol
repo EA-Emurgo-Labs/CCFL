@@ -34,13 +34,11 @@ contract CCFLLoan is ICCFLLoan, Initializable {
     IPoolAddressesProvider[] public aaveAddressProviders;
     IPool[] public aavePools;
     IERC20[] public aTokens;
-    ICCFLLoan public ccflLoan;
-    IPool public aavePool;
     IUniswapV3Pool uniswapPool;
     ISwapRouter public swapRouter;
     uint24 public constant feeTier = 3000;
     uint public liquidationThreshold;
-    uint public LTV;
+    mapping(IERC20 => uint) public LTV;
     uint public uniswapFee;
     mapping(IERC20 => uint) public collaterals;
     bool public isStakeAave;
@@ -199,9 +197,40 @@ contract CCFLLoan is ICCFLLoan, Initializable {
         // get all collateral from aave
         if (isStakeAave) withdrawLiquidity();
 
-        // TODO
+        // calculate ratio
+        uint totalCollaterals = 0;
+        for (uint i; i < collateralTokens.length; i++) {
+            uint collateralPrice = getLatestPrice(collateralTokens[i]);
+            totalCollaterals +=
+                collaterals[collateralTokens[i]] *
+                collateralPrice;
+        }
+        uint totalSell = 0;
         // sell collateral on uniswap
-        // swapTokenForUSD(initLoan.amount, collateral, _stableCoin);
+        for (uint i; i < collateralTokens.length; i++) {
+            if (i < collateralTokens.length - 1) {
+                swapTokenForUSD(
+                    (initLoan.amount *
+                        collaterals[collateralTokens[i]] *
+                        getLatestPrice(collateralTokens[i])) / totalCollaterals,
+                    collaterals[collateralTokens[i]],
+                    initLoan.stableCoin,
+                    collateralTokens[i]
+                );
+                totalSell +=
+                    (initLoan.amount *
+                        collaterals[collateralTokens[i]] *
+                        getLatestPrice(collateralTokens[i])) /
+                    totalCollaterals;
+            } else {
+                swapTokenForUSD(
+                    initLoan.amount - totalSell,
+                    collaterals[collateralTokens[i]],
+                    initLoan.stableCoin,
+                    collateralTokens[i]
+                );
+            }
+        }
 
         // close this loan
         initLoan.stableCoin.approve(address(ccflPool), initLoan.amount);
