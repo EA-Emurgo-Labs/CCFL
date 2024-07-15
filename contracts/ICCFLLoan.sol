@@ -57,7 +57,6 @@ interface ICCFLLoan {
     //     );
 
     function initialize(
-        address _owner,
         Loan memory _loan,
         IERC20[] memory _collateralTokens,
         IPoolAddressesProvider[] memory _aaveAddressProviders,

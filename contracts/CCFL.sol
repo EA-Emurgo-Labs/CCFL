@@ -34,15 +34,18 @@ contract CCFL is Initializable {
     address payable public owner;
     IERC20 public tokenAddress;
     mapping(IERC20 => AggregatorV3Interface) public priceFeeds;
-    mapping(address => Loan[]) public loans;
+    // mapping(address => Loan[]) public loans;
     mapping(address => uint) public totalLoans;
-    mapping(address => uint) public collateral;
+    mapping(address => mapping(IERC20 => uint)) public collaterals;
     mapping(address => uint) public stakeAave;
     uint public loandIds;
     mapping(IERC20 => ICCFLPool) public ccflPools;
     IERC20[] public ccflPoolStableCoins;
     ICCFLLoan ccflLoan;
-    IERC20 aToken;
+    mapping(uint => ICCFLLoan) loans;
+    IERC20[] public collateralTokens;
+    IERC20[] public aTokens;
+    IPoolAddressesProvider[] public aaveAddressProviders;
 
     event LiquiditySupplied(
         address indexed onBehalfOf,
@@ -63,15 +66,14 @@ contract CCFL is Initializable {
     event Withdraw(address borrower, uint amount, uint when);
 
     function initialize(
-        IERC20 _tokenAddress,
         AggregatorV3Interface[] memory _aggregators,
         IERC20[] memory _ccflPoolStableCoin,
         ICCFLPool[] memory _ccflPools,
-        IPoolAddressesProvider _poolAddressesProvider,
         ICCFLLoan _ccflLoan,
-        IERC20 _aToken
+        IERC20[] memory _aTokens,
+        IPoolAddressesProvider[] memory _aaveAddressProviders,
+        IERC20[] memory _collateralTokens
     ) external initializer {
-        tokenAddress = _tokenAddress;
         ccflPoolStableCoins = _ccflPoolStableCoin;
         owner = payable(msg.sender);
         loandIds = 1;
@@ -81,7 +83,9 @@ contract CCFL is Initializable {
         }
         rateLoan = 1200;
         ccflLoan = _ccflLoan;
-        aToken = _aToken;
+        aTokens = _aTokens;
+        // aaveAddressProviders = _aaveAddressProviders;
+        collateralTokens = _collateralTokens;
     }
 
     // create loan
@@ -108,8 +112,11 @@ contract CCFL is Initializable {
 
     function depositCollateral(
         uint _amount,
-        uint _percent
-    ) public checkTokenAllowance(tokenAddress, _amount) {
+        IERC20 _tokenAddress
+    ) public checkTokenAllowance(_tokenAddress, _amount) {
+        // check _tokenAddress is valid
+        // note collateral
+        collaterals[msg.sender][_tokenAddress] += _amount;
         // collateral[msg.sender] += (_amount * _percent) / 100;
         // if (_amount - (_amount * _percent) / 100 > 0) {
         //     stakeAave[msg.sender] += _amount - (_amount * _percent) / 100;
@@ -131,6 +138,7 @@ contract CCFL is Initializable {
 
     // 2. create loan
     function createLoan(uint _amount, uint _months, IERC20 _stableCoin) public {
+        // check enough collateral
         // require(
         //     (collateral[msg.sender] * getLatestPrice(_stableCoin) * LTV) /
         //         1e8 /
@@ -138,6 +146,7 @@ contract CCFL is Initializable {
         //         totalLoans[msg.sender] + _amount,
         //     "Don't have enough collateral"
         // );
+        // make loan ins
         Loan memory loan;
         uint time = _months * 30 * (1 days);
         address _borrower = msg.sender;
@@ -150,8 +159,9 @@ contract CCFL is Initializable {
         loan.amountMonth = _months;
         loan.monthPaid = 0;
         loan.rateLoan = rateLoan;
-        loans[_borrower].push(loan);
-        loandIds++;
+        // loans[_borrower].push(loan);
+        // check pool reseve
+        // lock loan on pool
         ccflPools[_stableCoin].lockLoan(
             loan.loanId,
             loan.amount,
@@ -159,6 +169,18 @@ contract CCFL is Initializable {
             _borrower
         );
         totalLoans[_borrower] += _amount;
+        // clone a loan SC
+        address loanIns = address(ccflLoan).clone();
+        ICCFLLoan cloneSC = ICCFLLoan(loanIns);
+        cloneSC.initialize(
+            loan,
+            collateralTokens,
+            aaveAddressProviders,
+            aTokens
+        );
+        loans[loandIds] = cloneSC;
+        // Todo: transfer collater
+        loandIds++;
     }
 
     // 3. Monthly payment
@@ -177,19 +199,19 @@ contract CCFL is Initializable {
         IERC20 _stableCoin
     ) public checkUsdcAllowance(_amount, _stableCoin) {
         uint index = 0;
-        for (uint i = 0; i < loans[msg.sender].length; i++) {
-            if (loans[msg.sender][i].loanId == _loanId) {
-                require(
-                    _amount == loans[msg.sender][i].monthlyPayment,
-                    "Wrong monthly payment"
-                );
-                index = i;
-                break;
-            }
-        }
-        loans[msg.sender][index].monthPaid += 1;
-        _stableCoin.transferFrom(msg.sender, address(this), _amount);
-        _stableCoin.approve(address(ccflPools[_stableCoin]), _amount);
+        // for (uint i = 0; i < loans[msg.sender].length; i++) {
+        //     if (loans[msg.sender][i].loanId == _loanId) {
+        //         require(
+        //             _amount == loans[msg.sender][i].monthlyPayment,
+        //             "Wrong monthly payment"
+        //         );
+        //         index = i;
+        //         break;
+        //     }
+        // }
+        // loans[msg.sender][index].monthPaid += 1;
+        // _stableCoin.transferFrom(msg.sender, address(this), _amount);
+        // _stableCoin.approve(address(ccflPools[_stableCoin]), _amount);
         // ccflPools[_stableCoin].depositMonthlyPayment(_loanId, _amount);
     }
 
@@ -199,49 +221,51 @@ contract CCFL is Initializable {
         uint _amount,
         IERC20 _stableCoin
     ) external {
-        for (uint i = 0; i < loans[msg.sender].length; i++) {
-            if (loans[msg.sender][i].loanId == _loanId) {
-                require(
-                    _amount == loans[msg.sender][i].amount &&
-                        loans[msg.sender][i].monthPaid ==
-                        loans[msg.sender][i].amountMonth,
-                    "Wrong loan amount or not finish monthly payment"
-                );
-                break;
-            }
-        }
+        // for (uint i = 0; i < loans[msg.sender].length; i++) {
+        //     if (loans[msg.sender][i].loanId == _loanId) {
+        //         require(
+        //             _amount == loans[msg.sender][i].amount &&
+        //                 loans[msg.sender][i].monthPaid ==
+        //                 loans[msg.sender][i].amountMonth,
+        //             "Wrong loan amount or not finish monthly payment"
+        //         );
+        //         break;
+        //     }
+        // }
 
         _stableCoin.transferFrom(msg.sender, address(this), _amount);
         _stableCoin.approve(address(ccflPools[_stableCoin]), _amount);
         ccflPools[_stableCoin].closeLoan(_loanId, _amount);
     }
 
-    function getLatestPrice(IERC20 _stableCoin) public view returns (uint) {
-        (
-            uint80 roundID,
-            int256 price,
-            uint256 startedAt,
-            uint256 timeStamp,
-            uint80 answeredInRound
-        ) = priceFeeds[_stableCoin].latestRoundData();
-        // for LINK / USD price is scaled up by 10 ** 8
-        return uint(price);
-    }
+    // function getLatestPrice(IERC20 _stableCoin) public view returns (uint) {
+    //     (
+    //         uint80 roundID,
+    //         int256 price,
+    //         uint256 startedAt,
+    //         uint256 timeStamp,
+    //         uint80 answeredInRound
+    //     ) = priceFeeds[_stableCoin].latestRoundData();
+    //     // for LINK / USD price is scaled up by 10 ** 8
+    //     return uint(price);
+    // }
 
     // .6 withdraw Collateral
-    function withdrawCollateral(uint _amount, IERC20 _stableCoin) public {
-        require(
-            _amount <= collateral[msg.sender],
-            "Do not have enough collateral"
-        );
-        collateral[msg.sender] -= _amount;
+    function withdrawCollateral(uint _amount) public {
         // require(
-        //     getHealthFactor(msg.sender, _stableCoin) > 100,
-        //     "Do not have good health factor"
+        //     _amount <= collateral[msg.sender],
+        //     "Do not have enough collateral"
         // );
-        emit Withdraw(msg.sender, _amount, block.timestamp);
-        tokenAddress.transfer(msg.sender, _amount);
+        // collateral[msg.sender] -= _amount;
+        // // require(
+        // //     getHealthFactor(msg.sender, _stableCoin) > 100,
+        // //     "Do not have good health factor"
+        // // );
+        // emit Withdraw(msg.sender, _amount, block.timestamp);
+        // tokenAddress.transfer(msg.sender, _amount);
     }
 
     receive() external payable {}
+
+    function upgradeTo(address) public {}
 }

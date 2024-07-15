@@ -54,14 +54,15 @@ contract CCFLLoan is ICCFLLoan, Initializable {
         _;
     }
 
+    constructor() {}
+
     function initialize(
-        address _owner,
         Loan memory _loan,
         IERC20[] memory _collateralTokens,
         IPoolAddressesProvider[] memory _aaveAddressProviders,
         IERC20[] memory _aTokens
     ) external initializer {
-        owner = _owner;
+        owner = msg.sender;
         initLoan = _loan;
         collateralTokens = _collateralTokens;
         owner = payable(msg.sender);
