@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 /// @title Pool contract
 /// @author
-/// @notice Link/usd
+/// @notice usd
 interface ICCFLPool {
     event Withdraw(address user, uint amount, uint when);
     event Deposit(address user, uint amount, uint when);
@@ -16,9 +16,9 @@ interface ICCFLPool {
     event LockLoan(uint loanId, uint amount, address borrower, uint when);
     event CloseLoan(uint loanId, uint amount, address borrower, uint when);
 
-    function depositUsdc(uint _amount) external;
+    function depositUsd(uint _amount) external;
 
-    function withdrawUsdc(uint _amount) external;
+    function withdrawUsd(uint _amount) external;
 
     function lockLoan(
         uint _loanId,
