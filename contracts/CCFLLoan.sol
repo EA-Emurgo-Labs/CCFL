@@ -246,9 +246,30 @@ contract CCFLLoan is ICCFLLoan, Initializable {
         // get all collateral from aave
         if (isStakeAave) withdrawLiquidity();
 
-        // TODO
-        // sell collateral on uniswap
-        // swapTokenForUSD(initLoan.amount, collateral, _stableCoin);
+        for (uint i; i < collateralTokens.length; i++) {
+            if (i < collateralTokens.length - 1) {
+                swapTokenForUSD(
+                    (initLoan.amount *
+                        collaterals[collateralTokens[i]] *
+                        getLatestPrice(collateralTokens[i])) / totalCollaterals,
+                    collaterals[collateralTokens[i]],
+                    initLoan.stableCoin,
+                    collateralTokens[i]
+                );
+                totalSell +=
+                    (initLoan.amount *
+                        collaterals[collateralTokens[i]] *
+                        getLatestPrice(collateralTokens[i])) /
+                    totalCollaterals;
+            } else {
+                swapTokenForUSD(
+                    initLoan.amount - totalSell,
+                    collaterals[collateralTokens[i]],
+                    initLoan.stableCoin,
+                    collateralTokens[i]
+                );
+            }
+        }
 
         // close this loan
         initLoan.stableCoin.approve(address(ccflPool), initLoan.amount);
