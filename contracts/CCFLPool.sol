@@ -50,6 +50,10 @@ contract CCFLPool is ICCFLPool {
         CCFL = _ccfl;
     }
 
+    function getRemainingPool() public returns (uint amount) {
+        amount = totalRemainFund;
+    }
+
     // Modifier to check token allowance
     modifier checkUsdAllowance(uint amount) {
         require(

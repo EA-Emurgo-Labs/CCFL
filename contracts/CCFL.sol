@@ -46,6 +46,7 @@ contract CCFL is Initializable {
     IERC20[] public collateralTokens;
     IERC20[] public aTokens;
     IPoolAddressesProvider[] public aaveAddressProviders;
+    mapping(IERC20 => uint) public LTV;
 
     event LiquiditySupplied(
         address indexed onBehalfOf,
@@ -58,10 +59,23 @@ contract CCFL is Initializable {
         uint256 indexed _amount
     );
 
-    // modifier onlyOwner() {
-    //     require(msg.sender == owner, "only the owner");
-    //     _;
-    // }
+    modifier onlyOwner() {
+        require(msg.sender == owner, "only the owner");
+        _;
+    }
+
+    modifier supportedToken(IERC20 _tokenAddress) {
+        bool isValid = false;
+        // check _tokenAddress is valid
+        for (uint i = 0; i < collateralTokens.length; i++) {
+            if (collateralTokens[i] == _tokenAddress) {
+                isValid = true;
+                break;
+            }
+        }
+        require(isValid == true, "Smart contract does not support this token");
+        _;
+    }
 
     event Withdraw(address borrower, uint amount, uint when);
 
@@ -113,39 +127,36 @@ contract CCFL is Initializable {
     function depositCollateral(
         uint _amount,
         IERC20 _tokenAddress
-    ) public checkTokenAllowance(_tokenAddress, _amount) {
-        // check _tokenAddress is valid
+    )
+        public
+        checkTokenAllowance(_tokenAddress, _amount)
+        supportedToken(_tokenAddress)
+    {
         // note collateral
         collaterals[msg.sender][_tokenAddress] += _amount;
-        // collateral[msg.sender] += (_amount * _percent) / 100;
-        // if (_amount - (_amount * _percent) / 100 > 0) {
-        //     stakeAave[msg.sender] += _amount - (_amount * _percent) / 100;
-        //     if (aaveStakeAddresses[msg.sender] == address(0)) {
-        //         // clone an address to save atoken
-        //         address aaveStake = address(ccflStake).clone();
-        //         ICCFLStake cloneSC = ICCFLStake(aaveStake);
-        //         cloneSC.initialize(address(this));
-        //         aaveStakeAddresses[msg.sender] = aaveStake;
-        //     }
-        //     supplyLiquidity(
-        //         address(tokenAddress),
-        //         _amount - (_amount * _percent) / 100,
-        //         aaveStakeAddresses[msg.sender]
-        //     );
-        // }
-        // tokenAddress.transferFrom(msg.sender, address(this), _amount);
     }
 
     // 2. create loan
     function createLoan(uint _amount, uint _months, IERC20 _stableCoin) public {
         // check enough collateral
-        // require(
-        //     (collateral[msg.sender] * getLatestPrice(_stableCoin) * LTV) /
-        //         1e8 /
-        //         10000 >
-        //         totalLoans[msg.sender] + _amount,
-        //     "Don't have enough collateral"
-        // );
+        uint collateralByUSD = 0;
+        for (uint i = 0; i < collateralTokens.length; i++) {
+            if (collaterals[msg.sender][collateralTokens[i]] > 0) {
+                collateralByUSD +=
+                    collaterals[msg.sender][collateralTokens[i]] *
+                    getLatestPrice(collateralTokens[i]);
+            }
+        }
+        require(
+            (collateralByUSD * LTV[_stableCoin]) / 10000 >=
+                _amount / getLatestPrice(_stableCoin),
+            "Don't have enough collateral"
+        );
+        // check pool reseve
+        require(
+            ccflPools[_stableCoin].getRemainingPool() >= _amount,
+            "Pool don't have enough fund"
+        );
         // make loan ins
         Loan memory loan;
         uint time = _months * 30 * (1 days);
@@ -159,8 +170,8 @@ contract CCFL is Initializable {
         loan.amountMonth = _months;
         loan.monthPaid = 0;
         loan.rateLoan = rateLoan;
+        loan.stableCoin = _stableCoin;
         // loans[_borrower].push(loan);
-        // check pool reseve
         // lock loan on pool
         ccflPools[_stableCoin].lockLoan(
             loan.loanId,
@@ -179,7 +190,15 @@ contract CCFL is Initializable {
             aTokens
         );
         loans[loandIds] = cloneSC;
-        // Todo: transfer collater
+        // transfer collateral
+        for (uint i = 0; i < collateralTokens.length; i++) {
+            if (collaterals[msg.sender][collateralTokens[i]] > 0) {
+                collateralTokens[i].transfer(
+                    address(ccflPools[_stableCoin]),
+                    collaterals[msg.sender][collateralTokens[i]]
+                );
+            }
+        }
         loandIds++;
     }
 
@@ -238,20 +257,19 @@ contract CCFL is Initializable {
         ccflPools[_stableCoin].closeLoan(_loanId, _amount);
     }
 
-    // function getLatestPrice(IERC20 _stableCoin) public view returns (uint) {
-    //     (
-    //         uint80 roundID,
-    //         int256 price,
-    //         uint256 startedAt,
-    //         uint256 timeStamp,
-    //         uint80 answeredInRound
-    //     ) = priceFeeds[_stableCoin].latestRoundData();
-    //     // for LINK / USD price is scaled up by 10 ** 8
-    //     return uint(price);
-    // }
+    // .6 withdraw Collateral
+    function withdrawCollateral(uint _amount, IERC20 _tokenAddress) public {
+        require(
+            _amount <= collaterals[msg.sender][_tokenAddress],
+            "Do not have enough collateral"
+        );
+        collaterals[msg.sender][_tokenAddress] -= _amount;
+        emit Withdraw(msg.sender, _amount, block.timestamp);
+        _tokenAddress.transfer(msg.sender, _amount);
+    }
 
     // .6 withdraw Collateral
-    function withdrawCollateral(uint _amount) public {
+    function withdrawCollateralOnLoan(uint _amount) public {
         // require(
         //     _amount <= collateral[msg.sender],
         //     "Do not have enough collateral"
@@ -263,6 +281,18 @@ contract CCFL is Initializable {
         // // );
         // emit Withdraw(msg.sender, _amount, block.timestamp);
         // tokenAddress.transfer(msg.sender, _amount);
+    }
+
+    function getLatestPrice(IERC20 _stableCoin) public view returns (uint) {
+        (
+            uint80 roundID,
+            int256 price,
+            uint256 startedAt,
+            uint256 timeStamp,
+            uint80 answeredInRound
+        ) = priceFeeds[_stableCoin].latestRoundData();
+        // for LINK / USD price is scaled up by 10 ** 8
+        return uint(price);
     }
 
     receive() external payable {}
