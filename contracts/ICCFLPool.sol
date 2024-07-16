@@ -20,12 +20,7 @@ interface ICCFLPool {
 
     function withdrawUsd(uint _amount) external;
 
-    function lockLoan(
-        uint _loanId,
-        uint _amount,
-        uint _monthlyPayment,
-        address _borrower
-    ) external;
+    function lockLoan(uint _loanId, uint _amount, address _borrower) external;
 
     function withdrawLoan() external;
 

@@ -159,7 +159,7 @@ contract CCFL is Initializable {
         );
         // make loan ins
         Loan memory loan;
-        uint time = _months * 30 * (1 days);
+        uint time = 30 * (1 days);
         address _borrower = msg.sender;
         loan.borrower = _borrower;
         loan.deadline = block.timestamp + time;
@@ -173,12 +173,7 @@ contract CCFL is Initializable {
         loan.stableCoin = _stableCoin;
         // loans[_borrower].push(loan);
         // lock loan on pool
-        ccflPools[_stableCoin].lockLoan(
-            loan.loanId,
-            loan.amount,
-            loan.monthlyPayment,
-            _borrower
-        );
+        ccflPools[_stableCoin].lockLoan(loan.loanId, loan.amount, _borrower);
         totalLoans[_borrower] += _amount;
         // clone a loan SC
         address loanIns = address(ccflLoan).clone();

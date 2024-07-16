@@ -50,7 +50,7 @@ contract CCFLPool is ICCFLPool {
         CCFL = _ccfl;
     }
 
-    function getRemainingPool() public returns (uint amount) {
+    function getRemainingPool() public view returns (uint amount) {
         amount = totalRemainFund;
     }
 
@@ -107,7 +107,6 @@ contract CCFLPool is ICCFLPool {
     function lockLoan(
         uint _loanId,
         uint _amount,
-        uint _monthlyPayment,
         address _borrower
     ) public onlyCCFL {
         if (
@@ -142,7 +141,6 @@ contract CCFLPool is ICCFLPool {
 
             loans[_loanId].isPaid = true;
             loans[_loanId].amount = _amount;
-            // loans[_loanId].monthlyPayment = _monthlyPayment;
             loanBalance[_borrower] += _amount;
             totalLockFund += _amount;
             emit LockLoan(_loanId, _amount, _borrower, block.timestamp);

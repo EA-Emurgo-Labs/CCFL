@@ -194,9 +194,12 @@ contract CCFLLoan is ICCFLLoan, Initializable {
 
     function liquidate() external {
         require(getHealthFactor() < 100, "Can not liquidate");
+        liquidateStep();
+    }
+
+    function liquidateStep() internal {
         // get all collateral from aave
         if (isStakeAave) withdrawLiquidity();
-
         // calculate ratio
         uint totalCollaterals = 0;
         for (uint i; i < collateralTokens.length; i++) {
@@ -206,7 +209,6 @@ contract CCFLLoan is ICCFLLoan, Initializable {
                 collateralPrice;
         }
         uint totalSell = 0;
-        // sell collateral on uniswap
         for (uint i; i < collateralTokens.length; i++) {
             if (i < collateralTokens.length - 1) {
                 swapTokenForUSD(
@@ -237,43 +239,20 @@ contract CCFLLoan is ICCFLLoan, Initializable {
         ccflPool.closeLoan(initLoan.loanId, initLoan.amount);
     }
 
-    function liquidateMonthlyPayment(
-        uint _loanId,
-        address _user,
-        IERC20 _stableCoin
-    ) external {
-        require(getHealthFactor() < 100, "Can not liquidate");
-        // get all collateral from aave
-        if (isStakeAave) withdrawLiquidity();
+    function liquidateMonthlyPayment() external {
+        require(
+            initLoan.deadline + (7 days) < block.timestamp,
+            "Can not liquidate"
+        );
+        liquidateStep();
+    }
 
-        for (uint i; i < collateralTokens.length; i++) {
-            if (i < collateralTokens.length - 1) {
-                swapTokenForUSD(
-                    (initLoan.amount *
-                        collaterals[collateralTokens[i]] *
-                        getLatestPrice(collateralTokens[i])) / totalCollaterals,
-                    collaterals[collateralTokens[i]],
-                    initLoan.stableCoin,
-                    collateralTokens[i]
-                );
-                totalSell +=
-                    (initLoan.amount *
-                        collaterals[collateralTokens[i]] *
-                        getLatestPrice(collateralTokens[i])) /
-                    totalCollaterals;
-            } else {
-                swapTokenForUSD(
-                    initLoan.amount - totalSell,
-                    collaterals[collateralTokens[i]],
-                    initLoan.stableCoin,
-                    collateralTokens[i]
-                );
-            }
-        }
-
-        // close this loan
-        initLoan.stableCoin.approve(address(ccflPool), initLoan.amount);
-        ccflPool.closeLoan(initLoan.loanId, initLoan.amount);
+    function monthlyPayment(uint _amount) external {
+        require(
+            initLoan.monthlyPayment <= _amount,
+            "monthly payment does not enough"
+        );
+        initLoan.deadline += 30 * (1 days);
     }
 
     receive() external payable {}
