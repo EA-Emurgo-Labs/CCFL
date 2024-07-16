@@ -223,11 +223,10 @@ contract CCFL is Initializable {
         uint _amount,
         IERC20 _stableCoin
     ) external {
-        //    loans[_loanId].close
+        loans[_loanId].closeLoan();
         _stableCoin.transferFrom(msg.sender, address(this), _amount);
         _stableCoin.approve(address(ccflPools[_stableCoin]), _amount);
         ccflPools[_stableCoin].closeLoan(_loanId, _amount);
-        // update loan sc close
     }
 
     // .6 withdraw Collateral
@@ -242,21 +241,8 @@ contract CCFL is Initializable {
     }
 
     // .6 withdraw Collateral
-    function withdrawCollateralOnLoan(uint _loanId, uint _amount) public {
-        // check owner
-        // check LTV
-        // get back collateral
-        // require(
-        //     _amount <= collateral[msg.sender],
-        //     "Do not have enough collateral"
-        // );
-        // collateral[msg.sender] -= _amount;
-        // // require(
-        // //     getHealthFactor(msg.sender, _stableCoin) > 100,
-        // //     "Do not have good health factor"
-        // // );
-        // emit Withdraw(msg.sender, _amount, block.timestamp);
-        // tokenAddress.transfer(msg.sender, _amount);
+    function withdrawCollateralOnClosedLoan(uint _loanId, address _to) public {
+        loans[_loanId].withdrawAllCollateral(_to);
     }
 
     function getLatestPrice(IERC20 _stableCoin) public view returns (uint) {

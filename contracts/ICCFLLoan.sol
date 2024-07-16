@@ -19,6 +19,7 @@ struct Loan {
     uint monthPaid;
     uint amountMonth;
     IERC20 stableCoin;
+    bool isClosed;
 }
 
 /// @title CCFL contract
@@ -64,4 +65,8 @@ interface ICCFLLoan {
     ) external;
 
     function monthlyPayment(uint _amount) external;
+
+    function closeLoan() external;
+
+    function withdrawAllCollateral(address _to) external;
 }

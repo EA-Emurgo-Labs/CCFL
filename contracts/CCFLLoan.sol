@@ -255,5 +255,20 @@ contract CCFLLoan is ICCFLLoan, Initializable {
         initLoan.deadline += 30 * (1 days);
     }
 
+    function closeLoan() public {
+        initLoan.isClosed = true;
+    }
+
+    function withdrawAllCollateral(address _to) public {
+        for (uint i; i < collateralTokens.length; i++) {
+            if (collaterals[collateralTokens[i]] > 0) {
+                collateralTokens[i].transfer(
+                    _to,
+                    collaterals[collateralTokens[i]]
+                );
+            }
+        }
+    }
+
     receive() external payable {}
 }
