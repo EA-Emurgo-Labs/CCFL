@@ -38,6 +38,7 @@ contract CCFL is Initializable {
     mapping(address => uint) public totalLoans;
     mapping(address => mapping(IERC20 => uint)) public collaterals;
     mapping(address => uint) public stakeAave;
+    mapping(IERC20 => uint) public liquidationThreshold;
     uint public loandIds;
     mapping(IERC20 => ICCFLPool) public ccflPools;
     IERC20[] public ccflPoolStableCoins;
@@ -86,20 +87,26 @@ contract CCFL is Initializable {
         ICCFLLoan _ccflLoan,
         IERC20[] memory _aTokens,
         IPoolAddressesProvider[] memory _aaveAddressProviders,
-        IERC20[] memory _collateralTokens
+        IERC20[] memory _collateralTokens,
+        uint[] memory _ltvs,
+        uint[] memory _thresholds
     ) external initializer {
         ccflPoolStableCoins = _ccflPoolStableCoin;
         owner = payable(msg.sender);
         loandIds = 1;
-        for (uint i = 0; i < _ccflPoolStableCoin.length; i++) {
-            ccflPools[_ccflPoolStableCoin[i]] = _ccflPools[i];
-            priceFeeds[_ccflPoolStableCoin[i]] = _aggregators[i];
+        for (uint i = 0; i < ccflPoolStableCoins.length; i++) {
+            ccflPools[ccflPoolStableCoins[i]] = _ccflPools[i];
+            priceFeeds[ccflPoolStableCoins[i]] = _aggregators[i];
+        }
+        collateralTokens = _collateralTokens;
+        for (uint i = 0; i < collateralTokens.length; i++) {
+            LTV[collateralTokens[i]] = _ltvs[i];
+            liquidationThreshold[collateralTokens[i]] = _thresholds[i];
         }
         rateLoan = 1200;
         ccflLoan = _ccflLoan;
         aTokens = _aTokens;
-        // aaveAddressProviders = _aaveAddressProviders;
-        collateralTokens = _collateralTokens;
+        aaveAddressProviders = _aaveAddressProviders;
     }
 
     // create loan

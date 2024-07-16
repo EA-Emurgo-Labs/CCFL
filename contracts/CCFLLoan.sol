@@ -37,7 +37,7 @@ contract CCFLLoan is ICCFLLoan, Initializable {
     IUniswapV3Pool uniswapPool;
     ISwapRouter public swapRouter;
     uint24 public constant feeTier = 3000;
-    uint public liquidationThreshold;
+    mapping(IERC20 => uint) public liquidationThreshold;
     mapping(IERC20 => uint) public LTV;
     uint public uniswapFee;
     mapping(IERC20 => uint) public collaterals;
@@ -139,8 +139,8 @@ contract CCFLLoan is ICCFLLoan, Initializable {
                 collaterals[collateralTokens[i]] *
                 collateralPrice;
         }
-        uint healthFactor = (((totalCollaterals * liquidationThreshold) /
-            10000) * 100) /
+        uint healthFactor = (((totalCollaterals *
+            liquidationThreshold[initLoan.stableCoin]) / 10000) * 100) /
             initLoan.amount /
             stableCoinPrice;
         return healthFactor;

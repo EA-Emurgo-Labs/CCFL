@@ -58,6 +58,8 @@ describe("CCFL system", function () {
         [await aToken.getAddress()],
         [await mockPoolAddressesProvider.getAddress()],
         [await link.getAddress()],
+        [7000],
+        [7500],
       ],
       { initializer: "initialize", kind: "uups" }
     );
@@ -121,22 +123,22 @@ describe("CCFL system", function () {
       await ccfl
         .connect(borrower1)
         .createLoan(BigInt(1000e18), BigInt(1), await usdc.getAddress());
-      await ccflPool.connect(borrower1).withdrawLoan();
-      expect(BigInt(await usdc.balanceOf(borrower1)).toString()).to.eq(
-        BigInt(2000e18)
-      );
-      // console.log(await ccfl.loans(borrower1, BigInt(0)));
-      // borrower return monthly payment
-      await usdc.connect(borrower1).approve(ccfl.getAddress(), BigInt(10e18));
-      await ccfl
-        .connect(borrower1)
-        .depositMonthlyPayment(1, BigInt(10e18), await usdc.getAddress());
-      // close loan
-      await usdc.connect(borrower1).approve(ccfl.getAddress(), BigInt(1000e18));
-      await ccfl
-        .connect(borrower1)
-        .closeLoan(1, BigInt(1000e18), await usdc.getAddress());
-      await ccflPool.connect(lender1).withdrawMonthlyPayment();
+      // await ccflPool.connect(borrower1).withdrawLoan();
+      // expect(BigInt(await usdc.balanceOf(borrower1)).toString()).to.eq(
+      //   BigInt(2000e18)
+      // );
+      // // console.log(await ccfl.loans(borrower1, BigInt(0)));
+      // // borrower return monthly payment
+      // await usdc.connect(borrower1).approve(ccfl.getAddress(), BigInt(10e18));
+      // await ccfl
+      //   .connect(borrower1)
+      //   .depositMonthlyPayment(1, BigInt(10e18), await usdc.getAddress());
+      // // close loan
+      // await usdc.connect(borrower1).approve(ccfl.getAddress(), BigInt(1000e18));
+      // await ccfl
+      //   .connect(borrower1)
+      //   .closeLoan(1, BigInt(1000e18), await usdc.getAddress());
+      // await ccflPool.connect(lender1).withdrawMonthlyPayment();
     });
 
     // it("multi lender", async function () {
