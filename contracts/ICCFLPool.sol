@@ -24,7 +24,14 @@ interface ICCFLPool {
 
     function withdrawLoan() external;
 
-    function withdrawMonthlyPayment() external;
+    function withdrawMonthlyPayment(
+        address _signer,
+        address _to,
+        uint256 _amount,
+        string memory _message,
+        uint256 _nonce,
+        bytes memory _signature
+    ) external;
 
     function closeLoan(uint _loanId, uint _amount) external;
 

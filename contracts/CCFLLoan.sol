@@ -87,36 +87,35 @@ contract CCFLLoan is ICCFLLoan, Initializable {
             );
             emit LiquiditySupplied(onBehalfOf, address(asset), amount);
         }
+        isStakeAave = true;
     }
 
     function withdrawLiquidity() public {
         for (uint i; i < collateralTokens.length; i++) {
             uint amount = aTokens[i].balanceOf(address(this));
-            uint256 withdrawn = aavePools[i].withdraw(
-                address(aTokens[i]),
-                amount,
-                address(this)
-            );
+            aavePools[i].withdraw(address(aTokens[i]), amount, address(this));
             emit LiquidityWithdrawn(address(this), address(aTokens[i]), amount);
         }
+        isStakeAave = false;
     }
 
-    // function getUserAccountData(
-    //     address user
-    // )
-    //     public
-    //     view
-    //     returns (
-    //         uint256 totalCollateralBase,
-    //         uint256 totalDebtBase,
-    //         uint256 availableBorrowsBase,
-    //         uint256 currentLiquidationThreshold,
-    //         uint256 ltv,
-    //         uint256 healthFactor
-    //     )
-    // {
-    //     return POOL.getUserAccountData(user);
-    // }
+    function getUserAccountData(
+        address user,
+        uint i
+    )
+        public
+        view
+        returns (
+            uint256 totalCollateralBase,
+            uint256 totalDebtBase,
+            uint256 availableBorrowsBase,
+            uint256 currentLiquidationThreshold,
+            uint256 ltv,
+            uint256 healthFactor
+        )
+    {
+        return aavePools[i].getUserAccountData(user);
+    }
 
     function getLatestPrice(IERC20 _stableCoin) public view returns (uint) {
         (
