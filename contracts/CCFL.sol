@@ -207,24 +207,12 @@ contract CCFL is Initializable {
         _;
     }
 
-    function depositMonthlyPayment(
+    function monthlyPayment(
         uint _loanId,
         uint _amount,
         IERC20 _stableCoin
     ) public checkUsdcAllowance(_amount, _stableCoin) {
-        uint index = 0;
-        // for (uint i = 0; i < loans[msg.sender].length; i++) {
-        //     if (loans[msg.sender][i].loanId == _loanId) {
-        //         require(
-        //             _amount == loans[msg.sender][i].monthlyPayment,
-        //             "Wrong monthly payment"
-        //         );
-        //         index = i;
-        //         break;
-        //     }
-        // }
-        // loans[msg.sender][index].monthPaid += 1;
-        // TODO update on loan sc this payment
+        loans[_loanId].monthlyPayment(_amount);
         _stableCoin.transferFrom(msg.sender, address(this), _amount);
         _stableCoin.transfer(address(ccflPools[_stableCoin]), _amount);
     }
@@ -235,18 +223,7 @@ contract CCFL is Initializable {
         uint _amount,
         IERC20 _stableCoin
     ) external {
-        // for (uint i = 0; i < loans[msg.sender].length; i++) {
-        //     if (loans[msg.sender][i].loanId == _loanId) {
-        //         require(
-        //             _amount == loans[msg.sender][i].amount &&
-        //                 loans[msg.sender][i].monthPaid ==
-        //                 loans[msg.sender][i].amountMonth,
-        //             "Wrong loan amount or not finish monthly payment"
-        //         );
-        //         break;
-        //     }
-        // }
-
+        //    loans[_loanId].close
         _stableCoin.transferFrom(msg.sender, address(this), _amount);
         _stableCoin.approve(address(ccflPools[_stableCoin]), _amount);
         ccflPools[_stableCoin].closeLoan(_loanId, _amount);

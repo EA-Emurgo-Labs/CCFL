@@ -62,4 +62,6 @@ interface ICCFLLoan {
         IPoolAddressesProvider[] memory _aaveAddressProviders,
         IERC20[] memory _aTokens
     ) external;
+
+    function monthlyPayment(uint _amount) external;
 }
