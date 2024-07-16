@@ -35,7 +35,7 @@ contract CCFL is Initializable {
     IERC20 public tokenAddress;
     mapping(IERC20 => AggregatorV3Interface) public priceFeeds;
     // mapping(address => Loan[]) public loans;
-    mapping(address => uint) public totalLoans;
+    // mapping(address => uint) public totalLoans;
     mapping(address => mapping(IERC20 => uint)) public collaterals;
     mapping(address => uint) public stakeAave;
     mapping(IERC20 => uint) public liquidationThreshold;
@@ -98,11 +98,11 @@ contract CCFL is Initializable {
         for (uint i = 0; i < ccflPoolStableCoins.length; i++) {
             ccflPools[ccflPoolStableCoins[i]] = _ccflPools[i];
             priceFeeds[ccflPoolStableCoins[i]] = _poolAggregators[i];
+            LTV[ccflPoolStableCoins[i]] = _ltvs[i];
+            liquidationThreshold[ccflPoolStableCoins[i]] = _thresholds[i];
         }
         collateralTokens = _collateralTokens;
         for (uint i = 0; i < collateralTokens.length; i++) {
-            LTV[collateralTokens[i]] = _ltvs[i];
-            liquidationThreshold[collateralTokens[i]] = _thresholds[i];
             priceFeeds[collateralTokens[i]] = _collateralAggregators[i];
         }
         rateLoan = 1200;
@@ -143,6 +143,7 @@ contract CCFL is Initializable {
     {
         // note collateral
         collaterals[msg.sender][_tokenAddress] += _amount;
+        _tokenAddress.transferFrom(msg.sender, address(this), _amount);
     }
 
     // 2. create loan
@@ -156,62 +157,63 @@ contract CCFL is Initializable {
                     getLatestPrice(collateralTokens[i]);
             }
         }
-        // require(
-        //     (collateralByUSD * LTV[_stableCoin]) / 10000 >=
-        //         _amount / getLatestPrice(_stableCoin),
-        //     "Don't have enough collateral"
-        // );
-        // // check pool reseve
-        // require(
-        //     ccflPools[_stableCoin].getRemainingPool() >= _amount,
-        //     "Pool don't have enough fund"
-        // );
+
+        require(
+            (collateralByUSD * LTV[_stableCoin]) / 10000 >=
+                _amount * getLatestPrice(_stableCoin),
+            "Don't have enough collateral"
+        );
+        // check pool reseve
+        require(
+            ccflPools[_stableCoin].getRemainingPool() >= _amount,
+            "Pool don't have enough fund"
+        );
         // make loan ins
-        // Loan memory loan;
-        // uint time = 30 * (1 days);
-        // address _borrower = msg.sender;
-        // loan.borrower = _borrower;
-        // loan.deadline = block.timestamp + time;
-        // loan.amount = _amount;
-        // loan.loanId = loandIds;
-        // loan.isPaid = false;
-        // loan.monthlyPayment = (_amount * rateLoan) / 10000 / 12;
-        // loan.amountMonth = _months;
-        // loan.monthPaid = 0;
-        // loan.rateLoan = rateLoan;
-        // loan.stableCoin = _stableCoin;
-        // // loans[_borrower].push(loan);
-        // // lock loan on pool
-        // ccflPools[_stableCoin].lockLoan(loan.loanId, loan.amount, _borrower);
+        Loan memory loan;
+        uint time = 30 * (1 days);
+        address _borrower = msg.sender;
+        loan.borrower = _borrower;
+        loan.deadline = block.timestamp + time;
+        loan.amount = _amount;
+        loan.loanId = loandIds;
+        loan.isPaid = false;
+        loan.monthlyPayment = (_amount * rateLoan) / 10000 / 12;
+        loan.amountMonth = _months;
+        loan.monthPaid = 0;
+        loan.rateLoan = rateLoan;
+        loan.stableCoin = _stableCoin;
+        // loans[_borrower].push(loan);
+        // lock loan on pool
+        ccflPools[_stableCoin].lockLoan(loan.loanId, loan.amount, _borrower);
         // totalLoans[_borrower] += _amount;
-        // uint[] memory _ltvs;
-        // uint[] memory _thresholds;
-        // for (uint i = 0; i < collateralTokens.length; i++) {
-        //     _ltvs[i] = LTV[collateralTokens[i]];
-        //     _thresholds[i] = liquidationThreshold[collateralTokens[i]];
-        // }
-        // // clone a loan SC
-        // address loanIns = address(ccflLoan).clone();
-        // ICCFLLoan cloneSC = ICCFLLoan(loanIns);
-        // cloneSC.initialize(
-        //     loan,
-        //     collateralTokens,
-        //     aaveAddressProviders,
-        //     aTokens,
-        //     _ltvs,
-        //     _thresholds
-        // );
-        // loans[loandIds] = cloneSC;
-        // // transfer collateral
-        // for (uint i = 0; i < collateralTokens.length; i++) {
-        //     if (collaterals[msg.sender][collateralTokens[i]] > 0) {
-        //         collateralTokens[i].transfer(
-        //             address(ccflPools[_stableCoin]),
-        //             collaterals[msg.sender][collateralTokens[i]]
-        //         );
-        //     }
-        // }
-        // loandIds++;
+        uint[] memory _ltvs = new uint[](collateralTokens.length);
+        uint[] memory _thresholds = new uint[](collateralTokens.length);
+        for (uint i = 0; i < collateralTokens.length; i++) {
+            _ltvs[i] = LTV[collateralTokens[i]];
+            _thresholds[i] = liquidationThreshold[collateralTokens[i]];
+        }
+        // clone a loan SC
+        address loanIns = address(ccflLoan).clone();
+        ICCFLLoan cloneSC = ICCFLLoan(loanIns);
+        cloneSC.initialize(
+            loan,
+            collateralTokens,
+            aaveAddressProviders,
+            aTokens,
+            _ltvs,
+            _thresholds
+        );
+        loans[loandIds] = cloneSC;
+        // transfer collateral
+        for (uint i = 0; i < collateralTokens.length; i++) {
+            if (collaterals[msg.sender][collateralTokens[i]] > 0) {
+                collateralTokens[i].transfer(
+                    address(loanIns),
+                    collaterals[msg.sender][collateralTokens[i]]
+                );
+            }
+        }
+        loandIds++;
     }
 
     // 3. Monthly payment

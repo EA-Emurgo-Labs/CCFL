@@ -34,6 +34,8 @@ describe("CCFL system", function () {
     const MockAggr2 = await hre.ethers.getContractFactory("MockAggregator");
     const mockAggr2 = await MockAggr2.deploy();
 
+    await mockAggr.setPrice(1e8);
+
     const MockSwap = await hre.ethers.getContractFactory("MockSwapRouter");
     const mockSwap = await MockSwap.deploy();
 
