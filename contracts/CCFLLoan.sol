@@ -31,21 +31,28 @@ interface AggregatorV3Interface {
 /// @notice Link/usd
 contract CCFLLoan is ICCFLLoan, Initializable {
     address public owner;
-    IPoolAddressesProvider[] public aaveAddressProviders;
-    IPool[] public aavePools;
-    IERC20[] public aTokens;
+    // aave config
+    mapping(IERC20 => IPoolAddressesProvider) public aaveAddressProviders;
+    mapping(IERC20 => IERC20) public aTokens;
+    bool public isStakeAave;
+    // uniswap config
     IUniswapV3Pool uniswapPool;
     ISwapRouter public swapRouter;
     uint24 public constant feeTier = 3000;
+    // collateral
     mapping(IERC20 => uint) public liquidationThreshold;
     mapping(IERC20 => uint) public LTV;
-    uint public uniswapFee;
     mapping(IERC20 => uint) public collaterals;
-    bool public isStakeAave;
-    Loan public initLoan;
     IERC20[] public collateralTokens;
+
+    // default loan
+    Loan public initLoan;
+
+    // chainlink
     mapping(IERC20 => AggregatorV3Interface) public priceFeeds;
-    ICCFLPool public ccflPool;
+
+    // ccfl pool
+    ICCFLPool ccflPool;
 
     modifier onlyOwner() {
         require(msg.sender == owner, "only the owner");
@@ -66,11 +73,14 @@ contract CCFLLoan is ICCFLLoan, Initializable {
         initLoan = _loan;
         collateralTokens = _collateralTokens;
         owner = payable(msg.sender);
-        aaveAddressProviders = _aaveAddressProviders;
-        for (uint i = 0; i < aaveAddressProviders.length; i++) {
-            aavePools.push(IPool(aaveAddressProviders[i].getPool()));
+        for (uint i = 0; i < collateralTokens.length; i++) {
+            aaveAddressProviders[collateralTokens[i]] = _aaveAddressProviders[
+                i
+            ];
+            LTV[collateralTokens[i]] = _ltvs[i];
+            liquidationThreshold[collateralTokens[i]] = _thresholds[i];
+            aTokens[collateralTokens[i]] = _aTokens[i];
         }
-        aTokens = _aTokens;
     }
 
     function supplyLiquidity() public onlyOwner {
@@ -79,12 +89,10 @@ contract CCFLLoan is ICCFLLoan, Initializable {
             uint amount = asset.balanceOf(address(this));
             address onBehalfOf = address(this);
             uint16 referralCode = 0;
-            aavePools[i].supply(
-                address(asset),
-                amount,
-                onBehalfOf,
-                referralCode
+            IPool aavePool = IPool(
+                aaveAddressProviders[collateralTokens[i]].getPool()
             );
+            aavePool.supply(address(asset), amount, onBehalfOf, referralCode);
             emit LiquiditySupplied(onBehalfOf, address(asset), amount);
         }
         isStakeAave = true;
@@ -92,16 +100,27 @@ contract CCFLLoan is ICCFLLoan, Initializable {
 
     function withdrawLiquidity() public {
         for (uint i; i < collateralTokens.length; i++) {
-            uint amount = aTokens[i].balanceOf(address(this));
-            aavePools[i].withdraw(address(aTokens[i]), amount, address(this));
-            emit LiquidityWithdrawn(address(this), address(aTokens[i]), amount);
+            uint amount = aTokens[collateralTokens[i]].balanceOf(address(this));
+            IPool aavePool = IPool(
+                aaveAddressProviders[collateralTokens[i]].getPool()
+            );
+            aavePool.withdraw(
+                address(aTokens[collateralTokens[i]]),
+                amount,
+                address(this)
+            );
+            emit LiquidityWithdrawn(
+                address(this),
+                address(aTokens[collateralTokens[i]]),
+                amount
+            );
         }
         isStakeAave = false;
     }
 
     function getUserAccountData(
         address user,
-        uint i
+        IERC20 collateral
     )
         public
         view
@@ -114,7 +133,8 @@ contract CCFLLoan is ICCFLLoan, Initializable {
             uint256 healthFactor
         )
     {
-        return aavePools[i].getUserAccountData(user);
+        IPool aavePool = IPool(aaveAddressProviders[collateral].getPool());
+        return aavePool.getUserAccountData(user);
     }
 
     function getLatestPrice(IERC20 _stableCoin) public view returns (uint) {
