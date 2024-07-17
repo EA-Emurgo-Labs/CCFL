@@ -234,7 +234,6 @@ describe("CCFL system", function () {
       await ccfl
         .connect(borrower1)
         .depositCollateral(BigInt(1000e18), await link.getAddress());
-      await time.increase(30 * 24 * 3600);
       await ccfl
         .connect(borrower1)
         .createLoan(BigInt(1000e18), BigInt(1), await usdc.getAddress());
@@ -248,14 +247,12 @@ describe("CCFL system", function () {
       await ccfl
         .connect(borrower1)
         .monthlyPayment(1, BigInt(10e18), await usdc.getAddress());
+      await time.increase(30 * 24 * 3600);
       // close loan
       await usdc.connect(borrower1).approve(ccfl.getAddress(), BigInt(1000e18));
       await ccfl
         .connect(borrower1)
         .closeLoan(1, BigInt(1000e18), await usdc.getAddress());
-      // await ccflPool.connect(lender1).withdrawMonthlyPayment();
-      // await ccflStake.getUserAccountData(borrower1);
-      // await ccflStake.getBalanceAToken(borrower1);
     });
 
     it("withdraw all USDC", async function () {
