@@ -145,7 +145,6 @@ describe("CCFL system", function () {
       await ccfl
         .connect(borrower1)
         .closeLoan(1, BigInt(1000e18), await usdc.getAddress());
-      // await ccflPool.connect(lender1).withdrawMonthlyPayment();
     });
 
     it("Should get 2 month loan fund", async function () {

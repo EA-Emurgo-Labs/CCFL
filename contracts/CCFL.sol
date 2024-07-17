@@ -84,18 +84,18 @@ contract CCFL is Initializable {
         owner = payable(msg.sender);
         loandIds = 1;
         for (uint i = 0; i < ccflPoolStableCoins.length; i++) {
-            ccflPools[ccflPoolStableCoins[i]] = _ccflPools[i];
-            pricePoolFeeds[ccflPoolStableCoins[i]] = _poolAggregators[i];
+            IERC20 token = ccflPoolStableCoins[i];
+            ccflPools[token] = _ccflPools[i];
+            pricePoolFeeds[token] = _poolAggregators[i];
         }
         collateralTokens = _collateralTokens;
         for (uint i = 0; i < collateralTokens.length; i++) {
-            priceFeeds[collateralTokens[i]] = _collateralAggregators[i];
-            LTV[collateralTokens[i]] = _ltvs[i];
-            liquidationThreshold[collateralTokens[i]] = _thresholds[i];
-            aTokens[collateralTokens[i]] = _aTokens[i];
-            aaveAddressProviders[collateralTokens[i]] = _aaveAddressProviders[
-                i
-            ];
+            IERC20 token = collateralTokens[i];
+            priceFeeds[token] = _collateralAggregators[i];
+            LTV[token] = _ltvs[i];
+            liquidationThreshold[token] = _thresholds[i];
+            aTokens[token] = _aTokens[i];
+            aaveAddressProviders[token] = _aaveAddressProviders[i];
         }
         rateLoan = 1200;
         ccflLoan = _ccflLoan;
@@ -141,16 +141,18 @@ contract CCFL is Initializable {
         // check enough collateral
         uint collateralByUSD = 0;
         for (uint i = 0; i < collateralTokens.length; i++) {
-            if (collaterals[msg.sender][collateralTokens[i]] > 0) {
+            IERC20 token = collateralTokens[i];
+            if (collaterals[msg.sender][token] > 0) {
                 collateralByUSD +=
-                    collaterals[msg.sender][collateralTokens[i]] *
-                    getLatestPrice(collateralTokens[i]);
+                    (collaterals[msg.sender][token] *
+                        getLatestPrice(token, false) *
+                        LTV[token]) /
+                    10000;
             }
         }
 
         require(
-            (collateralByUSD * LTV[_stableCoin]) / 10000 >=
-                _amount * getLatestPrice(_stableCoin),
+            collateralByUSD >= _amount * getLatestPrice(_stableCoin, true),
             "Don't have enough collateral"
         );
         // check pool reseve
@@ -288,16 +290,31 @@ contract CCFL is Initializable {
         // loans[_loanId].withdrawAllCollateral(_to);
     }
 
-    function getLatestPrice(IERC20 _stableCoin) public view returns (uint) {
-        (
-            uint80 roundID,
-            int256 price,
-            uint256 startedAt,
-            uint256 timeStamp,
-            uint80 answeredInRound
-        ) = priceFeeds[_stableCoin].latestRoundData();
-        // for LINK / USD price is scaled up by 10 ** 8
-        return uint(price);
+    function getLatestPrice(
+        IERC20 _stableCoin,
+        bool isPool
+    ) public view returns (uint) {
+        if (isPool == false) {
+            (
+                uint80 roundID,
+                int256 price,
+                uint256 startedAt,
+                uint256 timeStamp,
+                uint80 answeredInRound
+            ) = priceFeeds[_stableCoin].latestRoundData();
+            // for LINK / USD price is scaled up by 10 ** 8
+            return uint(price);
+        } else {
+            (
+                uint80 roundID,
+                int256 price,
+                uint256 startedAt,
+                uint256 timeStamp,
+                uint80 answeredInRound
+            ) = pricePoolFeeds[_stableCoin].latestRoundData();
+            // for LINK / USD price is scaled up by 10 ** 8
+            return uint(price);
+        }
     }
 
     receive() external payable {}

@@ -71,13 +71,12 @@ contract CCFLLoan is ICCFLLoan, Initializable {
         collateralTokens = _collateralTokens;
         owner = payable(msg.sender);
         for (uint i = 0; i < collateralTokens.length; i++) {
-            aaveAddressProviders[collateralTokens[i]] = _aaveAddressProviders[
-                i
-            ];
-            LTV[collateralTokens[i]] = _ltvs[i];
-            liquidationThreshold[collateralTokens[i]] = _thresholds[i];
-            aTokens[collateralTokens[i]] = _aTokens[i];
-            priceFeeds[collateralTokens[i]] = _priceFeeds[i];
+            IERC20 token = collateralTokens[i];
+            aaveAddressProviders[token] = _aaveAddressProviders[i];
+            LTV[token] = _ltvs[i];
+            liquidationThreshold[token] = _thresholds[i];
+            aTokens[token] = _aTokens[i];
+            priceFeeds[token] = _priceFeeds[i];
         }
         pricePoolFeeds = _pricePoolFeeds;
     }
