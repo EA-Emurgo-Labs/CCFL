@@ -152,12 +152,15 @@ contract CCFL is Initializable {
                     (collaterals[msg.sender][token] *
                         getLatestPrice(token, false) *
                         LTV[token]) /
+                    (10 ** token.decimals()) /
                     10000;
             }
         }
 
         require(
-            collateralByUSD >= _amount * getLatestPrice(_stableCoin, true),
+            collateralByUSD >=
+                (_amount * getLatestPrice(_stableCoin, true)) /
+                    (10 ** _stableCoin.decimals()),
             "Don't have enough collateral"
         );
         // check pool reseve
@@ -198,13 +201,12 @@ contract CCFL is Initializable {
                 collateralTokens.length
             );
         for (uint i = 0; i < collateralTokens.length; i++) {
-            _ltvs[i] = LTV[collateralTokens[i]];
-            _thresholds[i] = liquidationThreshold[collateralTokens[i]];
-            _aTokens[i] = aTokens[collateralTokens[i]];
-            _aaveAddressProviders[i] = aaveAddressProviders[
-                collateralTokens[i]
-            ];
-            _priceFeeds[i] = priceFeeds[collateralTokens[i]];
+            IERC20Standard token = collateralTokens[i];
+            _ltvs[i] = LTV[token];
+            _thresholds[i] = liquidationThreshold[token];
+            _aTokens[i] = aTokens[token];
+            _aaveAddressProviders[i] = aaveAddressProviders[token];
+            _priceFeeds[i] = priceFeeds[token];
         }
         AggregatorV3Interface _pricePoolFeeds = pricePoolFeeds[_stableCoin];
         // clone a loan SC

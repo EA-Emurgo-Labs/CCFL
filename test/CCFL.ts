@@ -31,10 +31,10 @@ describe("CCFL system", function () {
     const MockAggr = await hre.ethers.getContractFactory("MockAggregator");
     const mockAggr = await MockAggr.deploy();
 
+    await mockAggr.setPrice(1e8);
+
     const MockAggr2 = await hre.ethers.getContractFactory("MockAggregator");
     const mockAggr2 = await MockAggr2.deploy();
-
-    await mockAggr.setPrice(1e8);
 
     const MockSwap = await hre.ethers.getContractFactory("MockSwapRouter");
     const mockSwap = await MockSwap.deploy();
@@ -98,6 +98,7 @@ describe("CCFL system", function () {
       lender3,
       mockAggr,
       aToken,
+      mockAggr2,
     };
   }
 
@@ -327,7 +328,7 @@ describe("CCFL system", function () {
     });
   });
   describe("Liquidation", function () {
-    it.only("Good Health factor", async function () {
+    it("Good Health factor", async function () {
       const {
         usdc,
         link,
@@ -362,39 +363,44 @@ describe("CCFL system", function () {
       expect(await ccfl.getHealthFactor(BigInt(1))).to.greaterThanOrEqual(100);
     });
 
-    //   it("Bad Health factor", async function () {
-    //     const {
-    //       usdc,
-    //       link,
-    //       ccflPool,
-    //       ccflStake,
-    //       ccfl,
-    //       owner,
-    //       borrower1,
-    //       borrower2,
-    //       borrower3,
-    //       lender1,
-    //       lender2,
-    //       lender3,
-    //       mockAggr,
-    //     } = await loadFixture(deployFixture);
-    //     // lender deposit USDC
-    //     await usdc
-    //       .connect(lender1)
-    //       .approve(ccflPool.getAddress(), BigInt(10000e18));
-    //     await ccflPool.connect(lender1).depositUsdc(BigInt(10000e18));
-    //     // borrower lend
-    //     await link.connect(borrower1).approve(ccfl.getAddress(), BigInt(1000e18));
-    //     await ccfl.connect(borrower1).depositCollateral(BigInt(1000e18), 50);
-    //     await ccfl.connect(borrower1).createLoan(BigInt(1000e18), BigInt(90));
-    //     await ccflPool.connect(borrower1).withdrawLoan();
-    //     expect(BigInt(await usdc.balanceOf(borrower1)).toString()).to.eq(
-    //       BigInt(2000e18)
-    //     );
-    //     await mockAggr.setPrice(BigInt(1023075000));
+    it("Bad Health factor", async function () {
+      const {
+        usdc,
+        link,
+        ccflPool,
+        ccfl,
+        owner,
+        borrower1,
+        borrower2,
+        borrower3,
+        lender1,
+        lender2,
+        lender3,
+        mockAggr,
+        aToken,
+        mockAggr2,
+      } = await loadFixture(deployFixture);
+      // lender deposit USDC
+      await usdc
+        .connect(lender1)
+        .approve(ccflPool.getAddress(), BigInt(10000e18));
+      await ccflPool.connect(lender1).depositUsd(BigInt(10000e18));
+      // borrower lend
+      await link.connect(borrower1).approve(ccfl.getAddress(), BigInt(1000e18));
+      await ccfl
+        .connect(borrower1)
+        .depositCollateral(BigInt(1000e18), await link.getAddress());
+      await ccfl
+        .connect(borrower1)
+        .createLoan(BigInt(1000e18), BigInt(1), await usdc.getAddress());
+      await ccflPool.connect(borrower1).withdrawLoan();
+      expect(BigInt(await usdc.balanceOf(borrower1)).toString()).to.eq(
+        BigInt(2000e18)
+      );
+      await mockAggr2.setPrice(BigInt(13075000));
 
-    //     expect(await ccfl.getHealthFactor(borrower1)).to.lessThan(1000);
-    //   });
+      expect(await ccfl.getHealthFactor(BigInt(1))).to.lessThan(100);
+    });
 
     //   it("Bad Health factor liquidation", async function () {
     //     const {
