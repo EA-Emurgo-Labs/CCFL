@@ -102,7 +102,7 @@ describe("CCFL system", function () {
   }
 
   describe("Lending", function () {
-    it("Should get loan fund", async function () {
+    it("Should get 1 month loan fund", async function () {
       const {
         usdc,
         link,
@@ -139,6 +139,64 @@ describe("CCFL system", function () {
       await ccfl
         .connect(borrower1)
         .monthlyPayment(1, BigInt(10e18), await usdc.getAddress());
+      await time.increase(30 * 24 * 3600);
+      // close loan
+      await usdc.connect(borrower1).approve(ccfl.getAddress(), BigInt(1000e18));
+      await ccfl
+        .connect(borrower1)
+        .closeLoan(1, BigInt(1000e18), await usdc.getAddress());
+      // await ccflPool.connect(lender1).withdrawMonthlyPayment();
+    });
+
+    it("Should get 2 month loan fund", async function () {
+      const {
+        usdc,
+        link,
+        ccflPool,
+        ccfl,
+        owner,
+        borrower1,
+        borrower2,
+        borrower3,
+        lender1,
+        lender2,
+        lender3,
+      } = await loadFixture(deployFixture);
+      // lender deposit USDC
+      await usdc
+        .connect(lender1)
+        .approve(ccflPool.getAddress(), BigInt(10000e18));
+      await ccflPool.connect(lender1).depositUsd(BigInt(10000e18));
+      // borrower lend
+      await link.connect(borrower1).approve(ccfl.getAddress(), BigInt(1000e18));
+      await ccfl
+        .connect(borrower1)
+        .depositCollateral(BigInt(1000e18), await link.getAddress());
+      // create loan 2 months
+      await ccfl
+        .connect(borrower1)
+        .createLoan(BigInt(1000e18), BigInt(2), await usdc.getAddress());
+      // withdraw loan
+      await ccflPool.connect(borrower1).withdrawLoan();
+      expect(BigInt(await usdc.balanceOf(borrower1)).toString()).to.eq(
+        BigInt(2000e18)
+      );
+      // console.log(await ccfl.loans(borrower1, BigInt(0)));
+      // borrower return monthly payment
+      await time.increase(30 * 24 * 3600);
+      // first month
+      await usdc.connect(borrower1).approve(ccfl.getAddress(), BigInt(10e18));
+      await ccfl
+        .connect(borrower1)
+        .monthlyPayment(1, BigInt(10e18), await usdc.getAddress());
+
+      await time.increase(30 * 24 * 3600);
+      // second month
+      await usdc.connect(borrower1).approve(ccfl.getAddress(), BigInt(10e18));
+      await ccfl
+        .connect(borrower1)
+        .monthlyPayment(1, BigInt(10e18), await usdc.getAddress());
+
       // close loan
       await usdc.connect(borrower1).approve(ccfl.getAddress(), BigInt(1000e18));
       await ccfl
@@ -177,6 +235,7 @@ describe("CCFL system", function () {
       await ccfl
         .connect(borrower1)
         .depositCollateral(BigInt(1000e18), await link.getAddress());
+      await time.increase(30 * 24 * 3600);
       await ccfl
         .connect(borrower1)
         .createLoan(BigInt(1000e18), BigInt(1), await usdc.getAddress());

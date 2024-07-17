@@ -13,6 +13,7 @@ struct Loan {
     address borrower;
     bool isPaid;
     uint amount;
+    uint monthlyDeadline;
     uint deadline;
     uint monthlyPayment;
     uint rateLoan;

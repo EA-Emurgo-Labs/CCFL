@@ -242,7 +242,7 @@ contract CCFLLoan is ICCFLLoan, Initializable {
 
     function liquidateMonthlyPayment() external {
         require(
-            initLoan.deadline + (7 days) < block.timestamp,
+            initLoan.monthlyDeadline + (7 days) < block.timestamp,
             "Can not liquidate"
         );
         liquidateStep();
@@ -253,10 +253,14 @@ contract CCFLLoan is ICCFLLoan, Initializable {
             initLoan.monthlyPayment <= _amount,
             "monthly payment does not enough"
         );
-        initLoan.deadline += 30 * (1 days);
+        initLoan.monthlyDeadline += 30 * (1 days);
     }
 
     function closeLoan() public {
+        require(
+            initLoan.deadline <= block.timestamp,
+            "Not catch loan deadline"
+        );
         initLoan.isClosed = true;
     }
 

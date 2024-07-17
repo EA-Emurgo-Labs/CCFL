@@ -173,7 +173,8 @@ contract CCFL is Initializable {
         uint time = 30 * (1 days);
         address _borrower = msg.sender;
         loan.borrower = _borrower;
-        loan.deadline = block.timestamp + time;
+        loan.deadline = block.timestamp + _months * time;
+        loan.monthlyDeadline = block.timestamp + time;
         loan.amount = _amount;
         loan.loanId = loandIds;
         loan.isPaid = false;
