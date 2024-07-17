@@ -185,7 +185,7 @@ contract CCFLLoan is ICCFLLoan, Initializable {
         uint256 amountInMaximum,
         IERC20 stableCoin,
         IERC20 tokenAddress
-    ) public returns (uint256 amountIn) {
+    ) internal returns (uint256 amountIn) {
         // Approve the router to spend the specifed `amountInMaximum` of DAI.
         // In production, you should choose the maximum amount to spend based on oracles or other data sources to acheive a better swap.
         TransferHelper.safeApprove(
