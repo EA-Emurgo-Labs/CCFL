@@ -168,13 +168,18 @@ contract CCFLLoan is ICCFLLoan, Initializable {
         uint stableCoinPrice = getLatestPrice(initLoan.stableCoin, true);
         uint totalCollaterals = 0;
         for (uint i; i < collateralTokens.length; i++) {
-            uint collateralPrice = getLatestPrice(collateralTokens[i], false);
-            totalCollaterals +=
-                collaterals[collateralTokens[i]] *
-                collateralPrice;
+            IERC20 token = collateralTokens[i];
+            console.log(collaterals[token]);
+            if (collaterals[token] > 0) {
+                uint collateralPrice = getLatestPrice(token, false);
+                totalCollaterals +=
+                    (collaterals[token] *
+                        collateralPrice *
+                        liquidationThreshold[token]) /
+                    10000;
+            }
         }
-        uint healthFactor = (((totalCollaterals *
-            liquidationThreshold[initLoan.stableCoin]) / 10000) * 100) /
+        uint healthFactor = (totalCollaterals * 100) /
             initLoan.amount /
             stableCoinPrice;
         return healthFactor;
@@ -272,6 +277,10 @@ contract CCFLLoan is ICCFLLoan, Initializable {
         // close this loan
         initLoan.stableCoin.approve(address(ccflPool), initLoan.amount);
         ccflPool.closeLoan(initLoan.loanId, initLoan.amount);
+    }
+
+    function updateCollateral(IERC20 _token, uint amount) external {
+        collaterals[_token] += amount;
     }
 
     function liquidateMonthlyPayment() external {

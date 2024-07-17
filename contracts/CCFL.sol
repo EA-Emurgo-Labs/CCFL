@@ -218,12 +218,12 @@ contract CCFL is Initializable {
         loans[loandIds] = cloneSC;
         // transfer collateral
         for (uint i = 0; i < collateralTokens.length; i++) {
-            if (collaterals[msg.sender][collateralTokens[i]] > 0) {
-                collateralTokens[i].transfer(
-                    address(loanIns),
-                    collaterals[msg.sender][collateralTokens[i]]
-                );
-                collaterals[msg.sender][collateralTokens[i]] = 0;
+            IERC20 token = collateralTokens[i];
+            if (collaterals[msg.sender][token] > 0) {
+                cloneSC.updateCollateral(token, collaterals[msg.sender][token]);
+                uint transferAmount = collaterals[msg.sender][token];
+                collaterals[msg.sender][token] = 0;
+                token.transfer(address(loanIns), transferAmount);
             }
         }
         loandIds++;
@@ -315,6 +315,11 @@ contract CCFL is Initializable {
             // for LINK / USD price is scaled up by 10 ** 8
             return uint(price);
         }
+    }
+
+    function getHealthFactor(uint _loanId) public view returns (uint) {
+        ICCFLLoan loan = loans[_loanId];
+        return loan.getHealthFactor();
     }
 
     receive() external payable {}

@@ -90,4 +90,8 @@ interface ICCFLLoan {
         returns (IERC20[] memory collateralTokens, uint[] memory amount);
 
     function setCCFLPool(ICCFLPool _pool, address _ccfl) external;
+
+    function getHealthFactor() external view returns (uint);
+
+    function updateCollateral(IERC20 _token, uint amount) external;
 }
