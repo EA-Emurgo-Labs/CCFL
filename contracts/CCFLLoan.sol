@@ -12,19 +12,6 @@ import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 import "@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol";
 import "@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol";
 
-interface AggregatorV3Interface {
-    function latestRoundData()
-        external
-        view
-        returns (
-            uint80 roundId,
-            int256 answer,
-            uint256 startedAt,
-            uint256 updatedAt,
-            uint80 answeredInRound
-        );
-}
-
 /// @title CCFL contract
 /// @author
 /// @notice Link/usd
@@ -52,6 +39,7 @@ contract CCFLLoan is ICCFLLoan, Initializable {
 
     // ccfl pool
     ICCFLPool ccflPool;
+    AggregatorV3Interface pricePoolFeeds;
 
     // ccfl sc
     address ccfl;
@@ -74,7 +62,9 @@ contract CCFLLoan is ICCFLLoan, Initializable {
         IPoolAddressesProvider[] memory _aaveAddressProviders,
         IERC20[] memory _aTokens,
         uint[] memory _ltvs,
-        uint[] memory _thresholds
+        uint[] memory _thresholds,
+        AggregatorV3Interface[] memory _priceFeeds,
+        AggregatorV3Interface _pricePoolFeeds
     ) external initializer {
         owner = msg.sender;
         initLoan = _loan;
@@ -87,7 +77,9 @@ contract CCFLLoan is ICCFLLoan, Initializable {
             LTV[collateralTokens[i]] = _ltvs[i];
             liquidationThreshold[collateralTokens[i]] = _thresholds[i];
             aTokens[collateralTokens[i]] = _aTokens[i];
+            priceFeeds[collateralTokens[i]] = _priceFeeds[i];
         }
+        pricePoolFeeds = _pricePoolFeeds;
     }
 
     function supplyLiquidity() public onlyOwner {
@@ -144,25 +136,40 @@ contract CCFLLoan is ICCFLLoan, Initializable {
         return aavePool.getUserAccountData(user);
     }
 
-    function getLatestPrice(IERC20 _stableCoin) public view returns (uint) {
-        (
-            uint80 roundID,
-            int256 price,
-            uint256 startedAt,
-            uint256 timeStamp,
-            uint80 answeredInRound
-        ) = priceFeeds[_stableCoin].latestRoundData();
-        // for LINK / USD price is scaled up by 10 ** 8
-        return uint(price);
+    function getLatestPrice(
+        IERC20 _coin,
+        bool isPool
+    ) public view returns (uint) {
+        if (isPool == false) {
+            (
+                uint80 roundID,
+                int256 price,
+                uint256 startedAt,
+                uint256 timeStamp,
+                uint80 answeredInRound
+            ) = priceFeeds[_coin].latestRoundData();
+            // for LINK / USD price is scaled up by 10 ** 8
+            return uint(price);
+        } else {
+            (
+                uint80 roundID,
+                int256 price,
+                uint256 startedAt,
+                uint256 timeStamp,
+                uint80 answeredInRound
+            ) = pricePoolFeeds.latestRoundData();
+            // for LINK / USD price is scaled up by 10 ** 8
+            return uint(price);
+        }
     }
 
     // 5. Liquidation
     // Good > 100, bad < 100
     function getHealthFactor() public view returns (uint) {
-        uint stableCoinPrice = getLatestPrice(initLoan.stableCoin);
+        uint stableCoinPrice = getLatestPrice(initLoan.stableCoin, true);
         uint totalCollaterals = 0;
         for (uint i; i < collateralTokens.length; i++) {
-            uint collateralPrice = getLatestPrice(collateralTokens[i]);
+            uint collateralPrice = getLatestPrice(collateralTokens[i], false);
             totalCollaterals +=
                 collaterals[collateralTokens[i]] *
                 collateralPrice;
@@ -231,7 +238,7 @@ contract CCFLLoan is ICCFLLoan, Initializable {
         // calculate ratio
         uint totalCollaterals = 0;
         for (uint i; i < collateralTokens.length; i++) {
-            uint collateralPrice = getLatestPrice(collateralTokens[i]);
+            uint collateralPrice = getLatestPrice(collateralTokens[i], false);
             totalCollaterals +=
                 collaterals[collateralTokens[i]] *
                 collateralPrice;
@@ -242,7 +249,8 @@ contract CCFLLoan is ICCFLLoan, Initializable {
                 swapTokenForUSD(
                     (initLoan.amount *
                         collaterals[collateralTokens[i]] *
-                        getLatestPrice(collateralTokens[i])) / totalCollaterals,
+                        getLatestPrice(collateralTokens[i], false)) /
+                        totalCollaterals,
                     collaterals[collateralTokens[i]],
                     initLoan.stableCoin,
                     collateralTokens[i]
@@ -250,7 +258,7 @@ contract CCFLLoan is ICCFLLoan, Initializable {
                 totalSell +=
                     (initLoan.amount *
                         collaterals[collateralTokens[i]] *
-                        getLatestPrice(collateralTokens[i])) /
+                        getLatestPrice(collateralTokens[i], false)) /
                     totalCollaterals;
             } else {
                 swapTokenForUSD(

@@ -9,6 +9,19 @@ import {IPoolAddressesProvider} from "@aave/core-v3/contracts/interfaces/IPoolAd
 import "@openzeppelin/contracts/proxy/Clones.sol";
 import "./ICCFLPool.sol";
 
+interface AggregatorV3Interface {
+    function latestRoundData()
+        external
+        view
+        returns (
+            uint80 roundId,
+            int256 answer,
+            uint256 startedAt,
+            uint256 updatedAt,
+            uint80 answeredInRound
+        );
+}
+
 struct Loan {
     uint loanId;
     address borrower;
@@ -65,7 +78,9 @@ interface ICCFLLoan {
         IPoolAddressesProvider[] memory _aaveAddressProviders,
         IERC20[] memory _aTokens,
         uint[] memory _ltvs,
-        uint[] memory _thresholds
+        uint[] memory _thresholds,
+        AggregatorV3Interface[] memory _priceFeeds,
+        AggregatorV3Interface _pricePoolFeeds
     ) external;
 
     function monthlyPayment(uint _amount) external;

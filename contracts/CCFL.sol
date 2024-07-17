@@ -12,42 +12,30 @@ import "@openzeppelin/contracts/proxy/Clones.sol";
 import "./ICCFLLoan.sol";
 import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
-interface AggregatorV3Interface {
-    function latestRoundData()
-        external
-        view
-        returns (
-            uint80 roundId,
-            int256 answer,
-            uint256 startedAt,
-            uint256 updatedAt,
-            uint80 answeredInRound
-        );
-}
-
 /// @title CCFL contract
 /// @author
 /// @notice Link/usd
 contract CCFL is Initializable {
     using Clones for address;
-    uint public rateLoan;
+
     address payable public owner;
-    IERC20 public tokenAddress;
-    mapping(IERC20 => AggregatorV3Interface) public priceFeeds;
-    // mapping(address => Loan[]) public loans;
-    // mapping(address => uint) public totalLoans;
     mapping(address => mapping(IERC20 => uint)) public collaterals;
-    mapping(address => uint) public stakeAave;
-    mapping(IERC20 => uint) public liquidationThreshold;
+
     uint public loandIds;
     mapping(IERC20 => ICCFLPool) public ccflPools;
     IERC20[] public ccflPoolStableCoins;
     ICCFLLoan ccflLoan;
     mapping(uint => ICCFLLoan) loans;
+
+    // init for clone loan sc
     IERC20[] public collateralTokens;
-    IERC20[] public aTokens;
-    IPoolAddressesProvider[] public aaveAddressProviders;
+    mapping(IERC20 => IPoolAddressesProvider) public aaveAddressProviders;
+    mapping(IERC20 => IERC20) public aTokens;
     mapping(IERC20 => uint) public LTV;
+    mapping(IERC20 => uint) public liquidationThreshold;
+    mapping(IERC20 => AggregatorV3Interface) public priceFeeds;
+    mapping(IERC20 => AggregatorV3Interface) public pricePoolFeeds;
+    uint public rateLoan;
 
     event LiquiditySupplied(
         address indexed onBehalfOf,
@@ -97,18 +85,20 @@ contract CCFL is Initializable {
         loandIds = 1;
         for (uint i = 0; i < ccflPoolStableCoins.length; i++) {
             ccflPools[ccflPoolStableCoins[i]] = _ccflPools[i];
-            priceFeeds[ccflPoolStableCoins[i]] = _poolAggregators[i];
-            LTV[ccflPoolStableCoins[i]] = _ltvs[i];
-            liquidationThreshold[ccflPoolStableCoins[i]] = _thresholds[i];
+            pricePoolFeeds[ccflPoolStableCoins[i]] = _poolAggregators[i];
         }
         collateralTokens = _collateralTokens;
         for (uint i = 0; i < collateralTokens.length; i++) {
             priceFeeds[collateralTokens[i]] = _collateralAggregators[i];
+            LTV[collateralTokens[i]] = _ltvs[i];
+            liquidationThreshold[collateralTokens[i]] = _thresholds[i];
+            aTokens[collateralTokens[i]] = _aTokens[i];
+            aaveAddressProviders[collateralTokens[i]] = _aaveAddressProviders[
+                i
+            ];
         }
         rateLoan = 1200;
         ccflLoan = _ccflLoan;
-        aTokens = _aTokens;
-        aaveAddressProviders = _aaveAddressProviders;
     }
 
     // create loan
@@ -189,22 +179,40 @@ contract CCFL is Initializable {
         // totalLoans[_borrower] += _amount;
         uint[] memory _ltvs = new uint[](collateralTokens.length);
         uint[] memory _thresholds = new uint[](collateralTokens.length);
+        IERC20[] memory _aTokens = new IERC20[](collateralTokens.length);
+        IPoolAddressesProvider[]
+            memory _aaveAddressProviders = new IPoolAddressesProvider[](
+                collateralTokens.length
+            );
+        AggregatorV3Interface[]
+            memory _priceFeeds = new AggregatorV3Interface[](
+                collateralTokens.length
+            );
         for (uint i = 0; i < collateralTokens.length; i++) {
             _ltvs[i] = LTV[collateralTokens[i]];
             _thresholds[i] = liquidationThreshold[collateralTokens[i]];
+            _aTokens[i] = aTokens[collateralTokens[i]];
+            _aaveAddressProviders[i] = aaveAddressProviders[
+                collateralTokens[i]
+            ];
+            _priceFeeds[i] = priceFeeds[collateralTokens[i]];
         }
+        AggregatorV3Interface _pricePoolFeeds = pricePoolFeeds[_stableCoin];
         // clone a loan SC
         address loanIns = address(ccflLoan).clone();
         ICCFLLoan cloneSC = ICCFLLoan(loanIns);
         cloneSC.initialize(
             loan,
             collateralTokens,
-            aaveAddressProviders,
-            aTokens,
+            _aaveAddressProviders,
+            _aTokens,
             _ltvs,
-            _thresholds
+            _thresholds,
+            _priceFeeds,
+            _pricePoolFeeds
         );
-        cloneSC.setCCFLPool(ccflPools[_stableCoin], address(this));
+        ICCFLPool pool = ccflPools[_stableCoin];
+        cloneSC.setCCFLPool(pool, address(this));
         loans[loandIds] = cloneSC;
         // transfer collateral
         for (uint i = 0; i < collateralTokens.length; i++) {
