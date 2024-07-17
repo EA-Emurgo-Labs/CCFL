@@ -204,6 +204,7 @@ contract CCFL is Initializable {
             _ltvs,
             _thresholds
         );
+        cloneSC.setCCFLPool(ccflPools[_stableCoin], address(this));
         loans[loandIds] = cloneSC;
         // transfer collateral
         for (uint i = 0; i < collateralTokens.length; i++) {
@@ -212,6 +213,7 @@ contract CCFL is Initializable {
                     address(loanIns),
                     collaterals[msg.sender][collateralTokens[i]]
                 );
+                collaterals[msg.sender][collateralTokens[i]] = 0;
             }
         }
         loandIds++;
@@ -243,10 +245,23 @@ contract CCFL is Initializable {
         uint _amount,
         IERC20 _stableCoin
     ) external {
-        loans[_loanId].closeLoan();
+        // get back loan
         _stableCoin.transferFrom(msg.sender, address(this), _amount);
+        // repay for pool
         _stableCoin.approve(address(ccflPools[_stableCoin]), _amount);
         ccflPools[_stableCoin].closeLoan(_loanId, _amount);
+        // update collateral balance and get back collateral
+        (
+            IERC20[] memory returnCollateralTokens,
+            uint[] memory returnAmountCollateral
+        ) = loans[_loanId].closeLoan();
+        for (uint i = 0; i < returnCollateralTokens.length; i++) {
+            if (returnAmountCollateral[i] > 0) {
+                collaterals[msg.sender][
+                    returnCollateralTokens[i]
+                ] += returnAmountCollateral[i];
+            }
+        }
     }
 
     // .6 withdraw Collateral
@@ -262,7 +277,7 @@ contract CCFL is Initializable {
 
     // .6 withdraw Collateral
     function withdrawCollateralOnClosedLoan(uint _loanId, address _to) public {
-        loans[_loanId].withdrawAllCollateral(_to);
+        // loans[_loanId].withdrawAllCollateral(_to);
     }
 
     function getLatestPrice(IERC20 _stableCoin) public view returns (uint) {

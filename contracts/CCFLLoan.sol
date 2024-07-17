@@ -11,7 +11,6 @@ import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 import "@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol";
 import "@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol";
-import "./ICCFLPool.sol";
 
 interface AggregatorV3Interface {
     function latestRoundData()
@@ -54,12 +53,20 @@ contract CCFLLoan is ICCFLLoan, Initializable {
     // ccfl pool
     ICCFLPool ccflPool;
 
+    // ccfl sc
+    address ccfl;
+
     modifier onlyOwner() {
         require(msg.sender == owner, "only the owner");
         _;
     }
 
     constructor() {}
+
+    function setCCFLPool(ICCFLPool _pool, address _ccfl) public {
+        ccflPool = _pool;
+        ccfl = _ccfl;
+    }
 
     function initialize(
         Loan memory _loan,
@@ -276,21 +283,28 @@ contract CCFLLoan is ICCFLLoan, Initializable {
         initLoan.monthlyDeadline += 30 * (1 days);
     }
 
-    function closeLoan() public {
+    function closeLoan()
+        public
+        returns (IERC20[] memory _collateralTokens, uint[] memory _amount)
+    {
         require(
             initLoan.deadline <= block.timestamp,
             "Not catch loan deadline"
         );
         initLoan.isClosed = true;
-    }
+        _amount = new uint[](collateralTokens.length);
 
-    function withdrawAllCollateral(address _to) public {
+        _collateralTokens = collateralTokens;
+
+        // return collateral to ccfl
         for (uint i; i < collateralTokens.length; i++) {
+            _amount[i] = (collaterals[collateralTokens[i]]);
             if (collaterals[collateralTokens[i]] > 0) {
                 collateralTokens[i].transfer(
-                    _to,
+                    msg.sender,
                     collaterals[collateralTokens[i]]
                 );
+                collaterals[collateralTokens[i]] = 0;
             }
         }
     }

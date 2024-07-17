@@ -7,6 +7,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IPool} from "@aave/core-v3/contracts/interfaces/IPool.sol";
 import {IPoolAddressesProvider} from "@aave/core-v3/contracts/interfaces/IPoolAddressesProvider.sol";
 import "@openzeppelin/contracts/proxy/Clones.sol";
+import "./ICCFLPool.sol";
 
 struct Loan {
     uint loanId;
@@ -69,7 +70,9 @@ interface ICCFLLoan {
 
     function monthlyPayment(uint _amount) external;
 
-    function closeLoan() external;
+    function closeLoan()
+        external
+        returns (IERC20[] memory collateralTokens, uint[] memory amount);
 
-    function withdrawAllCollateral(address _to) external;
+    function setCCFLPool(ICCFLPool _pool, address _ccfl) external;
 }
