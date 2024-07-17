@@ -3,7 +3,6 @@ pragma solidity ^0.8.24;
 
 // Uncomment this line to use console.log
 import "hardhat/console.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IPool} from "@aave/core-v3/contracts/interfaces/IPool.sol";
 import {IPoolAddressesProvider} from "@aave/core-v3/contracts/interfaces/IPoolAddressesProvider.sol";
 import "./ICCFLLoan.sol";
@@ -18,24 +17,25 @@ import "@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol";
 contract CCFLLoan is ICCFLLoan, Initializable {
     address public owner;
     // aave config
-    mapping(IERC20 => IPoolAddressesProvider) public aaveAddressProviders;
-    mapping(IERC20 => IERC20) public aTokens;
+    mapping(IERC20Standard => IPoolAddressesProvider)
+        public aaveAddressProviders;
+    mapping(IERC20Standard => IERC20Standard) public aTokens;
     bool public isStakeAave;
     // uniswap config
     IUniswapV3Pool uniswapPool;
     ISwapRouter public swapRouter;
     uint24 public constant feeTier = 3000;
     // collateral
-    mapping(IERC20 => uint) public liquidationThreshold;
-    mapping(IERC20 => uint) public LTV;
-    mapping(IERC20 => uint) public collaterals;
-    IERC20[] public collateralTokens;
+    mapping(IERC20Standard => uint) public liquidationThreshold;
+    mapping(IERC20Standard => uint) public LTV;
+    mapping(IERC20Standard => uint) public collaterals;
+    IERC20Standard[] public collateralTokens;
 
     // default loan
     Loan public initLoan;
 
     // chainlink
-    mapping(IERC20 => AggregatorV3Interface) public priceFeeds;
+    mapping(IERC20Standard => AggregatorV3Interface) public priceFeeds;
 
     // ccfl pool
     ICCFLPool ccflPool;
@@ -58,9 +58,9 @@ contract CCFLLoan is ICCFLLoan, Initializable {
 
     function initialize(
         Loan memory _loan,
-        IERC20[] memory _collateralTokens,
+        IERC20Standard[] memory _collateralTokens,
         IPoolAddressesProvider[] memory _aaveAddressProviders,
-        IERC20[] memory _aTokens,
+        IERC20Standard[] memory _aTokens,
         uint[] memory _ltvs,
         uint[] memory _thresholds,
         AggregatorV3Interface[] memory _priceFeeds,
@@ -71,7 +71,7 @@ contract CCFLLoan is ICCFLLoan, Initializable {
         collateralTokens = _collateralTokens;
         owner = payable(msg.sender);
         for (uint i = 0; i < collateralTokens.length; i++) {
-            IERC20 token = collateralTokens[i];
+            IERC20Standard token = collateralTokens[i];
             aaveAddressProviders[token] = _aaveAddressProviders[i];
             LTV[token] = _ltvs[i];
             liquidationThreshold[token] = _thresholds[i];
@@ -83,7 +83,7 @@ contract CCFLLoan is ICCFLLoan, Initializable {
 
     function supplyLiquidity() public onlyOwner {
         for (uint i; i < collateralTokens.length; i++) {
-            IERC20 asset = collateralTokens[i];
+            IERC20Standard asset = collateralTokens[i];
             uint amount = asset.balanceOf(address(this));
             address onBehalfOf = address(this);
             uint16 referralCode = 0;
@@ -118,7 +118,7 @@ contract CCFLLoan is ICCFLLoan, Initializable {
 
     function getUserAccountData(
         address user,
-        IERC20 collateral
+        IERC20Standard collateral
     )
         public
         view
@@ -136,7 +136,7 @@ contract CCFLLoan is ICCFLLoan, Initializable {
     }
 
     function getLatestPrice(
-        IERC20 _coin,
+        IERC20Standard _coin,
         bool isPool
     ) public view returns (uint) {
         if (isPool == false) {
@@ -168,20 +168,21 @@ contract CCFLLoan is ICCFLLoan, Initializable {
         uint stableCoinPrice = getLatestPrice(initLoan.stableCoin, true);
         uint totalCollaterals = 0;
         for (uint i; i < collateralTokens.length; i++) {
-            IERC20 token = collateralTokens[i];
-            console.log(collaterals[token]);
+            IERC20Standard token = collateralTokens[i];
             if (collaterals[token] > 0) {
                 uint collateralPrice = getLatestPrice(token, false);
                 totalCollaterals +=
                     (collaterals[token] *
                         collateralPrice *
                         liquidationThreshold[token]) /
-                    10000;
+                    10000 /
+                    (10 ** token.decimals());
             }
         }
-        uint healthFactor = (totalCollaterals * 100) /
-            initLoan.amount /
-            stableCoinPrice;
+        uint totalLoan = (initLoan.amount * stableCoinPrice) /
+            (10 ** initLoan.stableCoin.decimals());
+
+        uint healthFactor = (totalCollaterals * 100) / totalLoan;
         return healthFactor;
     }
 
@@ -194,8 +195,8 @@ contract CCFLLoan is ICCFLLoan, Initializable {
     function swapTokenForUSD(
         uint256 amountOut,
         uint256 amountInMaximum,
-        IERC20 stableCoin,
-        IERC20 tokenAddress
+        IERC20Standard stableCoin,
+        IERC20Standard tokenAddress
     ) internal returns (uint256 amountIn) {
         // Approve the router to spend the specifed `amountInMaximum` of DAI.
         // In production, you should choose the maximum amount to spend based on oracles or other data sources to acheive a better swap.
@@ -242,10 +243,11 @@ contract CCFLLoan is ICCFLLoan, Initializable {
         // calculate ratio
         uint totalCollaterals = 0;
         for (uint i; i < collateralTokens.length; i++) {
-            uint collateralPrice = getLatestPrice(collateralTokens[i], false);
+            IERC20Standard token = collateralTokens[i];
+            uint collateralPrice = getLatestPrice(token, false);
             totalCollaterals +=
-                collaterals[collateralTokens[i]] *
-                collateralPrice;
+                (collaterals[token] * collateralPrice) /
+                (10 ** token.decimals());
         }
         uint totalSell = 0;
         for (uint i; i < collateralTokens.length; i++) {
@@ -279,7 +281,7 @@ contract CCFLLoan is ICCFLLoan, Initializable {
         ccflPool.closeLoan(initLoan.loanId, initLoan.amount);
     }
 
-    function updateCollateral(IERC20 _token, uint amount) external {
+    function updateCollateral(IERC20Standard _token, uint amount) external {
         collaterals[_token] += amount;
     }
 
@@ -301,7 +303,10 @@ contract CCFLLoan is ICCFLLoan, Initializable {
 
     function closeLoan()
         public
-        returns (IERC20[] memory _collateralTokens, uint[] memory _amount)
+        returns (
+            IERC20Standard[] memory _collateralTokens,
+            uint[] memory _amount
+        )
     {
         require(
             initLoan.deadline <= block.timestamp,

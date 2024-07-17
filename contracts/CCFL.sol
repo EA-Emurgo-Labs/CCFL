@@ -3,7 +3,7 @@ pragma solidity ^0.8.24;
 
 // Uncomment this line to use console.log
 import "hardhat/console.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "./IERC20Standard.sol";
 import {IPool} from "@aave/core-v3/contracts/interfaces/IPool.sol";
 import {IPoolAddressesProvider} from "@aave/core-v3/contracts/interfaces/IPoolAddressesProvider.sol";
 import "@openzeppelin/contracts/proxy/Clones.sol";
@@ -19,22 +19,23 @@ contract CCFL is Initializable {
     using Clones for address;
 
     address payable public owner;
-    mapping(address => mapping(IERC20 => uint)) public collaterals;
+    mapping(address => mapping(IERC20Standard => uint)) public collaterals;
 
     uint public loandIds;
-    mapping(IERC20 => ICCFLPool) public ccflPools;
-    IERC20[] public ccflPoolStableCoins;
+    mapping(IERC20Standard => ICCFLPool) public ccflPools;
+    IERC20Standard[] public ccflPoolStableCoins;
     ICCFLLoan ccflLoan;
     mapping(uint => ICCFLLoan) loans;
 
     // init for clone loan sc
-    IERC20[] public collateralTokens;
-    mapping(IERC20 => IPoolAddressesProvider) public aaveAddressProviders;
-    mapping(IERC20 => IERC20) public aTokens;
-    mapping(IERC20 => uint) public LTV;
-    mapping(IERC20 => uint) public liquidationThreshold;
-    mapping(IERC20 => AggregatorV3Interface) public priceFeeds;
-    mapping(IERC20 => AggregatorV3Interface) public pricePoolFeeds;
+    IERC20Standard[] public collateralTokens;
+    mapping(IERC20Standard => IPoolAddressesProvider)
+        public aaveAddressProviders;
+    mapping(IERC20Standard => IERC20Standard) public aTokens;
+    mapping(IERC20Standard => uint) public LTV;
+    mapping(IERC20Standard => uint) public liquidationThreshold;
+    mapping(IERC20Standard => AggregatorV3Interface) public priceFeeds;
+    mapping(IERC20Standard => AggregatorV3Interface) public pricePoolFeeds;
     uint public rateLoan;
 
     event LiquiditySupplied(
@@ -53,7 +54,7 @@ contract CCFL is Initializable {
         _;
     }
 
-    modifier supportedToken(IERC20 _tokenAddress) {
+    modifier supportedToken(IERC20Standard _tokenAddress) {
         bool isValid = false;
         // check _tokenAddress is valid
         for (uint i = 0; i < collateralTokens.length; i++) {
@@ -69,12 +70,12 @@ contract CCFL is Initializable {
     event Withdraw(address borrower, uint amount, uint when);
 
     function initialize(
-        IERC20[] memory _ccflPoolStableCoin,
+        IERC20Standard[] memory _ccflPoolStableCoin,
         AggregatorV3Interface[] memory _poolAggregators,
         ICCFLPool[] memory _ccflPools,
-        IERC20[] memory _collateralTokens,
+        IERC20Standard[] memory _collateralTokens,
         AggregatorV3Interface[] memory _collateralAggregators,
-        IERC20[] memory _aTokens,
+        IERC20Standard[] memory _aTokens,
         IPoolAddressesProvider[] memory _aaveAddressProviders,
         uint[] memory _ltvs,
         uint[] memory _thresholds,
@@ -84,13 +85,13 @@ contract CCFL is Initializable {
         owner = payable(msg.sender);
         loandIds = 1;
         for (uint i = 0; i < ccflPoolStableCoins.length; i++) {
-            IERC20 token = ccflPoolStableCoins[i];
+            IERC20Standard token = ccflPoolStableCoins[i];
             ccflPools[token] = _ccflPools[i];
             pricePoolFeeds[token] = _poolAggregators[i];
         }
         collateralTokens = _collateralTokens;
         for (uint i = 0; i < collateralTokens.length; i++) {
-            IERC20 token = collateralTokens[i];
+            IERC20Standard token = collateralTokens[i];
             priceFeeds[token] = _collateralAggregators[i];
             LTV[token] = _ltvs[i];
             liquidationThreshold[token] = _thresholds[i];
@@ -104,7 +105,7 @@ contract CCFL is Initializable {
     // create loan
     // 1. deposit
     // Modifier to check token allowance
-    modifier checkTokenAllowance(IERC20 _token, uint _amount) {
+    modifier checkTokenAllowance(IERC20Standard _token, uint _amount) {
         require(
             _token.allowance(msg.sender, address(this)) >= _amount,
             "Error"
@@ -125,7 +126,7 @@ contract CCFL is Initializable {
 
     function depositCollateral(
         uint _amount,
-        IERC20 _tokenAddress
+        IERC20Standard _tokenAddress
     )
         public
         checkTokenAllowance(_tokenAddress, _amount)
@@ -137,11 +138,15 @@ contract CCFL is Initializable {
     }
 
     // 2. create loan
-    function createLoan(uint _amount, uint _months, IERC20 _stableCoin) public {
+    function createLoan(
+        uint _amount,
+        uint _months,
+        IERC20Standard _stableCoin
+    ) public {
         // check enough collateral
         uint collateralByUSD = 0;
         for (uint i = 0; i < collateralTokens.length; i++) {
-            IERC20 token = collateralTokens[i];
+            IERC20Standard token = collateralTokens[i];
             if (collaterals[msg.sender][token] > 0) {
                 collateralByUSD +=
                     (collaterals[msg.sender][token] *
@@ -181,7 +186,9 @@ contract CCFL is Initializable {
         // totalLoans[_borrower] += _amount;
         uint[] memory _ltvs = new uint[](collateralTokens.length);
         uint[] memory _thresholds = new uint[](collateralTokens.length);
-        IERC20[] memory _aTokens = new IERC20[](collateralTokens.length);
+        IERC20Standard[] memory _aTokens = new IERC20Standard[](
+            collateralTokens.length
+        );
         IPoolAddressesProvider[]
             memory _aaveAddressProviders = new IPoolAddressesProvider[](
                 collateralTokens.length
@@ -218,7 +225,7 @@ contract CCFL is Initializable {
         loans[loandIds] = cloneSC;
         // transfer collateral
         for (uint i = 0; i < collateralTokens.length; i++) {
-            IERC20 token = collateralTokens[i];
+            IERC20Standard token = collateralTokens[i];
             if (collaterals[msg.sender][token] > 0) {
                 cloneSC.updateCollateral(token, collaterals[msg.sender][token]);
                 uint transferAmount = collaterals[msg.sender][token];
@@ -231,7 +238,7 @@ contract CCFL is Initializable {
 
     // 3. Monthly payment
     // Modifier to check token allowance
-    modifier checkUsdcAllowance(uint _amount, IERC20 _stableCoin) {
+    modifier checkUsdcAllowance(uint _amount, IERC20Standard _stableCoin) {
         require(
             _stableCoin.allowance(msg.sender, address(this)) >= _amount,
             "Error"
@@ -242,7 +249,7 @@ contract CCFL is Initializable {
     function monthlyPayment(
         uint _loanId,
         uint _amount,
-        IERC20 _stableCoin
+        IERC20Standard _stableCoin
     ) public checkUsdcAllowance(_amount, _stableCoin) {
         loans[_loanId].monthlyPayment(_amount);
         _stableCoin.transferFrom(msg.sender, address(this), _amount);
@@ -253,7 +260,7 @@ contract CCFL is Initializable {
     function closeLoan(
         uint _loanId,
         uint _amount,
-        IERC20 _stableCoin
+        IERC20Standard _stableCoin
     ) external {
         // get back loan
         _stableCoin.transferFrom(msg.sender, address(this), _amount);
@@ -262,7 +269,7 @@ contract CCFL is Initializable {
         ccflPools[_stableCoin].closeLoan(_loanId, _amount);
         // update collateral balance and get back collateral
         (
-            IERC20[] memory returnCollateralTokens,
+            IERC20Standard[] memory returnCollateralTokens,
             uint[] memory returnAmountCollateral
         ) = loans[_loanId].closeLoan();
         for (uint i = 0; i < returnCollateralTokens.length; i++) {
@@ -275,7 +282,10 @@ contract CCFL is Initializable {
     }
 
     // .6 withdraw Collateral
-    function withdrawCollateral(uint _amount, IERC20 _tokenAddress) public {
+    function withdrawCollateral(
+        uint _amount,
+        IERC20Standard _tokenAddress
+    ) public {
         require(
             _amount <= collaterals[msg.sender][_tokenAddress],
             "Do not have enough collateral"
@@ -291,7 +301,7 @@ contract CCFL is Initializable {
     }
 
     function getLatestPrice(
-        IERC20 _stableCoin,
+        IERC20Standard _stableCoin,
         bool isPool
     ) public view returns (uint) {
         if (isPool == false) {

@@ -3,7 +3,7 @@ pragma solidity ^0.8.24;
 
 // Uncomment this line to use console.log
 import "hardhat/console.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "./IERC20Standard.sol";
 import {IPool} from "@aave/core-v3/contracts/interfaces/IPool.sol";
 import {IPoolAddressesProvider} from "@aave/core-v3/contracts/interfaces/IPoolAddressesProvider.sol";
 import "@openzeppelin/contracts/proxy/Clones.sol";
@@ -33,7 +33,7 @@ struct Loan {
     uint rateLoan;
     uint monthPaid;
     uint amountMonth;
-    IERC20 stableCoin;
+    IERC20Standard stableCoin;
     bool isClosed;
 }
 
@@ -74,9 +74,9 @@ interface ICCFLLoan {
 
     function initialize(
         Loan memory _loan,
-        IERC20[] memory _collateralTokens,
+        IERC20Standard[] memory _collateralTokens,
         IPoolAddressesProvider[] memory _aaveAddressProviders,
-        IERC20[] memory _aTokens,
+        IERC20Standard[] memory _aTokens,
         uint[] memory _ltvs,
         uint[] memory _thresholds,
         AggregatorV3Interface[] memory _priceFeeds,
@@ -87,11 +87,14 @@ interface ICCFLLoan {
 
     function closeLoan()
         external
-        returns (IERC20[] memory collateralTokens, uint[] memory amount);
+        returns (
+            IERC20Standard[] memory collateralTokens,
+            uint[] memory amount
+        );
 
     function setCCFLPool(ICCFLPool _pool, address _ccfl) external;
 
     function getHealthFactor() external view returns (uint);
 
-    function updateCollateral(IERC20 _token, uint amount) external;
+    function updateCollateral(IERC20Standard _token, uint amount) external;
 }

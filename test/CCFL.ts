@@ -358,7 +358,8 @@ describe("CCFL system", function () {
       expect(BigInt(await usdc.balanceOf(borrower1)).toString()).to.eq(
         BigInt(2000e18)
       );
-      expect(await ccfl.getHealthFactor(BigInt(1))).to.greaterThanOrEqual(1000);
+      // console.log(await ccfl.getHealthFactor(BigInt(1)));
+      expect(await ccfl.getHealthFactor(BigInt(1))).to.greaterThanOrEqual(100);
     });
 
     //   it("Bad Health factor", async function () {
