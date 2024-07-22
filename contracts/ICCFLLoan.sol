@@ -82,9 +82,7 @@ interface ICCFLLoan {
         ISwapRouter _swapRouter
     ) external;
 
-    function closeLoan()
-        external
-        returns (IERC20Standard collateralTokens, uint amount);
+    function closeLoan(address _receiver) external;
 
     function setCCFL(address _ccfl) external;
 
@@ -96,7 +94,5 @@ interface ICCFLLoan {
 
     function getLoanInfo() external view returns (Loan memory);
 
-    function liquidateCloseLoan()
-        external
-        returns (IERC20Standard _collateralTokens, uint _amount);
+    function liquidateCloseLoan(address _receiver) external;
 }

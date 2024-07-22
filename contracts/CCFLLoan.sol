@@ -23,7 +23,7 @@ contract CCFLLoan is ICCFLLoan, Initializable {
     // collateral
     uint public liquidationThreshold;
     uint public LTV;
-    uint public collaterals;
+    uint public collateralAmount;
     IERC20Standard public collateralToken;
 
     // default loan
@@ -143,10 +143,10 @@ contract CCFLLoan is ICCFLLoan, Initializable {
         uint totalCollaterals = 0;
 
         IERC20Standard token = collateralToken;
-        if (collaterals > 0) {
+        if (collateralAmount > 0) {
             uint collateralPrice = getLatestPrice(token, false);
             totalCollaterals +=
-                (collaterals * collateralPrice * liquidationThreshold) /
+                (collateralAmount * collateralPrice * liquidationThreshold) /
                 10000 /
                 (10 ** token.decimals());
         }
@@ -217,7 +217,7 @@ contract CCFLLoan is ICCFLLoan, Initializable {
 
         swapTokenForUSD(
             initLoan.amount,
-            collaterals,
+            collateralAmount,
             initLoan.stableCoin,
             token
         );
@@ -227,37 +227,19 @@ contract CCFLLoan is ICCFLLoan, Initializable {
     }
 
     function updateCollateral(uint amount) external {
-        collaterals = amount;
+        collateralAmount = amount;
     }
 
-    function closeLoan()
-        public
-        returns (IERC20Standard _collateralToken, uint _amount)
-    {
-        _amount = closeLoanStep();
-        _collateralToken = collateralToken;
-    }
-
-    function liquidateCloseLoan()
-        public
-        returns (IERC20Standard _collateralToken, uint _amount)
-    {
-        _amount = closeLoanStep();
-        _collateralToken = collateralToken;
-    }
-
-    function closeLoanStep() internal returns (uint amount) {
+    function closeLoan(address _receiver) public {
         initLoan.isClosed = true;
+        collateralToken.transfer(_receiver, collateralAmount);
+        collateralAmount = 0;
+    }
 
-        // return collateral to ccfl
-
-        amount = collaterals;
-        if (collaterals > 0) {
-            collateralToken.transfer(msg.sender, collaterals);
-            collaterals = 0;
-        }
-
-        return amount;
+    function liquidateCloseLoan(address _receiver) public {
+        initLoan.isClosed = true;
+        collateralToken.transfer(_receiver, collateralAmount);
+        collateralAmount = 0;
     }
 
     function getLoanInfo() public view returns (Loan memory) {

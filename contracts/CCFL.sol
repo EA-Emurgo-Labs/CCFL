@@ -204,15 +204,7 @@ contract CCFL is Initializable {
         _stableCoin.approve(address(ccflPools[_stableCoin]), _amount);
         ccflPools[_stableCoin].closeLoan(_loanId, _amount);
         // update collateral balance and get back collateral
-        (
-            IERC20Standard returnCollateralToken,
-            uint returnAmountCollateral
-        ) = loans[_loanId].closeLoan();
-        if (returnAmountCollateral > 0) {
-            collaterals[msg.sender][
-                returnCollateralToken
-            ] += returnAmountCollateral;
-        }
+        loans[_loanId].closeLoan(msg.sender);
     }
 
     function getLatestPrice(
@@ -269,16 +261,7 @@ contract CCFL is Initializable {
         );
         ccflPools[loanInfo.stableCoin].closeLoan(_loanId, loanInfo.amount);
         // update collateral balance and get back collateral
-        (
-            IERC20Standard returnCollateralToken,
-            uint returnAmountCollateral
-        ) = loans[_loanId].liquidateCloseLoan();
-
-        if (returnAmountCollateral > 0) {
-            collaterals[msg.sender][
-                returnCollateralToken
-            ] += returnAmountCollateral;
-        }
+        loans[_loanId].liquidateCloseLoan(msg.sender);
     }
 
     receive() external payable {}
