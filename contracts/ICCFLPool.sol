@@ -16,13 +16,13 @@ interface ICCFLPool {
     event LockLoan(uint loanId, uint amount, address borrower, uint when);
     event CloseLoan(uint loanId, uint amount, address borrower, uint when);
 
-    function depositUsd(uint _amount) external;
+    function supplyLiquidity(uint _amount) external;
 
-    function withdrawUsd(uint _amount) external;
+    function withdrawLiquidity(uint _amount) external;
 
     function lockLoan(uint _loanId, uint _amount, address _borrower) external;
 
-    function withdrawLoan() external;
+    function withdrawLoan(address _receiver, uint _loanId) external;
 
     function closeLoan(uint _loanId, uint _amount) external;
 

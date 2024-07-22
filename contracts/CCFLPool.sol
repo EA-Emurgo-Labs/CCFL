@@ -13,6 +13,7 @@ struct Loan {
     bool isPaid;
     uint amount;
     bool isClosed;
+    bool isLocked;
 }
 
 /// @title CCFL contract
@@ -28,7 +29,6 @@ contract CCFLPool is ICCFLPool {
     address[] public lenders;
 
     mapping(uint => Loan) public loans;
-    mapping(address => uint) public loanBalance;
     address public CCFL;
     address public BE;
 
@@ -64,7 +64,7 @@ contract CCFLPool is ICCFLPool {
         _;
     }
 
-    function depositUsd(uint _amount) public checkUsdAllowance(_amount) {
+    function supplyLiquidity(uint _amount) public checkUsdAllowance(_amount) {
         // check a new lender
         bool existedLender = false;
         for (uint i = 0; i < lenders.length; i++) {
@@ -82,7 +82,7 @@ contract CCFLPool is ICCFLPool {
         stableCoinAddress.transferFrom(msg.sender, address(this), _amount);
     }
 
-    function withdrawUsd(uint _amount) public {
+    function withdrawLiquidity(uint _amount) public {
         require(
             lenderRemainFund[msg.sender] >= _amount,
             "Balance is not enough"
@@ -111,7 +111,9 @@ contract CCFLPool is ICCFLPool {
         address _borrower
     ) public onlyCCFL {
         if (
-            _loanId > 0 && !loans[_loanId].isPaid && totalRemainFund >= _amount
+            _loanId > 0 &&
+            loans[_loanId].isLocked == false &&
+            totalRemainFund >= _amount
         ) {
             uint totalLock = 0;
             uint[] memory emptyFund = new uint[](lenders.length);
@@ -140,9 +142,8 @@ contract CCFLPool is ICCFLPool {
                 }
             }
 
-            loans[_loanId].isPaid = true;
+            loans[_loanId].isLocked = true;
             loans[_loanId].amount = _amount;
-            loanBalance[_borrower] += _amount;
             totalLockFund += _amount;
             emit LockLoan(_loanId, _amount, _borrower, block.timestamp);
         }
@@ -163,13 +164,11 @@ contract CCFLPool is ICCFLPool {
         emit CloseLoan(_loanId, _amount, msg.sender, block.timestamp);
     }
 
-    function withdrawLoan() public {
-        if (loanBalance[msg.sender] > 0) {
-            uint amount = loanBalance[msg.sender];
-            loanBalance[msg.sender] = 0;
-            emit WithdrawLoan(msg.sender, amount, block.timestamp);
-            stableCoinAddress.transfer(msg.sender, amount);
-        }
+    function withdrawLoan(address _receiver, uint _loanId) public onlyCCFL {
+        require(loans[_loanId].isPaid == false, "Loan is paid");
+        loans[_loanId].isPaid = true;
+        emit WithdrawLoan(_receiver, loans[_loanId].amount, block.timestamp);
+        stableCoinAddress.transfer(_receiver, loans[_loanId].amount);
     }
 
     receive() external payable {}

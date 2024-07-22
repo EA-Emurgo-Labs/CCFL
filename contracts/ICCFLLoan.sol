@@ -56,19 +56,19 @@ interface ICCFLLoan {
 
     function withdrawLiquidity() external;
 
-    // function getUserAccountData(
-    //     address user
-    // )
-    //     external
-    //     view
-    //     returns (
-    //         uint256 totalCollateralBase,
-    //         uint256 totalDebtBase,
-    //         uint256 availableBorrowsBase,
-    //         uint256 currentLiquidationThreshold,
-    //         uint256 ltv,
-    //         uint256 healthFactor
-    //     );
+    function getUserAccountData(
+        address user
+    )
+        external
+        view
+        returns (
+            uint256 totalCollateralBase,
+            uint256 totalDebtBase,
+            uint256 availableBorrowsBase,
+            uint256 currentLiquidationThreshold,
+            uint256 ltv,
+            uint256 healthFactor
+        );
 
     function initialize(
         Loan memory _loan,
@@ -90,7 +90,7 @@ interface ICCFLLoan {
 
     function getHealthFactor() external view returns (uint);
 
-    function updateCollateral(IERC20Standard _token, uint amount) external;
+    function updateCollateral(uint amount) external;
 
     function liquidate() external;
 

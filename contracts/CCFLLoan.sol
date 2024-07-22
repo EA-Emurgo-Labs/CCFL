@@ -92,8 +92,7 @@ contract CCFLLoan is ICCFLLoan, Initializable {
     }
 
     function getUserAccountData(
-        address user,
-        IERC20Standard collateral
+        address user
     )
         public
         view
@@ -227,8 +226,8 @@ contract CCFLLoan is ICCFLLoan, Initializable {
         initLoan.stableCoin.approve(ccfl, initLoan.amount);
     }
 
-    function updateCollateral(IERC20Standard _token, uint amount) external {
-        collaterals += amount;
+    function updateCollateral(uint amount) external {
+        collaterals = amount;
     }
 
     function closeLoan()

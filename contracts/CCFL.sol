@@ -110,7 +110,6 @@ contract CCFL is Initializable {
         swapRouter = _swapRouter;
     }
 
-    // create loan
     // Modifier to check token allowance
     modifier checkTokenAllowance(IERC20Standard _token, uint _amount) {
         require(
@@ -120,23 +119,19 @@ contract CCFL is Initializable {
         _;
     }
 
-    // 1.1 add liquidity aave
-    function makeYieldGenerating(uint _loanId) public {
+    function makeYieldGenerating(uint _loanId, bool isYield) public {
         ICCFLLoan loan = loans[_loanId];
-        loan.supplyLiquidity();
+        if (isYield == true) loan.supplyLiquidity();
+        else loan.withdrawLiquidity();
     }
 
-    function makeRiskFree(uint _loanId) public {
-        ICCFLLoan loan = loans[_loanId];
-        loan.withdrawLiquidity();
-    }
-
-    // 2. create loan
+    // create loan
     function createLoan(
         uint _amount,
         IERC20Standard _stableCoin,
         uint _amountCollateral,
-        IERC20Standard _collateral
+        IERC20Standard _collateral,
+        bool isYieldGenerating
     ) public {
         require(
             _amountCollateral * getLatestPrice(_collateral, false) * maxLTV >=
@@ -148,7 +143,7 @@ contract CCFL is Initializable {
             ccflPools[_stableCoin].getRemainingPool() >= _amount,
             "Pool don't have enough fund"
         );
-        _collateral.transferFrom(msg.sender, address(this), _amountCollateral);
+
         // make loan ins
         Loan memory loan;
         address _borrower = msg.sender;
@@ -158,10 +153,8 @@ contract CCFL is Initializable {
         loan.isPaid = false;
         loan.rateLoan = rateLoan;
         loan.stableCoin = _stableCoin;
-        // loans[_borrower].push(loan);
         // lock loan on pool
         ccflPools[_stableCoin].lockLoan(loan.loanId, loan.amount, _borrower);
-        // totalLoans[_borrower] += _amount;
 
         AggregatorV3Interface _pricePoolFeeds = pricePoolFeeds[_stableCoin];
         IERC20Standard token = _collateral;
@@ -180,14 +173,26 @@ contract CCFL is Initializable {
             swapRouter
         );
         cloneSC.setCCFL(address(this));
-        loans[loandIds] = cloneSC;
+        if (isYieldGenerating == true) cloneSC.supplyLiquidity();
+
         // transfer collateral
-        cloneSC.updateCollateral(_collateral, _amountCollateral);
-        _collateral.transfer(address(loanIns), _amountCollateral);
+        cloneSC.updateCollateral(_amountCollateral);
+        // get from user to loan
+        _collateral.transferFrom(
+            msg.sender,
+            address(loanIns),
+            _amountCollateral
+        );
+        loans[loandIds] = cloneSC;
         loandIds++;
     }
 
-    // 4. close loan
+    // withdraw loan
+    function withdrawLoan(IERC20Standard _stableCoin, uint _loanId) public {
+        ccflPools[_stableCoin].withdrawLoan(msg.sender, _loanId);
+    }
+
+    // close loan
     function closeLoan(
         uint _loanId,
         uint _amount,
@@ -208,25 +213,6 @@ contract CCFL is Initializable {
                 returnCollateralToken
             ] += returnAmountCollateral;
         }
-    }
-
-    // .6 withdraw Collateral
-    function withdrawCollateral(
-        uint _amount,
-        IERC20Standard _tokenAddress
-    ) public {
-        require(
-            _amount <= collaterals[msg.sender][_tokenAddress],
-            "Do not have enough collateral"
-        );
-        collaterals[msg.sender][_tokenAddress] -= _amount;
-        emit Withdraw(msg.sender, _amount, block.timestamp);
-        _tokenAddress.transfer(msg.sender, _amount);
-    }
-
-    // .6 withdraw Collateral
-    function withdrawCollateralOnClosedLoan(uint _loanId, address _to) public {
-        // loans[_loanId].withdrawAllCollateral(_to);
     }
 
     function getLatestPrice(

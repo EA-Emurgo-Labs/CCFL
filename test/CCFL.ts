@@ -122,7 +122,7 @@ describe("CCFL system", function () {
       await usdc
         .connect(lender1)
         .approve(ccflPool.getAddress(), BigInt(10000e18));
-      await ccflPool.connect(lender1).depositUsd(BigInt(10000e18));
+      await ccflPool.connect(lender1).supplyLiquidity(BigInt(10000e18));
       // borrower lend
       await link.connect(borrower1).approve(ccfl.getAddress(), BigInt(1000e18));
       await ccfl
@@ -131,9 +131,12 @@ describe("CCFL system", function () {
           BigInt(1000e18),
           await usdc.getAddress(),
           BigInt(1000e18),
-          await link.getAddress()
+          await link.getAddress(),
+          false
         );
-      await ccflPool.connect(borrower1).withdrawLoan();
+      await ccfl
+        .connect(borrower1)
+        .withdrawLoan(await usdc.getAddress(), BigInt(1));
       expect(BigInt(await usdc.balanceOf(borrower1)).toString()).to.eq(
         BigInt(2000e18)
       );
@@ -166,12 +169,12 @@ describe("CCFL system", function () {
       await usdc
         .connect(lender1)
         .approve(ccflPool.getAddress(), BigInt(10000e18));
-      await ccflPool.connect(lender1).depositUsd(BigInt(10000e18));
+      await ccflPool.connect(lender1).supplyLiquidity(BigInt(10000e18));
 
       await usdc
         .connect(lender2)
         .approve(ccflPool.getAddress(), BigInt(20000e18));
-      await ccflPool.connect(lender2).depositUsd(BigInt(20000e18));
+      await ccflPool.connect(lender2).supplyLiquidity(BigInt(20000e18));
 
       // borrower lend
       await link.connect(borrower1).approve(ccfl.getAddress(), BigInt(1000e18));
@@ -181,9 +184,12 @@ describe("CCFL system", function () {
           BigInt(1000e18),
           await usdc.getAddress(),
           BigInt(1000e18),
-          await link.getAddress()
+          await link.getAddress(),
+          false
         );
-      await ccflPool.connect(borrower1).withdrawLoan();
+      await ccfl
+        .connect(borrower1)
+        .withdrawLoan(await usdc.getAddress(), BigInt(1));
       expect(BigInt(await usdc.balanceOf(borrower1)).toString()).to.eq(
         BigInt(2000e18)
       );
@@ -216,8 +222,8 @@ describe("CCFL system", function () {
       await usdc
         .connect(lender1)
         .approve(ccflPool.getAddress(), BigInt(10000e18));
-      await ccflPool.connect(lender1).depositUsd(BigInt(10000e18));
-      await ccflPool.connect(lender1).withdrawUsd(BigInt(10000e18));
+      await ccflPool.connect(lender1).supplyLiquidity(BigInt(10000e18));
+      await ccflPool.connect(lender1).withdrawLiquidity(BigInt(10000e18));
     });
 
     it("deposit more USDC", async function () {
@@ -238,8 +244,8 @@ describe("CCFL system", function () {
       await usdc
         .connect(lender1)
         .approve(ccflPool.getAddress(), BigInt(10000e18));
-      await ccflPool.connect(lender1).depositUsd(BigInt(5000e18));
-      await ccflPool.connect(lender1).depositUsd(BigInt(5000e18));
+      await ccflPool.connect(lender1).supplyLiquidity(BigInt(5000e18));
+      await ccflPool.connect(lender1).supplyLiquidity(BigInt(5000e18));
     });
   });
   describe("Earn", function () {
@@ -288,7 +294,7 @@ describe("CCFL system", function () {
       await usdc
         .connect(lender1)
         .approve(ccflPool.getAddress(), BigInt(10000e18));
-      await ccflPool.connect(lender1).depositUsd(BigInt(10000e18));
+      await ccflPool.connect(lender1).supplyLiquidity(BigInt(10000e18));
       // borrower lend
       await link.connect(borrower1).approve(ccfl.getAddress(), BigInt(1000e18));
       await ccfl
@@ -297,9 +303,12 @@ describe("CCFL system", function () {
           BigInt(1000e18),
           await usdc.getAddress(),
           BigInt(1000e18),
-          await link.getAddress()
+          await link.getAddress(),
+          false
         );
-      await ccflPool.connect(borrower1).withdrawLoan();
+      await ccfl
+        .connect(borrower1)
+        .withdrawLoan(await usdc.getAddress(), BigInt(1));
       expect(BigInt(await usdc.balanceOf(borrower1)).toString()).to.eq(
         BigInt(2000e18)
       );
@@ -328,7 +337,7 @@ describe("CCFL system", function () {
       await usdc
         .connect(lender1)
         .approve(ccflPool.getAddress(), BigInt(10000e18));
-      await ccflPool.connect(lender1).depositUsd(BigInt(10000e18));
+      await ccflPool.connect(lender1).supplyLiquidity(BigInt(10000e18));
       // borrower lend
       await link.connect(borrower1).approve(ccfl.getAddress(), BigInt(1000e18));
       await ccfl
@@ -337,9 +346,12 @@ describe("CCFL system", function () {
           BigInt(1000e18),
           await usdc.getAddress(),
           BigInt(1000e18),
-          await link.getAddress()
+          await link.getAddress(),
+          false
         );
-      await ccflPool.connect(borrower1).withdrawLoan();
+      await ccfl
+        .connect(borrower1)
+        .withdrawLoan(await usdc.getAddress(), BigInt(1));
       expect(BigInt(await usdc.balanceOf(borrower1)).toString()).to.eq(
         BigInt(2000e18)
       );
@@ -369,7 +381,7 @@ describe("CCFL system", function () {
       await usdc
         .connect(lender1)
         .approve(ccflPool.getAddress(), BigInt(10000e18));
-      await ccflPool.connect(lender1).depositUsd(BigInt(10000e18));
+      await ccflPool.connect(lender1).supplyLiquidity(BigInt(10000e18));
       // borrower lend
       await link.connect(borrower1).approve(ccfl.getAddress(), BigInt(1000e18));
       await ccfl
@@ -378,9 +390,12 @@ describe("CCFL system", function () {
           BigInt(1000e18),
           await usdc.getAddress(),
           BigInt(1000e18),
-          await link.getAddress()
+          await link.getAddress(),
+          false
         );
-      await ccflPool.connect(borrower1).withdrawLoan();
+      await ccfl
+        .connect(borrower1)
+        .withdrawLoan(await usdc.getAddress(), BigInt(1));
       expect(BigInt(await usdc.balanceOf(borrower1)).toString()).to.eq(
         BigInt(2000e18)
       );
