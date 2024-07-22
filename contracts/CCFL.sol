@@ -165,39 +165,20 @@ contract CCFL is Initializable {
         // lock loan on pool
         ccflPools[_stableCoin].lockLoan(loan.loanId, loan.amount, _borrower);
         // totalLoans[_borrower] += _amount;
-        uint[] memory _ltvs = new uint[](collateralTokens.length);
-        uint[] memory _thresholds = new uint[](collateralTokens.length);
-        IERC20Standard[] memory _aTokens = new IERC20Standard[](
-            collateralTokens.length
-        );
-        IPoolAddressesProvider[]
-            memory _aaveAddressProviders = new IPoolAddressesProvider[](
-                collateralTokens.length
-            );
-        AggregatorV3Interface[]
-            memory _priceFeeds = new AggregatorV3Interface[](
-                collateralTokens.length
-            );
-        for (uint i = 0; i < collateralTokens.length; i++) {
-            IERC20Standard token = collateralTokens[i];
-            _ltvs[i] = LTV[token];
-            _thresholds[i] = liquidationThreshold[token];
-            _aTokens[i] = aTokens[token];
-            _aaveAddressProviders[i] = aaveAddressProviders[token];
-            _priceFeeds[i] = priceFeeds[token];
-        }
+
         AggregatorV3Interface _pricePoolFeeds = pricePoolFeeds[_stableCoin];
+        IERC20Standard token = _collateral;
         // clone a loan SC
         address loanIns = address(ccflLoan).clone();
         ICCFLLoan cloneSC = ICCFLLoan(loanIns);
         cloneSC.initialize(
             loan,
-            collateralTokens,
-            _aaveAddressProviders,
-            _aTokens,
-            _ltvs,
-            _thresholds,
-            _priceFeeds,
+            token,
+            aaveAddressProviders[token],
+            aTokens[token],
+            LTV[token],
+            liquidationThreshold[token],
+            priceFeeds[token],
             _pricePoolFeeds,
             swapRouter
         );
@@ -232,15 +213,13 @@ contract CCFL is Initializable {
         ccflPools[_stableCoin].closeLoan(_loanId, _amount);
         // update collateral balance and get back collateral
         (
-            IERC20Standard[] memory returnCollateralTokens,
-            uint[] memory returnAmountCollateral
+            IERC20Standard returnCollateralToken,
+            uint returnAmountCollateral
         ) = loans[_loanId].closeLoan();
-        for (uint i = 0; i < returnCollateralTokens.length; i++) {
-            if (returnAmountCollateral[i] > 0) {
-                collaterals[msg.sender][
-                    returnCollateralTokens[i]
-                ] += returnAmountCollateral[i];
-            }
+        if (returnAmountCollateral > 0) {
+            collaterals[msg.sender][
+                returnCollateralToken
+            ] += returnAmountCollateral;
         }
     }
 
@@ -318,15 +297,14 @@ contract CCFL is Initializable {
         ccflPools[loanInfo.stableCoin].closeLoan(_loanId, loanInfo.amount);
         // update collateral balance and get back collateral
         (
-            IERC20Standard[] memory returnCollateralTokens,
-            uint[] memory returnAmountCollateral
+            IERC20Standard returnCollateralToken,
+            uint returnAmountCollateral
         ) = loans[_loanId].liquidateCloseLoan();
-        for (uint i = 0; i < returnCollateralTokens.length; i++) {
-            if (returnAmountCollateral[i] > 0) {
-                collaterals[msg.sender][
-                    returnCollateralTokens[i]
-                ] += returnAmountCollateral[i];
-            }
+
+        if (returnAmountCollateral > 0) {
+            collaterals[msg.sender][
+                returnCollateralToken
+            ] += returnAmountCollateral;
         }
     }
 
