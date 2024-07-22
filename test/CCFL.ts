@@ -63,8 +63,8 @@ describe("CCFL system", function () {
         [await mockAggr2.getAddress()],
         [await aToken.getAddress()],
         [await mockPoolAddressesProvider.getAddress()],
-        [7000],
-        [7500],
+        7000,
+        7500,
         await ccflLoan.getAddress(),
       ],
       { initializer: "initialize", kind: "uups" }

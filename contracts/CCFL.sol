@@ -35,8 +35,8 @@ contract CCFL is Initializable {
     mapping(IERC20Standard => IPoolAddressesProvider)
         public aaveAddressProviders;
     mapping(IERC20Standard => IERC20Standard) public aTokens;
-    mapping(IERC20Standard => uint) public LTV;
-    mapping(IERC20Standard => uint) public liquidationThreshold;
+    uint public maxLTV;
+    uint public liquidationThreshold;
     mapping(IERC20Standard => AggregatorV3Interface) public priceFeeds;
     mapping(IERC20Standard => AggregatorV3Interface) public pricePoolFeeds;
     ISwapRouter swapRouter;
@@ -81,8 +81,8 @@ contract CCFL is Initializable {
         AggregatorV3Interface[] memory _collateralAggregators,
         IERC20Standard[] memory _aTokens,
         IPoolAddressesProvider[] memory _aaveAddressProviders,
-        uint[] memory _ltvs,
-        uint[] memory _thresholds,
+        uint _maxLTV,
+        uint _liquidationThreshold,
         ICCFLLoan _ccflLoan
     ) external initializer {
         ccflPoolStableCoins = _ccflPoolStableCoin;
@@ -97,13 +97,13 @@ contract CCFL is Initializable {
         for (uint i = 0; i < collateralTokens.length; i++) {
             IERC20Standard token = collateralTokens[i];
             priceFeeds[token] = _collateralAggregators[i];
-            LTV[token] = _ltvs[i];
-            liquidationThreshold[token] = _thresholds[i];
             aTokens[token] = _aTokens[i];
             aaveAddressProviders[token] = _aaveAddressProviders[i];
         }
         rateLoan = 1200;
         ccflLoan = _ccflLoan;
+        maxLTV = _maxLTV;
+        liquidationThreshold = _liquidationThreshold;
     }
 
     function setSwapRouter(ISwapRouter _swapRouter) public {
@@ -111,7 +111,6 @@ contract CCFL is Initializable {
     }
 
     // create loan
-    // 1. deposit
     // Modifier to check token allowance
     modifier checkTokenAllowance(IERC20Standard _token, uint _amount) {
         require(
@@ -140,9 +139,7 @@ contract CCFL is Initializable {
         IERC20Standard _collateral
     ) public {
         require(
-            _amountCollateral *
-                getLatestPrice(_collateral, false) *
-                LTV[_collateral] >=
+            _amountCollateral * getLatestPrice(_collateral, false) * maxLTV >=
                 (_amount * getLatestPrice(_stableCoin, true)) * 10000,
             "Don't have enough collateral"
         );
@@ -176,8 +173,8 @@ contract CCFL is Initializable {
             token,
             aaveAddressProviders[token],
             aTokens[token],
-            LTV[token],
-            liquidationThreshold[token],
+            maxLTV,
+            liquidationThreshold,
             priceFeeds[token],
             _pricePoolFeeds,
             swapRouter
@@ -188,16 +185,6 @@ contract CCFL is Initializable {
         cloneSC.updateCollateral(_collateral, _amountCollateral);
         _collateral.transfer(address(loanIns), _amountCollateral);
         loandIds++;
-    }
-
-    // 3. Monthly payment
-    // Modifier to check token allowance
-    modifier checkUsdcAllowance(uint _amount, IERC20Standard _stableCoin) {
-        require(
-            _stableCoin.allowance(msg.sender, address(this)) >= _amount,
-            "Error"
-        );
-        _;
     }
 
     // 4. close loan
