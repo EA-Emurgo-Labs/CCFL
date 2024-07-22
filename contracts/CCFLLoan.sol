@@ -278,22 +278,6 @@ contract CCFLLoan is ICCFLLoan, Initializable {
         collaterals[_token] += amount;
     }
 
-    function liquidateMonthlyPayment() external {
-        require(
-            initLoan.monthlyDeadline + (7 days) < block.timestamp,
-            "Can not liquidate"
-        );
-        liquidateStep();
-    }
-
-    function monthlyPayment(uint _amount) external {
-        require(
-            initLoan.monthlyPayment <= _amount,
-            "monthly payment does not enough"
-        );
-        initLoan.monthlyDeadline += 30 * (1 days);
-    }
-
     function closeLoan()
         public
         returns (
@@ -301,10 +285,6 @@ contract CCFLLoan is ICCFLLoan, Initializable {
             uint[] memory _amount
         )
     {
-        require(
-            initLoan.deadline <= block.timestamp,
-            "Not catch loan deadline"
-        );
         _amount = closeLoanStep();
         _collateralTokens = collateralTokens;
     }
