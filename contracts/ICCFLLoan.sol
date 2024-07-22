@@ -72,22 +72,19 @@ interface ICCFLLoan {
 
     function initialize(
         Loan memory _loan,
-        IERC20Standard[] memory _collateralTokens,
-        IPoolAddressesProvider[] memory _aaveAddressProviders,
-        IERC20Standard[] memory _aTokens,
-        uint[] memory _ltvs,
-        uint[] memory _thresholds,
-        AggregatorV3Interface[] memory _priceFeeds,
-        AggregatorV3Interface _pricePoolFeeds,
+        IERC20Standard _collateralToken,
+        IPoolAddressesProvider _aaveAddressProvider,
+        IERC20Standard _aToken,
+        uint _ltv,
+        uint _threshold,
+        AggregatorV3Interface _priceFeed,
+        AggregatorV3Interface _pricePoolFeed,
         ISwapRouter _swapRouter
     ) external;
 
     function closeLoan()
         external
-        returns (
-            IERC20Standard[] memory collateralTokens,
-            uint[] memory amount
-        );
+        returns (IERC20Standard collateralTokens, uint amount);
 
     function setCCFL(address _ccfl) external;
 
@@ -101,8 +98,5 @@ interface ICCFLLoan {
 
     function liquidateCloseLoan()
         external
-        returns (
-            IERC20Standard[] memory _collateralTokens,
-            uint[] memory _amount
-        );
+        returns (IERC20Standard _collateralTokens, uint _amount);
 }
