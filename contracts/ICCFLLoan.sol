@@ -30,12 +30,7 @@ struct Loan {
     address borrower;
     bool isPaid;
     uint amount;
-    uint monthlyDeadline;
-    uint deadline;
-    uint monthlyPayment;
     uint rateLoan;
-    uint monthPaid;
-    uint amountMonth;
     IERC20Standard stableCoin;
     bool isClosed;
 }
@@ -86,8 +81,6 @@ interface ICCFLLoan {
         AggregatorV3Interface _pricePoolFeeds,
         ISwapRouter _swapRouter
     ) external;
-
-    function monthlyPayment(uint _amount) external;
 
     function closeLoan()
         external

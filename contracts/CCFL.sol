@@ -146,11 +146,7 @@ contract CCFL is Initializable {
     }
 
     // 2. create loan
-    function createLoan(
-        uint _amount,
-        uint _months,
-        IERC20Standard _stableCoin
-    ) public {
+    function createLoan(uint _amount, IERC20Standard _stableCoin) public {
         // check enough collateral
         uint collateralByUSD = 0;
         for (uint i = 0; i < collateralTokens.length; i++) {
@@ -178,17 +174,11 @@ contract CCFL is Initializable {
         );
         // make loan ins
         Loan memory loan;
-        uint time = 30 * (1 days);
         address _borrower = msg.sender;
         loan.borrower = _borrower;
-        loan.deadline = block.timestamp + _months * time;
-        loan.monthlyDeadline = block.timestamp + time;
         loan.amount = _amount;
         loan.loanId = loandIds;
         loan.isPaid = false;
-        loan.monthlyPayment = (_amount * rateLoan) / 10000 / 12;
-        loan.amountMonth = _months;
-        loan.monthPaid = 0;
         loan.rateLoan = rateLoan;
         loan.stableCoin = _stableCoin;
         // loans[_borrower].push(loan);
@@ -254,16 +244,6 @@ contract CCFL is Initializable {
             "Error"
         );
         _;
-    }
-
-    function monthlyPayment(
-        uint _loanId,
-        uint _amount,
-        IERC20Standard _stableCoin
-    ) public checkUsdcAllowance(_amount, _stableCoin) {
-        loans[_loanId].monthlyPayment(_amount);
-        _stableCoin.transferFrom(msg.sender, address(this), _amount);
-        _stableCoin.transfer(address(ccflPools[_stableCoin]), _amount);
     }
 
     // 4. close loan
