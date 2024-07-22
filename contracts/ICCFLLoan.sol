@@ -8,6 +8,9 @@ import {IPool} from "@aave/core-v3/contracts/interfaces/IPool.sol";
 import {IPoolAddressesProvider} from "@aave/core-v3/contracts/interfaces/IPoolAddressesProvider.sol";
 import "@openzeppelin/contracts/proxy/Clones.sol";
 import "./ICCFLPool.sol";
+import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
+import "@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol";
+import "@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol";
 
 interface AggregatorV3Interface {
     function latestRoundData()
@@ -80,7 +83,8 @@ interface ICCFLLoan {
         uint[] memory _ltvs,
         uint[] memory _thresholds,
         AggregatorV3Interface[] memory _priceFeeds,
-        AggregatorV3Interface _pricePoolFeeds
+        AggregatorV3Interface _pricePoolFeeds,
+        ISwapRouter _swapRouter
     ) external;
 
     function monthlyPayment(uint _amount) external;
@@ -92,9 +96,20 @@ interface ICCFLLoan {
             uint[] memory amount
         );
 
-    function setCCFLPool(ICCFLPool _pool, address _ccfl) external;
+    function setCCFL(address _ccfl) external;
 
     function getHealthFactor() external view returns (uint);
 
     function updateCollateral(IERC20Standard _token, uint amount) external;
+
+    function liquidate() external;
+
+    function getLoanInfo() external view returns (Loan memory);
+
+    function liquidateCloseLoan()
+        external
+        returns (
+            IERC20Standard[] memory _collateralTokens,
+            uint[] memory _amount
+        );
 }

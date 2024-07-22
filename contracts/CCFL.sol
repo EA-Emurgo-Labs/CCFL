@@ -11,6 +11,9 @@ import "./ICCFLPool.sol";
 import "@openzeppelin/contracts/proxy/Clones.sol";
 import "./ICCFLLoan.sol";
 import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
+import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
+import "@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol";
+import "@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol";
 
 /// @title CCFL contract
 /// @author
@@ -36,6 +39,7 @@ contract CCFL is Initializable {
     mapping(IERC20Standard => uint) public liquidationThreshold;
     mapping(IERC20Standard => AggregatorV3Interface) public priceFeeds;
     mapping(IERC20Standard => AggregatorV3Interface) public pricePoolFeeds;
+    ISwapRouter swapRouter;
     uint public rateLoan;
 
     event LiquiditySupplied(
@@ -100,6 +104,10 @@ contract CCFL is Initializable {
         }
         rateLoan = 1200;
         ccflLoan = _ccflLoan;
+    }
+
+    function setSwapRouter(ISwapRouter _swapRouter) public {
+        swapRouter = _swapRouter;
     }
 
     // create loan
@@ -220,10 +228,10 @@ contract CCFL is Initializable {
             _ltvs,
             _thresholds,
             _priceFeeds,
-            _pricePoolFeeds
+            _pricePoolFeeds,
+            swapRouter
         );
-        ICCFLPool pool = ccflPools[_stableCoin];
-        cloneSC.setCCFLPool(pool, address(this));
+        cloneSC.setCCFL(address(this));
         loans[loandIds] = cloneSC;
         // transfer collateral
         for (uint i = 0; i < collateralTokens.length; i++) {
@@ -332,6 +340,41 @@ contract CCFL is Initializable {
     function getHealthFactor(uint _loanId) public view returns (uint) {
         ICCFLLoan loan = loans[_loanId];
         return loan.getHealthFactor();
+    }
+
+    function getLoanAddress(uint _loanId) public view returns (address) {
+        ICCFLLoan loan = loans[_loanId];
+        return address(loan);
+    }
+
+    function liquidate(uint _loanId) public {
+        ICCFLLoan loan = loans[_loanId];
+        Loan memory loanInfo = loan.getLoanInfo();
+        loan.liquidate();
+        // get back loan
+        loanInfo.stableCoin.transferFrom(
+            address(loan),
+            address(this),
+            loanInfo.amount
+        );
+        // repay for pool
+        loanInfo.stableCoin.approve(
+            address(ccflPools[loanInfo.stableCoin]),
+            loanInfo.amount
+        );
+        ccflPools[loanInfo.stableCoin].closeLoan(_loanId, loanInfo.amount);
+        // update collateral balance and get back collateral
+        (
+            IERC20Standard[] memory returnCollateralTokens,
+            uint[] memory returnAmountCollateral
+        ) = loans[_loanId].liquidateCloseLoan();
+        for (uint i = 0; i < returnCollateralTokens.length; i++) {
+            if (returnAmountCollateral[i] > 0) {
+                collaterals[msg.sender][
+                    returnCollateralTokens[i]
+                ] += returnAmountCollateral[i];
+            }
+        }
     }
 
     receive() external payable {}
