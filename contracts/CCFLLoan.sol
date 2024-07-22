@@ -206,10 +206,6 @@ contract CCFLLoan is ICCFLLoan, Initializable {
 
     function liquidate() public {
         require(getHealthFactor() < 100, "Can not liquidate");
-        liquidateStep();
-    }
-
-    function liquidateStep() internal {
         // get all collateral from aave
         if (isStakeAave) withdrawLiquidity();
 
@@ -227,7 +223,7 @@ contract CCFLLoan is ICCFLLoan, Initializable {
     }
 
     function updateCollateral(uint amount) external {
-        collateralAmount = amount;
+        collateralAmount += amount;
     }
 
     function closeLoan(address _receiver) public {

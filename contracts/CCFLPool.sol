@@ -42,7 +42,7 @@ contract CCFLPool is ICCFLPool {
         _;
     }
 
-    constructor(IERC20 _stableCoinAddress) payable {
+    constructor(IERC20 _stableCoinAddress) {
         stableCoinAddress = _stableCoinAddress;
         owner = payable(msg.sender);
     }
@@ -110,10 +110,9 @@ contract CCFLPool is ICCFLPool {
         uint _amount,
         address _borrower
     ) public onlyCCFL {
+        Loan storage loan = loans[_loanId];
         if (
-            _loanId > 0 &&
-            loans[_loanId].isLocked == false &&
-            totalRemainFund >= _amount
+            _loanId > 0 && loan.isLocked == false && totalRemainFund >= _amount
         ) {
             uint totalLock = 0;
             uint[] memory emptyFund = new uint[](lenders.length);
@@ -131,19 +130,19 @@ contract CCFLPool is ICCFLPool {
                     lenderLockFund[lenders[i]] += lockFund;
                     lenderRemainFund[lenders[i]] -= lockFund;
                     totalLock += lockFund;
-                    loans[_loanId].lenders.push(lenders[i]);
-                    loans[_loanId].lockFund.push(lockFund);
+                    loan.lenders.push(lenders[i]);
+                    loan.lockFund.push(lockFund);
                 } else if (i == last) {
                     uint lockFund = _amount - totalLock;
                     lenderLockFund[lenders[i]] += lockFund;
                     lenderRemainFund[lenders[i]] -= lockFund;
-                    loans[_loanId].lenders.push(lenders[i]);
-                    loans[_loanId].lockFund.push(lockFund);
+                    loan.lenders.push(lenders[i]);
+                    loan.lockFund.push(lockFund);
                 }
             }
 
-            loans[_loanId].isLocked = true;
-            loans[_loanId].amount = _amount;
+            loan.isLocked = true;
+            loan.amount = _amount;
             totalLockFund += _amount;
             emit LockLoan(_loanId, _amount, _borrower, block.timestamp);
         }
@@ -153,13 +152,17 @@ contract CCFLPool is ICCFLPool {
         uint _loanId,
         uint _amount
     ) public onlyCCFL checkUsdAllowance(_amount) {
-        require(_amount == loans[_loanId].amount, "Do not enough amount");
-        for (uint i = 0; i < loans[_loanId].lenders.length; i++) {
-            uint returnAmount = loans[_loanId].lockFund[i];
-            lenderLockFund[loans[_loanId].lenders[i]] -= returnAmount;
-            lenderRemainFund[loans[_loanId].lenders[i]] += returnAmount;
+        Loan storage loan = loans[_loanId];
+        require(
+            _amount == loan.amount && loan.isClosed == false,
+            "Do not enough amount"
+        );
+        for (uint i = 0; i < loan.lenders.length; i++) {
+            uint returnAmount = loan.lockFund[i];
+            lenderLockFund[loan.lenders[i]] -= returnAmount;
+            lenderRemainFund[loan.lenders[i]] += returnAmount;
         }
-        loans[_loanId].isClosed = true;
+        loan.isClosed = true;
         stableCoinAddress.transferFrom(msg.sender, address(this), _amount);
         emit CloseLoan(_loanId, _amount, msg.sender, block.timestamp);
     }
