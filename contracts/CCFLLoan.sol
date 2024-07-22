@@ -236,12 +236,6 @@ contract CCFLLoan is ICCFLLoan, Initializable {
         collateralAmount = 0;
     }
 
-    function liquidateCloseLoan(address _receiver) public {
-        initLoan.isClosed = true;
-        collateralToken.transfer(_receiver, collateralAmount);
-        collateralAmount = 0;
-    }
-
     function getLoanInfo() public view returns (Loan memory) {
         return initLoan;
     }

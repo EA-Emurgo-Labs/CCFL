@@ -93,6 +93,4 @@ interface ICCFLLoan {
     function liquidate() external;
 
     function getLoanInfo() external view returns (Loan memory);
-
-    function liquidateCloseLoan(address _receiver) external;
 }

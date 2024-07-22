@@ -261,7 +261,7 @@ contract CCFL is Initializable {
         );
         ccflPools[loanInfo.stableCoin].closeLoan(_loanId, loanInfo.amount);
         // update collateral balance and get back collateral
-        loans[_loanId].liquidateCloseLoan(msg.sender);
+        loans[_loanId].closeLoan(msg.sender);
     }
 
     receive() external payable {}
