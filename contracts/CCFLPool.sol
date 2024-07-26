@@ -373,7 +373,6 @@ contract CCFLPool is ICCFLPool {
 
     function updateInterestRates(
         ReserveCache memory reserveCache,
-        address reserveAddress,
         uint256 liquidityAdded,
         uint256 liquidityTaken
     ) internal {
@@ -392,12 +391,9 @@ contract CCFLPool is ICCFLPool {
                 DataTypes.CalculateInterestRatesParams({
                     liquidityAdded: liquidityAdded,
                     liquidityTaken: liquidityTaken,
-                    totalStableDebt: reserveCache.nextTotalStableDebt,
                     totalVariableDebt: vars.totalVariableDebt,
-                    averageStableBorrowRate: reserveCache
-                        .nextAvgStableBorrowRate,
-                    reserveFactor: reserveCache.reserveFactor,
-                    reserve: reserveAddress
+                    reserveToken: address(stableCoinAddress),
+                    pool: address(this)
                 })
             );
 
@@ -415,21 +411,13 @@ contract CCFLPool is ICCFLPool {
         // );
     }
 
-    function supply(
-        address asset,
-        uint256 amount,
-        address onBehalfOf,
-        uint16 referralCode
-    ) public {
+    function supply(uint256 _amount) public {
         ReserveCache memory reserveCache = cache();
 
         updateState(reserveCache);
 
-        updateInterestRates(
-            reserveCache,
-            address(stableCoinAddress),
-            amount,
-            0
-        );
+        updateInterestRates(reserveCache, _amount, 0);
+
+        stableCoinAddress.transferFrom(msg.sender, address(this), _amount);
     }
 }
