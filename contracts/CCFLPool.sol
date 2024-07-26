@@ -5,6 +5,24 @@ pragma solidity ^0.8.24;
 import "hardhat/console.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./ICCFLPool.sol";
+import {MathUtils} from "./math/MathUtils.sol";
+import {WadRayMath} from "./math/WadRayMath.sol";
+import {PercentageMath} from "./math/PercentageMath.sol";
+import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
+import {DataTypes} from "./DataTypes.sol";
+
+interface IReserveInterestRateStrategy {
+    /**
+     * @notice Calculates the interest rates depending on the reserve's state and configurations
+     * @param params The parameters needed to calculate interest rates
+     * @return liquidityRate The liquidity rate expressed in rays
+     * @return stableBorrowRate The stable borrow rate expressed in rays
+     * @return variableBorrowRate The variable borrow rate expressed in rays
+     */
+    function calculateInterestRates(
+        DataTypes.CalculateInterestRatesParams memory params
+    ) external view returns (uint256, uint256, uint256);
+}
 
 struct Loan {
     uint loanId;
@@ -16,10 +34,86 @@ struct Loan {
     bool isLocked;
 }
 
+struct ReserveConfigurationMap {
+    //bit 0-15: LTV
+    //bit 16-31: Liq. threshold
+    //bit 32-47: Liq. bonus
+    //bit 48-55: Decimals
+    //bit 56: reserve is active
+    //bit 57: reserve is frozen
+    //bit 58: borrowing is enabled
+    //bit 59: stable rate borrowing enabled
+    //bit 60: asset is paused
+    //bit 61: borrowing in isolation mode is enabled
+    //bit 62: siloed borrowing enabled
+    //bit 63: flashloaning enabled
+    //bit 64-79: reserve factor
+    //bit 80-115 borrow cap in whole tokens, borrowCap == 0 => no cap
+    //bit 116-151 supply cap in whole tokens, supplyCap == 0 => no cap
+    //bit 152-167 liquidation protocol fee
+    //bit 168-175 eMode category
+    //bit 176-211 unbacked mint cap in whole tokens, unbackedMintCap == 0 => minting disabled
+    //bit 212-251 debt ceiling for isolation mode with (ReserveConfiguration::DEBT_CEILING_DECIMALS) decimals
+    //bit 252-255 unused
+
+    uint256 data;
+}
+
+struct ReserveData {
+    //stores the reserve configuration
+    ReserveConfigurationMap configuration;
+    //the liquidity index. Expressed in ray
+    uint128 liquidityIndex;
+    //the current supply rate. Expressed in ray
+    uint128 currentLiquidityRate;
+    //variable borrow index. Expressed in ray
+    uint128 variableBorrowIndex;
+    //the current variable borrow rate. Expressed in ray
+    uint128 currentVariableBorrowRate;
+    //the current stable borrow rate. Expressed in ray
+    uint128 currentStableBorrowRate;
+    //timestamp of last update
+    uint40 lastUpdateTimestamp;
+    //the id of the reserve. Represents the position in the list of the active reserves
+    uint16 id;
+    //stableDebtToken address
+    address stableDebtTokenAddress;
+    //variableDebtToken address
+    address variableDebtTokenAddress;
+    //address of the interest rate strategy
+    address interestRateStrategyAddress;
+}
+
+struct ReserveCache {
+    uint256 currScaledVariableDebt;
+    uint256 nextScaledVariableDebt;
+    uint256 currPrincipalStableDebt;
+    uint256 currAvgStableBorrowRate;
+    uint256 currTotalStableDebt;
+    uint256 nextAvgStableBorrowRate;
+    uint256 nextTotalStableDebt;
+    uint256 currLiquidityIndex;
+    uint256 nextLiquidityIndex;
+    uint256 currVariableBorrowIndex;
+    uint256 nextVariableBorrowIndex;
+    uint256 currLiquidityRate;
+    uint256 currVariableBorrowRate;
+    uint256 reserveFactor;
+    ReserveConfigurationMap reserveConfiguration;
+    address stableDebtTokenAddress;
+    address variableDebtTokenAddress;
+    uint40 reserveLastUpdateTimestamp;
+    uint40 stableDebtLastUpdateTimestamp;
+}
+
 /// @title CCFL contract
 /// @author
 /// @notice Link/usd
 contract CCFLPool is ICCFLPool {
+    using WadRayMath for uint256;
+    using PercentageMath for uint256;
+    using SafeCast for uint256;
+
     address payable public owner;
     IERC20 public stableCoinAddress;
     mapping(address => uint) public lenderLockFund;
@@ -31,6 +125,8 @@ contract CCFLPool is ICCFLPool {
     mapping(uint => Loan) public loans;
     address public CCFL;
     address public BE;
+
+    ReserveData public reserve;
 
     modifier onlyOwner() {
         require(msg.sender == owner, "only the owner");
@@ -175,4 +271,165 @@ contract CCFLPool is ICCFLPool {
     }
 
     receive() external payable {}
+
+    function cache() internal view returns (ReserveCache memory) {
+        ReserveCache memory reserveCache;
+
+        reserveCache.reserveConfiguration = reserve.configuration;
+        // reserveCache.reserveFactor = reserveCache
+        //     .reserveConfiguration
+        //     .getReserveFactor();
+        reserveCache.currLiquidityIndex = reserveCache
+            .nextLiquidityIndex = reserve.liquidityIndex;
+        reserveCache.currVariableBorrowIndex = reserveCache
+            .nextVariableBorrowIndex = reserve.variableBorrowIndex;
+        reserveCache.currLiquidityRate = reserve.currentLiquidityRate;
+        reserveCache.currVariableBorrowRate = reserve.currentVariableBorrowRate;
+
+        reserveCache.stableDebtTokenAddress = reserve.stableDebtTokenAddress;
+        reserveCache.variableDebtTokenAddress = reserve
+            .variableDebtTokenAddress;
+
+        reserveCache.reserveLastUpdateTimestamp = reserve.lastUpdateTimestamp;
+
+        // reserveCache.currScaledVariableDebt = reserveCache
+        //     .nextScaledVariableDebt = IVariableDebtToken(
+        //     reserveCache.variableDebtTokenAddress
+        // ).scaledTotalSupply();
+
+        // (
+        //     reserveCache.currPrincipalStableDebt,
+        //     reserveCache.currTotalStableDebt,
+        //     reserveCache.currAvgStableBorrowRate,
+        //     reserveCache.stableDebtLastUpdateTimestamp
+        // ) = IStableDebtToken(reserveCache.stableDebtTokenAddress)
+        //     .getSupplyData();
+
+        // by default the actions are considered as not affecting the debt balances.
+        // if the action involves mint/burn of debt, the cache needs to be updated
+        reserveCache.nextTotalStableDebt = reserveCache.currTotalStableDebt;
+        reserveCache.nextAvgStableBorrowRate = reserveCache
+            .currAvgStableBorrowRate;
+
+        return reserveCache;
+    }
+
+    function updateState(ReserveCache memory reserveCache) internal {
+        // If time didn't pass since last stored timestamp, skip state update
+        //solium-disable-next-line
+        if (reserve.lastUpdateTimestamp == uint40(block.timestamp)) {
+            return;
+        }
+
+        _updateIndexes(reserveCache);
+
+        //solium-disable-next-line
+        reserve.lastUpdateTimestamp = uint40(block.timestamp);
+    }
+
+    function _updateIndexes(ReserveCache memory reserveCache) internal {
+        // Only cumulating on the supply side if there is any income being produced
+        // The case of Reserve Factor 100% is not a problem (currentLiquidityRate == 0),
+        // as liquidity index should not be updated
+        if (reserveCache.currLiquidityRate != 0) {
+            uint256 cumulatedLiquidityInterest = MathUtils
+                .calculateLinearInterest(
+                    reserveCache.currLiquidityRate,
+                    reserveCache.reserveLastUpdateTimestamp
+                );
+            reserveCache.nextLiquidityIndex = cumulatedLiquidityInterest.rayMul(
+                reserveCache.currLiquidityIndex
+            );
+            reserve.liquidityIndex = reserveCache
+                .nextLiquidityIndex
+                .toUint128();
+        }
+
+        // Variable borrow index only gets updated if there is any variable debt.
+        // reserveCache.currVariableBorrowRate != 0 is not a correct validation,
+        // because a positive base variable rate can be stored on
+        // reserveCache.currVariableBorrowRate, but the index should not increase
+        if (reserveCache.currScaledVariableDebt != 0) {
+            uint256 cumulatedVariableBorrowInterest = MathUtils
+                .calculateCompoundedInterest(
+                    reserveCache.currVariableBorrowRate,
+                    reserveCache.reserveLastUpdateTimestamp
+                );
+            reserveCache
+                .nextVariableBorrowIndex = cumulatedVariableBorrowInterest
+                .rayMul(reserveCache.currVariableBorrowIndex);
+            reserve.variableBorrowIndex = reserveCache
+                .nextVariableBorrowIndex
+                .toUint128();
+        }
+    }
+
+    struct UpdateInterestRatesLocalVars {
+        uint256 nextLiquidityRate;
+        uint256 nextStableRate;
+        uint256 nextVariableRate;
+        uint256 totalVariableDebt;
+    }
+
+    function updateInterestRates(
+        ReserveCache memory reserveCache,
+        address reserveAddress,
+        uint256 liquidityAdded,
+        uint256 liquidityTaken
+    ) internal {
+        UpdateInterestRatesLocalVars memory vars;
+
+        vars.totalVariableDebt = reserveCache.nextScaledVariableDebt.rayMul(
+            reserveCache.nextVariableBorrowIndex
+        );
+
+        (
+            vars.nextLiquidityRate,
+            vars.nextStableRate,
+            vars.nextVariableRate
+        ) = IReserveInterestRateStrategy(reserve.interestRateStrategyAddress)
+            .calculateInterestRates(
+                DataTypes.CalculateInterestRatesParams({
+                    liquidityAdded: liquidityAdded,
+                    liquidityTaken: liquidityTaken,
+                    totalStableDebt: reserveCache.nextTotalStableDebt,
+                    totalVariableDebt: vars.totalVariableDebt,
+                    averageStableBorrowRate: reserveCache
+                        .nextAvgStableBorrowRate,
+                    reserveFactor: reserveCache.reserveFactor,
+                    reserve: reserveAddress
+                })
+            );
+
+        reserve.currentLiquidityRate = vars.nextLiquidityRate.toUint128();
+        reserve.currentStableBorrowRate = vars.nextStableRate.toUint128();
+        reserve.currentVariableBorrowRate = vars.nextVariableRate.toUint128();
+
+        // emit ReserveDataUpdated(
+        //     reserveAddress,
+        //     vars.nextLiquidityRate,
+        //     vars.nextStableRate,
+        //     vars.nextVariableRate,
+        //     reserveCache.nextLiquidityIndex,
+        //     reserveCache.nextVariableBorrowIndex
+        // );
+    }
+
+    function supply(
+        address asset,
+        uint256 amount,
+        address onBehalfOf,
+        uint16 referralCode
+    ) public {
+        ReserveCache memory reserveCache = cache();
+
+        updateState(reserveCache);
+
+        updateInterestRates(
+            reserveCache,
+            address(stableCoinAddress),
+            amount,
+            0
+        );
+    }
 }
