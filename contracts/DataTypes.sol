@@ -17,10 +17,6 @@ library DataTypes {
         uint40 lastUpdateTimestamp;
         //the id of the reserve. Represents the position in the list of the active reserves
         uint16 id;
-        //aToken address
-        address aTokenAddress;
-        //variableDebtToken address
-        address variableDebtTokenAddress;
         //address of the interest rate strategy
         address interestRateStrategyAddress;
     }
@@ -66,8 +62,6 @@ library DataTypes {
     }
 
     struct ReserveCache {
-        uint256 currScaledVariableDebt;
-        uint256 nextScaledVariableDebt;
         uint256 currLiquidityIndex;
         uint256 nextLiquidityIndex;
         uint256 currVariableBorrowIndex;
@@ -75,60 +69,7 @@ library DataTypes {
         uint256 currLiquidityRate;
         uint256 currVariableBorrowRate;
         ReserveConfigurationMap reserveConfiguration;
-        address aTokenAddress;
-        address variableDebtTokenAddress;
         uint40 reserveLastUpdateTimestamp;
-    }
-
-    struct ExecuteLiquidationCallParams {
-        uint256 reservesCount;
-        uint256 debtToCover;
-        address collateralAsset;
-        address debtAsset;
-        address user;
-        bool receiveAToken;
-        address priceOracle;
-        uint8 userEModeCategory;
-        address priceOracleSentinel;
-    }
-
-    struct ExecuteSupplyParams {
-        address asset;
-        uint256 amount;
-        address onBehalfOf;
-        uint16 referralCode;
-    }
-
-    struct ExecuteBorrowParams {
-        address asset;
-        address user;
-        address onBehalfOf;
-        uint256 amount;
-        InterestRateMode interestRateMode;
-        uint16 referralCode;
-        bool releaseUnderlying;
-        uint256 maxStableRateBorrowSizePercent;
-        uint256 reservesCount;
-        address oracle;
-        uint8 userEModeCategory;
-        address priceOracleSentinel;
-    }
-
-    struct ExecuteRepayParams {
-        address asset;
-        uint256 amount;
-        InterestRateMode interestRateMode;
-        address onBehalfOf;
-        bool useATokens;
-    }
-
-    struct ExecuteWithdrawParams {
-        address asset;
-        uint256 amount;
-        address to;
-        uint256 reservesCount;
-        address oracle;
-        uint8 userEModeCategory;
     }
 
     struct CalculateUserAccountDataParams {
@@ -164,11 +105,9 @@ library DataTypes {
     }
 
     struct CalculateInterestRatesParams {
-        // uint256 unbacked;
         uint256 liquidityAdded;
         uint256 liquidityTaken;
         uint256 totalVariableDebt;
-        // uint256 reserveFactor;
         address reserveToken; // USDC
         address pool; // Pool
     }

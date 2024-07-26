@@ -7,7 +7,6 @@ import {PercentageMath} from "./math/PercentageMath.sol";
 import {Errors} from "./helpers/Errors.sol";
 import {IDefaultInterestRateStrategy} from "./IDefaultInterestRateStrategy.sol";
 import {IReserveInterestRateStrategy} from "./IReserveInterestRateStrategy.sol";
-import {IPoolAddressesProvider} from "./IPoolAddressesProvider.sol";
 import {DataTypes} from "./DataTypes.sol";
 
 /**
@@ -30,8 +29,6 @@ contract DefaultReserveInterestRateStrategy is IDefaultInterestRateStrategy {
     /// @inheritdoc IDefaultInterestRateStrategy
     uint256 public immutable MAX_EXCESS_USAGE_RATIO;
 
-    IPoolAddressesProvider public immutable ADDRESSES_PROVIDER;
-
     // Base variable borrow rate when usage rate = 0. Expressed in ray
     uint256 internal immutable _baseVariableBorrowRate;
 
@@ -43,14 +40,12 @@ contract DefaultReserveInterestRateStrategy is IDefaultInterestRateStrategy {
 
     /**
      * @dev Constructor.
-     * @param provider The address of the PoolAddressesProvider contract
      * @param optimalUsageRatio The optimal usage ratio
      * @param baseVariableBorrowRate The base variable borrow rate
      * @param variableRateSlope1 The variable rate slope below optimal usage ratio
      * @param variableRateSlope2 The variable rate slope above optimal usage ratio
      */
     constructor(
-        IPoolAddressesProvider provider,
         uint256 optimalUsageRatio,
         uint256 baseVariableBorrowRate,
         uint256 variableRateSlope1,
@@ -62,7 +57,6 @@ contract DefaultReserveInterestRateStrategy is IDefaultInterestRateStrategy {
         );
         OPTIMAL_USAGE_RATIO = optimalUsageRatio;
         MAX_EXCESS_USAGE_RATIO = WadRayMath.RAY - optimalUsageRatio;
-        ADDRESSES_PROVIDER = provider;
         _baseVariableBorrowRate = baseVariableBorrowRate;
         _variableRateSlope1 = variableRateSlope1;
         _variableRateSlope2 = variableRateSlope2;

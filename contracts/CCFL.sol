@@ -154,7 +154,7 @@ contract CCFL is Initializable {
         loan.rateLoan = rateLoan;
         loan.stableCoin = _stableCoin;
         // lock loan on pool
-        ccflPools[_stableCoin].lockLoan(loan.loanId, loan.amount, _borrower);
+        ccflPools[_stableCoin].borrow(loan.loanId, loan.amount, loan.borrower);
 
         AggregatorV3Interface _pricePoolFeeds = pricePoolFeeds[_stableCoin];
         IERC20Standard token = _collateral;

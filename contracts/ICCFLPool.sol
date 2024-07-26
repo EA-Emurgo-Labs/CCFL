@@ -29,4 +29,6 @@ interface ICCFLPool {
     function setCCFL(address _ccfl) external;
 
     function getRemainingPool() external returns (uint amount);
+
+    function borrow(uint _loanId, uint256 _amount, address _borrower) external;
 }
