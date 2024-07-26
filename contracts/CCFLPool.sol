@@ -127,6 +127,7 @@ contract CCFLPool is ICCFLPool {
     address public BE;
 
     ReserveData public reserve;
+    mapping(address => uint) public share;
 
     modifier onlyOwner() {
         require(msg.sender == owner, "only the owner");
@@ -398,7 +399,6 @@ contract CCFLPool is ICCFLPool {
             );
 
         reserve.currentLiquidityRate = vars.nextLiquidityRate.toUint128();
-        reserve.currentStableBorrowRate = vars.nextStableRate.toUint128();
         reserve.currentVariableBorrowRate = vars.nextVariableRate.toUint128();
 
         // emit ReserveDataUpdated(
@@ -418,6 +418,24 @@ contract CCFLPool is ICCFLPool {
 
         updateInterestRates(reserveCache, _amount, 0);
 
+        uint256 amountScaled = _amount.rayDiv(reserve.currentLiquidityRate);
+        uint256 total = share[msg.sender] + amountScaled;
+
+        share[msg.sender] = total;
+        stableCoinAddress.transferFrom(msg.sender, address(this), _amount);
+    }
+
+    function withdraw(uint256 _amount) public {
+        ReserveCache memory reserveCache = cache();
+
+        updateState(reserveCache);
+
+        updateInterestRates(reserveCache, 0, _amount);
+
+        uint256 amountScaled = _amount.rayDiv(reserve.currentLiquidityRate);
+        uint256 total = share[msg.sender] - amountScaled;
+
+        share[msg.sender] = total;
         stableCoinAddress.transferFrom(msg.sender, address(this), _amount);
     }
 }
