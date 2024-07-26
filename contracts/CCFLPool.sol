@@ -136,8 +136,12 @@ contract CCFLPool is ICCFLPool {
         _;
     }
 
-    constructor(IERC20 _stableCoinAddress) {
+    constructor(
+        IERC20 _stableCoinAddress,
+        address interestRateStrategyAddress
+    ) {
         stableCoinAddress = _stableCoinAddress;
+        reserve.interestRateStrategyAddress = interestRateStrategyAddress;
         owner = payable(msg.sender);
     }
 
