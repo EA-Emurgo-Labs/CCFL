@@ -110,6 +110,7 @@ library DataTypes {
         uint256 totalVariableDebt;
         address reserveToken; // USDC
         address pool; // Pool
+        uint256 lockedFund;
     }
 
     struct InitReserveParams {

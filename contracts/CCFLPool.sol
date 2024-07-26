@@ -115,10 +115,6 @@ contract CCFLPool is ICCFLPool {
 
     address payable public owner;
     IERC20 public stableCoinAddress;
-    mapping(address => uint) public lenderLockFund;
-    mapping(address => uint) public lenderRemainFund;
-    uint public totalLockFund;
-    uint public totalRemainFund;
     address[] public lenders;
 
     mapping(uint => Loan) public loans;
@@ -128,6 +124,7 @@ contract CCFLPool is ICCFLPool {
     ReserveData public reserve;
     mapping(address => uint) public share;
     mapping(uint => uint) public debt;
+    uint public lockedFund;
 
     modifier onlyOwner() {
         require(msg.sender == owner, "only the owner");
@@ -164,6 +161,7 @@ contract CCFLPool is ICCFLPool {
     function withdrawLoan(address _receiver, uint _loanId) public onlyCCFL {
         require(loans[_loanId].isPaid == false, "Loan is paid");
         loans[_loanId].isPaid = true;
+        lockedFund -= loans[_loanId].amount;
         emit WithdrawLoan(_receiver, loans[_loanId].amount, block.timestamp);
         stableCoinAddress.transfer(_receiver, loans[_loanId].amount);
     }
@@ -268,7 +266,8 @@ contract CCFLPool is ICCFLPool {
                     liquidityTaken: liquidityTaken,
                     totalVariableDebt: vars.totalVariableDebt,
                     reserveToken: address(stableCoinAddress),
-                    pool: address(this)
+                    pool: address(this),
+                    lockedFund: lockedFund
                 })
             );
 
@@ -313,7 +312,11 @@ contract CCFLPool is ICCFLPool {
         stableCoinAddress.transferFrom(msg.sender, address(this), _amount);
     }
 
-    function borrow(uint _loanId, uint256 _amount, address _borrower) public {
+    function borrow(
+        uint _loanId,
+        uint256 _amount,
+        address _borrower
+    ) public onlyCCFL {
         ReserveCache memory reserveCache = cache();
 
         updateState(reserveCache);
@@ -330,10 +333,10 @@ contract CCFLPool is ICCFLPool {
         loan.amount = _amount;
         loan.borrower = _borrower;
 
-        // stableCoinAddress.transfer(msg.sender, _amount);
+        lockedFund += loans[_loanId].amount;
     }
 
-    function repay(uint _loanId, uint256 _amount) public {
+    function repay(uint _loanId, uint256 _amount) public onlyCCFL {
         ReserveCache memory reserveCache = cache();
 
         updateState(reserveCache);
