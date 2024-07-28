@@ -114,6 +114,9 @@ contract CCFLPool is ICCFLPool {
     mapping(uint => uint) public debt;
     uint public lockedFund;
 
+    uint public totalSupply;
+    uint public totalDebt;
+
     modifier onlyOwner() {
         require(msg.sender == owner, "only the owner");
         _;
@@ -254,9 +257,8 @@ contract CCFLPool is ICCFLPool {
                 DataTypes.CalculateInterestRatesParams({
                     liquidityAdded: liquidityAdded,
                     liquidityTaken: liquidityTaken,
-                    totalVariableDebt: vars.totalVariableDebt,
-                    reserveToken: address(stableCoinAddress),
-                    pool: address(this),
+                    totalVariableDebt: totalDebt,
+                    totalSupply: totalSupply,
                     lockedFund: lockedFund
                 })
             );
@@ -286,7 +288,8 @@ contract CCFLPool is ICCFLPool {
             amountScaled = WadRayMath.wadToRay(_amount).rayDiv(
                 reserve.liquidityIndex
             );
-        uint256 total = share[msg.sender] + amountScaled;
+        uint256 total = share[msg.sender] + WadRayMath.rayToWad(amountScaled);
+        totalSupply += WadRayMath.rayToWad(amountScaled);
 
         share[msg.sender] = total;
         stableCoinAddress.transferFrom(msg.sender, address(this), _amount);
@@ -304,7 +307,8 @@ contract CCFLPool is ICCFLPool {
             amountScaled = WadRayMath.wadToRay(_amount).rayDiv(
                 reserve.liquidityIndex
             );
-        uint256 total = share[msg.sender] - amountScaled;
+        uint256 total = share[msg.sender] - WadRayMath.rayToWad(amountScaled);
+        totalSupply -= WadRayMath.rayToWad(amountScaled);
 
         share[msg.sender] = total;
         stableCoinAddress.transferFrom(msg.sender, address(this), _amount);
@@ -326,7 +330,8 @@ contract CCFLPool is ICCFLPool {
             amountScaled = WadRayMath.wadToRay(_amount).rayDiv(
                 reserve.variableBorrowIndex
             );
-        uint256 total = debt[_loanId] + amountScaled;
+        uint256 total = debt[_loanId] + WadRayMath.rayToWad(amountScaled);
+        totalDebt += WadRayMath.rayToWad(amountScaled);
 
         Loan storage loan = loans[_loanId];
 
@@ -350,7 +355,8 @@ contract CCFLPool is ICCFLPool {
             amountScaled = WadRayMath.wadToRay(_amount).rayDiv(
                 reserve.variableBorrowIndex
             );
-        uint256 total = debt[_loanId] - amountScaled;
+        uint256 total = debt[_loanId] - WadRayMath.rayToWad(amountScaled);
+        totalDebt -= WadRayMath.rayToWad(amountScaled);
 
         debt[_loanId] = total;
         stableCoinAddress.transferFrom(msg.sender, address(this), _amount);

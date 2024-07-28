@@ -116,8 +116,8 @@ contract DefaultReserveInterestRateStrategy is IDefaultInterestRateStrategy {
 
         if (vars.totalDebt != 0) {
             vars.availableLiquidity =
-                IERC20(params.reserveToken).balanceOf(params.pool) -
-                params.lockedFund +
+                params.totalSupply -
+                params.totalVariableDebt +
                 params.liquidityAdded -
                 params.liquidityTaken;
 

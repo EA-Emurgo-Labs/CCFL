@@ -108,8 +108,7 @@ library DataTypes {
         uint256 liquidityAdded;
         uint256 liquidityTaken;
         uint256 totalVariableDebt;
-        address reserveToken; // USDC
-        address pool; // Pool
+        uint256 totalSupply;
         uint256 lockedFund;
     }
 
