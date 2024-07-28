@@ -10,19 +10,7 @@ import {WadRayMath} from "./math/WadRayMath.sol";
 import {PercentageMath} from "./math/PercentageMath.sol";
 import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import {DataTypes} from "./DataTypes.sol";
-
-interface IReserveInterestRateStrategy {
-    /**
-     * @notice Calculates the interest rates depending on the reserve's state and configurations
-     * @param params The parameters needed to calculate interest rates
-     * @return liquidityRate The liquidity rate expressed in rays
-     * @return stableBorrowRate The stable borrow rate expressed in rays
-     * @return variableBorrowRate The variable borrow rate expressed in rays
-     */
-    function calculateInterestRates(
-        DataTypes.CalculateInterestRatesParams memory params
-    ) external view returns (uint256, uint256, uint256);
-}
+import {IReserveInterestRateStrategy} from "./IReserveInterestRateStrategy.sol";
 
 struct Loan {
     uint loanId;
@@ -261,7 +249,6 @@ contract CCFLPool is ICCFLPool {
 
         (
             vars.nextLiquidityRate,
-            vars.nextStableRate,
             vars.nextVariableRate
         ) = IReserveInterestRateStrategy(reserve.interestRateStrategyAddress)
             .calculateInterestRates(
@@ -295,7 +282,11 @@ contract CCFLPool is ICCFLPool {
 
         updateInterestRates(reserveCache, _amount, 0);
 
-        uint256 amountScaled = _amount.rayDiv(reserve.liquidityIndex);
+        uint256 amountScaled = 0;
+        if (reserve.liquidityIndex > 0)
+            amountScaled = WadRayMath.wadToRay(_amount).rayDiv(
+                reserve.liquidityIndex
+            );
         uint256 total = share[msg.sender] + amountScaled;
 
         share[msg.sender] = total;
