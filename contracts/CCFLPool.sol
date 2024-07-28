@@ -231,7 +231,6 @@ contract CCFLPool is ICCFLPool {
 
     struct UpdateInterestRatesLocalVars {
         uint256 nextLiquidityRate;
-        uint256 nextStableRate;
         uint256 nextVariableRate;
         uint256 totalVariableDebt;
     }
@@ -300,7 +299,11 @@ contract CCFLPool is ICCFLPool {
 
         updateInterestRates(reserveCache, 0, _amount);
 
-        uint256 amountScaled = _amount.rayDiv(reserve.liquidityIndex);
+        uint256 amountScaled = 0;
+        if (reserve.liquidityIndex > 0)
+            amountScaled = WadRayMath.wadToRay(_amount).rayDiv(
+                reserve.liquidityIndex
+            );
         uint256 total = share[msg.sender] - amountScaled;
 
         share[msg.sender] = total;
@@ -318,7 +321,11 @@ contract CCFLPool is ICCFLPool {
 
         updateInterestRates(reserveCache, 0, _amount);
 
-        uint256 amountScaled = _amount.rayDiv(reserve.variableBorrowIndex);
+        uint256 amountScaled = 0;
+        if (reserve.variableBorrowIndex > 0)
+            amountScaled = WadRayMath.wadToRay(_amount).rayDiv(
+                reserve.variableBorrowIndex
+            );
         uint256 total = debt[_loanId] + amountScaled;
 
         Loan storage loan = loans[_loanId];
@@ -338,7 +345,11 @@ contract CCFLPool is ICCFLPool {
 
         updateInterestRates(reserveCache, _amount, 0);
 
-        uint256 amountScaled = _amount.rayDiv(reserve.variableBorrowIndex);
+        uint256 amountScaled = 0;
+        if (reserve.variableBorrowIndex > 0)
+            amountScaled = WadRayMath.wadToRay(_amount).rayDiv(
+                reserve.variableBorrowIndex
+            );
         uint256 total = debt[_loanId] - amountScaled;
 
         debt[_loanId] = total;
