@@ -27,4 +27,6 @@ interface ICCFLPool {
     function withdraw(uint256 _amount) external;
 
     function repay(uint _loanId, uint256 _amount) external;
+
+    function getCurrentLoan(uint _loanId) external returns (uint256);
 }

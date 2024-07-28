@@ -153,7 +153,7 @@ contract CCFL is Initializable {
         loan.isPaid = false;
         loan.rateLoan = rateLoan;
         loan.stableCoin = _stableCoin;
-        // lock loan on pool
+        // borrow loan on pool
         ccflPools[_stableCoin].borrow(loan.loanId, loan.amount, loan.borrower);
 
         AggregatorV3Interface _pricePoolFeeds = pricePoolFeeds[_stableCoin];

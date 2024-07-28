@@ -355,4 +355,11 @@ contract CCFLPool is ICCFLPool {
         debt[_loanId] = total;
         stableCoinAddress.transferFrom(msg.sender, address(this), _amount);
     }
+
+    function getCurrentLoan(uint _loanId) public returns (uint256) {
+        return
+            WadRayMath.wadToRay(debt[_loanId]).rayMul(
+                reserve.variableBorrowIndex
+            );
+    }
 }
