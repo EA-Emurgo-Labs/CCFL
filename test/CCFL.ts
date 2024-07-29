@@ -175,7 +175,7 @@ describe("CCFL system", function () {
         .repayLoan(1, BigInt(1000e18), await usdc.getAddress());
     });
 
-    it.only("Should get back collateral", async function () {
+    it("Should get back collateral", async function () {
       const {
         usdc,
         link,
@@ -445,7 +445,7 @@ describe("CCFL system", function () {
       expect(await ccfl.getHealthFactor(BigInt(1))).to.lessThan(100);
     });
 
-    it("Bad Health factor liquidation", async function () {
+    it.only("Bad Health factor liquidation", async function () {
       const {
         usdc,
         link,

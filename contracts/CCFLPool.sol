@@ -237,9 +237,9 @@ contract CCFLPool is ICCFLPool {
         }
         uint256 total = share[msg.sender] - amountScaled;
         totalSupply -= amountScaled;
-
+        require(total >= 0, "Don't have enough fund");
         share[msg.sender] = total;
-        stableCoinAddress.transferFrom(msg.sender, address(this), _amount);
+        stableCoinAddress.transfer(msg.sender, _amount);
     }
 
     function borrow(
