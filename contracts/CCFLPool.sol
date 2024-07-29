@@ -5,32 +5,44 @@ pragma solidity ^0.8.24;
 import "hardhat/console.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./ICCFLPool.sol";
+import {MathUtils} from "./math/MathUtils.sol";
+import {WadRayMath} from "./math/WadRayMath.sol";
+import {PercentageMath} from "./math/PercentageMath.sol";
+import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
+import {DataTypes} from "./DataTypes.sol";
+import {IReserveInterestRateStrategy} from "./IReserveInterestRateStrategy.sol";
 
 struct Loan {
     uint loanId;
-    address[] lenders;
-    uint[] lockFund;
     bool isPaid;
     uint amount;
     bool isClosed;
     bool isLocked;
+    address borrower;
 }
 
 /// @title CCFL contract
 /// @author
 /// @notice Link/usd
 contract CCFLPool is ICCFLPool {
+    using WadRayMath for uint256;
+    using PercentageMath for uint256;
+    using SafeCast for uint256;
+
     address payable public owner;
     IERC20 public stableCoinAddress;
-    mapping(address => uint) public lenderLockFund;
-    mapping(address => uint) public lenderRemainFund;
-    uint public totalLockFund;
-    uint public totalRemainFund;
     address[] public lenders;
 
     mapping(uint => Loan) public loans;
     address public CCFL;
     address public BE;
+
+    DataTypes.ReserveData public reserve;
+    mapping(address => uint) public share;
+    mapping(uint => uint) public debt;
+
+    uint public totalSupply;
+    uint public totalDebt;
 
     modifier onlyOwner() {
         require(msg.sender == owner, "only the owner");
@@ -42,8 +54,12 @@ contract CCFLPool is ICCFLPool {
         _;
     }
 
-    constructor(IERC20 _stableCoinAddress) {
+    constructor(
+        IERC20 _stableCoinAddress,
+        address interestRateStrategyAddress
+    ) {
         stableCoinAddress = _stableCoinAddress;
+        reserve.interestRateStrategyAddress = interestRateStrategyAddress;
         owner = payable(msg.sender);
     }
 
@@ -52,7 +68,7 @@ contract CCFLPool is ICCFLPool {
     }
 
     function getRemainingPool() public view returns (uint amount) {
-        amount = totalRemainFund;
+        return totalSupply - totalDebt;
     }
 
     // Modifier to check token allowance
@@ -64,109 +80,6 @@ contract CCFLPool is ICCFLPool {
         _;
     }
 
-    function supplyLiquidity(uint _amount) public checkUsdAllowance(_amount) {
-        // check a new lender
-        bool existedLender = false;
-        for (uint i = 0; i < lenders.length; i++) {
-            if (lenders[i] == msg.sender) {
-                existedLender = true;
-                break;
-            }
-        }
-        if (!existedLender) {
-            lenders.push(msg.sender);
-        }
-        emit Deposit(msg.sender, _amount, block.timestamp);
-        lenderRemainFund[msg.sender] += _amount;
-        totalRemainFund += _amount;
-        stableCoinAddress.transferFrom(msg.sender, address(this), _amount);
-    }
-
-    function withdrawLiquidity(uint _amount) public {
-        require(
-            lenderRemainFund[msg.sender] >= _amount,
-            "Balance is not enough"
-        );
-        emit Withdraw(msg.sender, _amount, block.timestamp);
-        lenderRemainFund[msg.sender] -= _amount;
-        if (
-            lenderLockFund[msg.sender] <= 0 && lenderRemainFund[msg.sender] <= 0
-        ) {
-            uint deleteIndex = 0;
-            for (uint i = 0; i < lenders.length; i++) {
-                if (lenders[i] == msg.sender) deleteIndex = i;
-            }
-
-            if (lenders[deleteIndex] == msg.sender) {
-                lenders[deleteIndex] = lenders[lenders.length - 1];
-                delete lenders[lenders.length - 1];
-            }
-        }
-        stableCoinAddress.transfer(msg.sender, _amount);
-    }
-
-    function lockLoan(
-        uint _loanId,
-        uint _amount,
-        address _borrower
-    ) public onlyCCFL {
-        Loan storage loan = loans[_loanId];
-        if (
-            _loanId > 0 && loan.isLocked == false && totalRemainFund >= _amount
-        ) {
-            uint totalLock = 0;
-            uint[] memory emptyFund = new uint[](lenders.length);
-            uint last = 0;
-            for (uint i = 0; i < lenders.length; i++) {
-                if (lenderRemainFund[lenders[i]] <= 0) {
-                    emptyFund[i] = 1;
-                } else last = i;
-            }
-
-            for (uint i = 0; i < lenders.length; i++) {
-                if (i != last && emptyFund[i] != 1) {
-                    uint lockFund = (lenderRemainFund[lenders[i]] * _amount) /
-                        totalRemainFund;
-                    lenderLockFund[lenders[i]] += lockFund;
-                    lenderRemainFund[lenders[i]] -= lockFund;
-                    totalLock += lockFund;
-                    loan.lenders.push(lenders[i]);
-                    loan.lockFund.push(lockFund);
-                } else if (i == last) {
-                    uint lockFund = _amount - totalLock;
-                    lenderLockFund[lenders[i]] += lockFund;
-                    lenderRemainFund[lenders[i]] -= lockFund;
-                    loan.lenders.push(lenders[i]);
-                    loan.lockFund.push(lockFund);
-                }
-            }
-
-            loan.isLocked = true;
-            loan.amount = _amount;
-            totalLockFund += _amount;
-            emit LockLoan(_loanId, _amount, _borrower, block.timestamp);
-        }
-    }
-
-    function closeLoan(
-        uint _loanId,
-        uint _amount
-    ) public onlyCCFL checkUsdAllowance(_amount) {
-        Loan storage loan = loans[_loanId];
-        require(
-            _amount == loan.amount && loan.isClosed == false,
-            "Do not enough amount"
-        );
-        for (uint i = 0; i < loan.lenders.length; i++) {
-            uint returnAmount = loan.lockFund[i];
-            lenderLockFund[loan.lenders[i]] -= returnAmount;
-            lenderRemainFund[loan.lenders[i]] += returnAmount;
-        }
-        loan.isClosed = true;
-        stableCoinAddress.transferFrom(msg.sender, address(this), _amount);
-        emit CloseLoan(_loanId, _amount, msg.sender, block.timestamp);
-    }
-
     function withdrawLoan(address _receiver, uint _loanId) public onlyCCFL {
         require(loans[_loanId].isPaid == false, "Loan is paid");
         loans[_loanId].isPaid = true;
@@ -175,4 +88,224 @@ contract CCFLPool is ICCFLPool {
     }
 
     receive() external payable {}
+
+    function cache() internal view returns (DataTypes.ReserveCache memory) {
+        DataTypes.ReserveCache memory reserveCache;
+
+        reserveCache.reserveConfiguration = reserve.configuration;
+        reserveCache.currLiquidityIndex = reserveCache
+            .nextLiquidityIndex = reserve.liquidityIndex;
+        reserveCache.currVariableBorrowIndex = reserveCache
+            .nextVariableBorrowIndex = reserve.variableBorrowIndex;
+        reserveCache.currLiquidityRate = reserve.currentLiquidityRate;
+        reserveCache.currVariableBorrowRate = reserve.currentVariableBorrowRate;
+
+        reserveCache.reserveLastUpdateTimestamp = reserve.lastUpdateTimestamp;
+        reserveCache.currScaledVariableDebt = totalDebt;
+
+        return reserveCache;
+    }
+
+    function updateState(DataTypes.ReserveCache memory reserveCache) internal {
+        // If time didn't pass since last stored timestamp, skip state update
+        //solium-disable-next-line
+        if (reserve.lastUpdateTimestamp == uint40(block.timestamp)) {
+            return;
+        }
+
+        _updateIndexes(reserveCache);
+
+        //solium-disable-next-line
+        reserve.lastUpdateTimestamp = uint40(block.timestamp);
+    }
+
+    function _updateIndexes(
+        DataTypes.ReserveCache memory reserveCache
+    ) internal {
+        // Only cumulating on the supply side if there is any income being produced
+        // The case of Reserve Factor 100% is not a problem (currentLiquidityRate == 0),
+        // as liquidity index should not be updated
+        if (reserveCache.currLiquidityRate != 0) {
+            uint256 cumulatedLiquidityInterest = MathUtils
+                .calculateLinearInterest(
+                    reserveCache.currLiquidityRate,
+                    reserveCache.reserveLastUpdateTimestamp
+                );
+            reserveCache.nextLiquidityIndex = cumulatedLiquidityInterest.rayMul(
+                reserveCache.currLiquidityIndex
+            );
+            reserve.liquidityIndex = reserveCache
+                .nextLiquidityIndex
+                .toUint128();
+        }
+
+        // Variable borrow index only gets updated if there is any variable debt.
+        // reserveCache.currVariableBorrowRate != 0 is not a correct validation,
+        // because a positive base variable rate can be stored on
+        // reserveCache.currVariableBorrowRate, but the index should not increase
+        if (reserveCache.currScaledVariableDebt != 0) {
+            uint256 cumulatedVariableBorrowInterest = MathUtils
+                .calculateCompoundedInterest(
+                    reserveCache.currVariableBorrowRate,
+                    reserveCache.reserveLastUpdateTimestamp
+                );
+            reserveCache
+                .nextVariableBorrowIndex = cumulatedVariableBorrowInterest
+                .rayMul(reserveCache.currVariableBorrowIndex);
+            reserve.variableBorrowIndex = reserveCache
+                .nextVariableBorrowIndex
+                .toUint128();
+        }
+    }
+
+    struct UpdateInterestRatesLocalVars {
+        uint256 nextLiquidityRate;
+        uint256 nextVariableRate;
+        uint256 totalVariableDebt;
+    }
+
+    function updateInterestRates(
+        uint256 liquidityAdded,
+        uint256 liquidityTaken
+    ) internal {
+        UpdateInterestRatesLocalVars memory vars;
+        (
+            vars.nextLiquidityRate,
+            vars.nextVariableRate
+        ) = IReserveInterestRateStrategy(reserve.interestRateStrategyAddress)
+            .calculateInterestRates(
+                DataTypes.CalculateInterestRatesParams({
+                    liquidityAdded: liquidityAdded,
+                    liquidityTaken: liquidityTaken,
+                    totalVariableDebt: totalDebt,
+                    totalSupply: totalSupply
+                })
+            );
+
+        reserve.currentLiquidityRate = vars.nextLiquidityRate.toUint128();
+        reserve.currentVariableBorrowRate = vars.nextVariableRate.toUint128();
+
+        // emit ReserveDataUpdated(
+        //     reserveAddress,
+        //     vars.nextLiquidityRate,
+        //     vars.nextStableRate,
+        //     vars.nextVariableRate,
+        //     reserveCache.nextLiquidityIndex,
+        //     reserveCache.nextVariableBorrowIndex
+        // );
+    }
+
+    function supply(uint256 _amount) public {
+        DataTypes.ReserveCache memory reserveCache = cache();
+
+        updateState(reserveCache);
+
+        updateInterestRates(_amount, 0);
+
+        uint256 amountScaled = 0;
+        if (reserve.liquidityIndex > 0) {
+            amountScaled = WadRayMath.wadToRay(_amount).rayDiv(
+                reserve.liquidityIndex
+            );
+            amountScaled = WadRayMath.rayToWad(amountScaled);
+        } else {
+            amountScaled = _amount;
+        }
+        uint256 total = share[msg.sender] + amountScaled;
+        totalSupply += amountScaled;
+
+        share[msg.sender] = total;
+        stableCoinAddress.transferFrom(msg.sender, address(this), _amount);
+    }
+
+    function withdraw(uint256 _amount) public {
+        DataTypes.ReserveCache memory reserveCache = cache();
+
+        updateState(reserveCache);
+
+        updateInterestRates(0, _amount);
+
+        uint256 amountScaled = 0;
+        if (reserve.liquidityIndex > 0) {
+            amountScaled = WadRayMath.wadToRay(_amount).rayDiv(
+                reserve.liquidityIndex
+            );
+            amountScaled = WadRayMath.rayToWad(amountScaled);
+        } else {
+            amountScaled = _amount;
+        }
+        uint256 total = share[msg.sender] - amountScaled;
+        totalSupply -= amountScaled;
+
+        share[msg.sender] = total;
+        stableCoinAddress.transferFrom(msg.sender, address(this), _amount);
+    }
+
+    function borrow(
+        uint _loanId,
+        uint256 _amount,
+        address _borrower
+    ) public onlyCCFL {
+        DataTypes.ReserveCache memory reserveCache = cache();
+
+        updateState(reserveCache);
+
+        updateInterestRates(0, _amount);
+
+        uint256 amountScaled = 0;
+        if (reserve.variableBorrowIndex > 0) {
+            amountScaled = WadRayMath.wadToRay(_amount).rayDiv(
+                reserve.variableBorrowIndex
+            );
+            amountScaled = WadRayMath.rayToWad(amountScaled);
+        } else {
+            amountScaled = _amount;
+        }
+        uint256 total = debt[_loanId] + amountScaled;
+        totalDebt += amountScaled;
+
+        Loan storage loan = loans[_loanId];
+
+        debt[_loanId] = total;
+        loan.loanId = _loanId;
+        loan.amount = _amount;
+        loan.borrower = _borrower;
+    }
+
+    function repay(uint _loanId, uint256 _amount) public onlyCCFL {
+        DataTypes.ReserveCache memory reserveCache = cache();
+
+        updateState(reserveCache);
+
+        updateInterestRates(_amount, 0);
+
+        uint256 amountScaled = 0;
+        if (reserve.variableBorrowIndex > 0) {
+            amountScaled = WadRayMath.wadToRay(_amount).rayDiv(
+                reserve.variableBorrowIndex
+            );
+            amountScaled = WadRayMath.rayToWad(amountScaled);
+        } else {
+            amountScaled = _amount;
+        }
+        uint256 total = debt[_loanId] - amountScaled;
+        totalDebt -= amountScaled;
+
+        debt[_loanId] = total;
+        stableCoinAddress.transferFrom(msg.sender, address(this), _amount);
+    }
+
+    function getCurrentLoan(uint _loanId) public returns (uint256) {
+        return
+            WadRayMath.wadToRay(debt[_loanId]).rayMul(
+                reserve.variableBorrowIndex
+            );
+    }
+
+    function getCurrentRate() public view returns (uint256, uint256) {
+        return (
+            reserve.currentVariableBorrowRate,
+            reserve.currentLiquidityRate
+        );
+    }
 }

@@ -12,21 +12,23 @@ interface ICCFLPool {
     event Withdraw(address user, uint amount, uint when);
     event Deposit(address user, uint amount, uint when);
     event WithdrawLoan(address user, uint amount, uint when);
-    event WithdrawMonthlyPayment(address user, uint amount, uint when);
-    event LockLoan(uint loanId, uint amount, address borrower, uint when);
     event CloseLoan(uint loanId, uint amount, address borrower, uint when);
 
-    function supplyLiquidity(uint _amount) external;
-
-    function withdrawLiquidity(uint _amount) external;
-
-    function lockLoan(uint _loanId, uint _amount, address _borrower) external;
-
     function withdrawLoan(address _receiver, uint _loanId) external;
-
-    function closeLoan(uint _loanId, uint _amount) external;
 
     function setCCFL(address _ccfl) external;
 
     function getRemainingPool() external returns (uint amount);
+
+    function borrow(uint _loanId, uint256 _amount, address _borrower) external;
+
+    function supply(uint256 _amount) external;
+
+    function withdraw(uint256 _amount) external;
+
+    function repay(uint _loanId, uint256 _amount) external;
+
+    function getCurrentLoan(uint _loanId) external returns (uint256);
+
+    function getCurrentRate() external view returns (uint256, uint256);
 }

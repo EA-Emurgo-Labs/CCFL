@@ -5,7 +5,7 @@ import {
 import { anyValue } from "@nomicfoundation/hardhat-chai-matchers/withArgs";
 import { expect } from "chai";
 import hre from "hardhat";
-import { assert } from "ethers";
+import { assert, parseUnits } from "ethers";
 
 describe("CCFL system", function () {
   // We define a fixture to reuse the same setup in every test.
@@ -25,8 +25,21 @@ describe("CCFL system", function () {
     const ATOKEN = await hre.ethers.getContractFactory("MyERC20");
     const aToken = await ATOKEN.deploy("ATOKEN", "ATOKEN");
 
+    const DefaultReserveInterestRateStrategy =
+      await hre.ethers.getContractFactory("DefaultReserveInterestRateStrategy");
+    const defaultReserveInterestRateStrategy =
+      await DefaultReserveInterestRateStrategy.deploy(
+        parseUnits("0.80", 27).toString(),
+        parseUnits("0.05", 27).toString(),
+        parseUnits("0.04", 27).toString(),
+        parseUnits("3", 27).toString()
+      );
+
     const CCFLPool = await hre.ethers.getContractFactory("CCFLPool");
-    const ccflPool = await CCFLPool.deploy(usdc);
+    const ccflPool = await CCFLPool.deploy(
+      usdc,
+      await defaultReserveInterestRateStrategy.getAddress()
+    );
 
     const MockAggr = await hre.ethers.getContractFactory("MockAggregator");
     const mockAggr = await MockAggr.deploy();
@@ -122,7 +135,7 @@ describe("CCFL system", function () {
       await usdc
         .connect(lender1)
         .approve(ccflPool.getAddress(), BigInt(10000e18));
-      await ccflPool.connect(lender1).supplyLiquidity(BigInt(10000e18));
+      await ccflPool.connect(lender1).supply(BigInt(10000e18));
       // borrower lend
       await link.connect(borrower1).approve(ccfl.getAddress(), BigInt(1000e18));
       await ccfl
@@ -134,6 +147,17 @@ describe("CCFL system", function () {
           await link.getAddress(),
           false
         );
+
+      await time.increase(30 * 24 * 3600);
+      console.log(await ccflPool.getCurrentRate());
+      // lender deposit USDC
+      await usdc
+        .connect(lender2)
+        .approve(ccflPool.getAddress(), BigInt(20000e18));
+      await ccflPool.connect(lender2).supply(BigInt(20000e18));
+      console.log(await ccflPool.getCurrentRate());
+      console.log(await ccflPool.getRemainingPool());
+
       await ccfl
         .connect(borrower1)
         .withdrawLoan(await usdc.getAddress(), BigInt(1));
@@ -148,7 +172,7 @@ describe("CCFL system", function () {
       await usdc.connect(borrower1).approve(ccfl.getAddress(), BigInt(1000e18));
       await ccfl
         .connect(borrower1)
-        .closeLoan(1, BigInt(1000e18), await usdc.getAddress());
+        .repayLoan(1, BigInt(1000e18), await usdc.getAddress());
     });
 
     it("multi lender", async function () {
@@ -169,12 +193,12 @@ describe("CCFL system", function () {
       await usdc
         .connect(lender1)
         .approve(ccflPool.getAddress(), BigInt(10000e18));
-      await ccflPool.connect(lender1).supplyLiquidity(BigInt(10000e18));
+      await ccflPool.connect(lender1).supply(BigInt(10000e18));
 
       await usdc
         .connect(lender2)
         .approve(ccflPool.getAddress(), BigInt(20000e18));
-      await ccflPool.connect(lender2).supplyLiquidity(BigInt(20000e18));
+      await ccflPool.connect(lender2).supply(BigInt(20000e18));
 
       // borrower lend
       await link.connect(borrower1).approve(ccfl.getAddress(), BigInt(1000e18));
@@ -201,7 +225,7 @@ describe("CCFL system", function () {
       await usdc.connect(borrower1).approve(ccfl.getAddress(), BigInt(1000e18));
       await ccfl
         .connect(borrower1)
-        .closeLoan(1, BigInt(1000e18), await usdc.getAddress());
+        .repayLoan(1, BigInt(1000e18), await usdc.getAddress());
     });
 
     it("withdraw all USDC", async function () {
@@ -222,8 +246,8 @@ describe("CCFL system", function () {
       await usdc
         .connect(lender1)
         .approve(ccflPool.getAddress(), BigInt(10000e18));
-      await ccflPool.connect(lender1).supplyLiquidity(BigInt(10000e18));
-      await ccflPool.connect(lender1).withdrawLiquidity(BigInt(10000e18));
+      await ccflPool.connect(lender1).supply(BigInt(10000e18));
+      await ccflPool.connect(lender1).withdraw(BigInt(10000e18));
     });
 
     it("deposit more USDC", async function () {
@@ -244,8 +268,8 @@ describe("CCFL system", function () {
       await usdc
         .connect(lender1)
         .approve(ccflPool.getAddress(), BigInt(10000e18));
-      await ccflPool.connect(lender1).supplyLiquidity(BigInt(5000e18));
-      await ccflPool.connect(lender1).supplyLiquidity(BigInt(5000e18));
+      await ccflPool.connect(lender1).supply(BigInt(5000e18));
+      await ccflPool.connect(lender1).supply(BigInt(5000e18));
     });
   });
   describe("Earn", function () {
@@ -294,7 +318,7 @@ describe("CCFL system", function () {
       await usdc
         .connect(lender1)
         .approve(ccflPool.getAddress(), BigInt(10000e18));
-      await ccflPool.connect(lender1).supplyLiquidity(BigInt(10000e18));
+      await ccflPool.connect(lender1).supply(BigInt(10000e18));
       // borrower lend
       await link.connect(borrower1).approve(ccfl.getAddress(), BigInt(1000e18));
       await ccfl
@@ -337,7 +361,7 @@ describe("CCFL system", function () {
       await usdc
         .connect(lender1)
         .approve(ccflPool.getAddress(), BigInt(10000e18));
-      await ccflPool.connect(lender1).supplyLiquidity(BigInt(10000e18));
+      await ccflPool.connect(lender1).supply(BigInt(10000e18));
       // borrower lend
       await link.connect(borrower1).approve(ccfl.getAddress(), BigInt(1000e18));
       await ccfl
@@ -381,7 +405,7 @@ describe("CCFL system", function () {
       await usdc
         .connect(lender1)
         .approve(ccflPool.getAddress(), BigInt(10000e18));
-      await ccflPool.connect(lender1).supplyLiquidity(BigInt(10000e18));
+      await ccflPool.connect(lender1).supply(BigInt(10000e18));
       // borrower lend
       await link.connect(borrower1).approve(ccfl.getAddress(), BigInt(1000e18));
       await ccfl
