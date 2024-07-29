@@ -158,22 +158,17 @@ describe("CCFL system", function () {
         );
 
       await time.increase(30 * 24 * 3600);
-      console.log(await ccflPool.getCurrentRate());
       // lender deposit USDC
       await usdc
         .connect(lender2)
         .approve(ccflPool.getAddress(), BigInt(20000e18));
       await ccflPool.connect(lender2).supply(BigInt(20000e18));
-      console.log(await ccflPool.getCurrentRate());
-      console.log(await ccflPool.getRemainingPool());
-
       await ccfl
         .connect(borrower1)
         .withdrawLoan(await usdc.getAddress(), BigInt(1));
       expect(BigInt(await usdc.balanceOf(borrower1)).toString()).to.eq(
         BigInt(2000e18)
       );
-      // console.log(await ccfl.loans(borrower1, BigInt(0)));
       // borrower return monthly payment
       await usdc.connect(borrower1).approve(ccfl.getAddress(), BigInt(10e18));
       await time.increase(30 * 24 * 3600);
@@ -203,7 +198,6 @@ describe("CCFL system", function () {
         .connect(lender1)
         .approve(ccflPool.getAddress(), BigInt(10000e18));
       await ccflPool.connect(lender1).supply(BigInt(10000e18));
-      console.log(await ccflPool.getCurrentRate());
 
       // borrower lend
       await link.connect(borrower1).approve(ccfl.getAddress(), BigInt(1000e18));
@@ -218,7 +212,6 @@ describe("CCFL system", function () {
         );
 
       await time.increase(30 * 24 * 3600);
-      console.log(await ccflPool.getCurrentRate());
 
       await ccfl
         .connect(borrower1)
@@ -232,7 +225,6 @@ describe("CCFL system", function () {
       await time.increase(30 * 24 * 3600);
       // close loan
       let debt = await ccflPool.getCurrentLoan(BigInt(1));
-      console.log({ debt });
       await usdc.connect(borrower1).approve(ccfl.getAddress(), BigInt(1100e18));
       await ccfl
         .connect(borrower1)
@@ -242,7 +234,7 @@ describe("CCFL system", function () {
           await usdc.getAddress()
         );
       let debt1 = await ccflPool.getCurrentLoan(BigInt(1));
-      console.log({ debt1 });
+      expect(debt1 == BigInt(0), "Can not close loan");
     });
 
     it("multi lender", async function () {
@@ -287,7 +279,7 @@ describe("CCFL system", function () {
       expect(BigInt(await usdc.balanceOf(borrower1)).toString()).to.eq(
         BigInt(2000e18)
       );
-      // console.log(await ccfl.loans(borrower1, BigInt(0)));
+
       // borrower return monthly payment
       await usdc.connect(borrower1).approve(ccfl.getAddress(), BigInt(10e18));
       await time.increase(30 * 24 * 3600);

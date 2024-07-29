@@ -263,7 +263,6 @@ contract CCFLPool is ICCFLPool {
         totalDebt += amountScaled;
 
         Loan storage loan = loans[_loanId];
-        console.log("total", total, _loanId);
         debt[_loanId] = total;
         loan.loanId = _loanId;
         loan.amount = _amount;
@@ -335,12 +334,6 @@ contract CCFLPool is ICCFLPool {
             );
         reserveCache.nextVariableBorrowIndex = cumulatedVariableBorrowInterest
             .rayMul(reserve.variableBorrowIndex);
-        console.log(_loanId, debt[_loanId]);
-        console.log(
-            cumulatedVariableBorrowInterest,
-            reserveCache.nextVariableBorrowIndex,
-            reserve.variableBorrowIndex
-        );
         return
             WadRayMath.rayToWad(
                 WadRayMath.wadToRay(debt[_loanId]).rayMul(
