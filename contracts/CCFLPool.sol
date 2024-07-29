@@ -21,19 +21,6 @@ struct Loan {
     address borrower;
 }
 
-struct ReserveCache {
-    uint256 currScaledVariableDebt;
-    uint256 nextScaledVariableDebt;
-    uint256 currLiquidityIndex;
-    uint256 nextLiquidityIndex;
-    uint256 currVariableBorrowIndex;
-    uint256 nextVariableBorrowIndex;
-    uint256 currLiquidityRate;
-    uint256 currVariableBorrowRate;
-    DataTypes.ReserveConfigurationMap reserveConfiguration;
-    uint40 reserveLastUpdateTimestamp;
-}
-
 /// @title CCFL contract
 /// @author
 /// @notice Link/usd
@@ -102,8 +89,8 @@ contract CCFLPool is ICCFLPool {
 
     receive() external payable {}
 
-    function cache() internal view returns (ReserveCache memory) {
-        ReserveCache memory reserveCache;
+    function cache() internal view returns (DataTypes.ReserveCache memory) {
+        DataTypes.ReserveCache memory reserveCache;
 
         reserveCache.reserveConfiguration = reserve.configuration;
         reserveCache.currLiquidityIndex = reserveCache
@@ -114,11 +101,12 @@ contract CCFLPool is ICCFLPool {
         reserveCache.currVariableBorrowRate = reserve.currentVariableBorrowRate;
 
         reserveCache.reserveLastUpdateTimestamp = reserve.lastUpdateTimestamp;
+        reserveCache.currScaledVariableDebt = totalDebt;
 
         return reserveCache;
     }
 
-    function updateState(ReserveCache memory reserveCache) internal {
+    function updateState(DataTypes.ReserveCache memory reserveCache) internal {
         // If time didn't pass since last stored timestamp, skip state update
         //solium-disable-next-line
         if (reserve.lastUpdateTimestamp == uint40(block.timestamp)) {
@@ -131,7 +119,9 @@ contract CCFLPool is ICCFLPool {
         reserve.lastUpdateTimestamp = uint40(block.timestamp);
     }
 
-    function _updateIndexes(ReserveCache memory reserveCache) internal {
+    function _updateIndexes(
+        DataTypes.ReserveCache memory reserveCache
+    ) internal {
         // Only cumulating on the supply side if there is any income being produced
         // The case of Reserve Factor 100% is not a problem (currentLiquidityRate == 0),
         // as liquidity index should not be updated
@@ -206,7 +196,7 @@ contract CCFLPool is ICCFLPool {
     }
 
     function supply(uint256 _amount) public {
-        ReserveCache memory reserveCache = cache();
+        DataTypes.ReserveCache memory reserveCache = cache();
 
         updateState(reserveCache);
 
@@ -229,7 +219,7 @@ contract CCFLPool is ICCFLPool {
     }
 
     function withdraw(uint256 _amount) public {
-        ReserveCache memory reserveCache = cache();
+        DataTypes.ReserveCache memory reserveCache = cache();
 
         updateState(reserveCache);
 
@@ -256,7 +246,7 @@ contract CCFLPool is ICCFLPool {
         uint256 _amount,
         address _borrower
     ) public onlyCCFL {
-        ReserveCache memory reserveCache = cache();
+        DataTypes.ReserveCache memory reserveCache = cache();
 
         updateState(reserveCache);
 
@@ -283,7 +273,7 @@ contract CCFLPool is ICCFLPool {
     }
 
     function repay(uint _loanId, uint256 _amount) public onlyCCFL {
-        ReserveCache memory reserveCache = cache();
+        DataTypes.ReserveCache memory reserveCache = cache();
 
         updateState(reserveCache);
 
