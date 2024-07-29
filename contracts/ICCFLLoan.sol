@@ -30,7 +30,6 @@ struct Loan {
     address borrower;
     bool isPaid;
     uint amount;
-    uint rateLoan;
     IERC20Standard stableCoin;
     bool isClosed;
 }
@@ -86,11 +85,11 @@ interface ICCFLLoan {
 
     function setCCFL(address _ccfl) external;
 
-    function getHealthFactor() external view returns (uint);
+    function getHealthFactor(uint currentDebt) external view returns (uint);
 
     function updateCollateral(uint amount) external;
 
-    function liquidate() external;
+    function liquidate(uint currentDebt) external;
 
     function getLoanInfo() external view returns (Loan memory);
 }

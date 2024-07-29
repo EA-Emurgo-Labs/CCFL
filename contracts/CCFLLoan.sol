@@ -138,7 +138,7 @@ contract CCFLLoan is ICCFLLoan, Initializable {
 
     // 5. Liquidation
     // Good > 100, bad < 100
-    function getHealthFactor() public view returns (uint) {
+    function getHealthFactor(uint currentDebt) public view returns (uint) {
         uint stableCoinPrice = getLatestPrice(initLoan.stableCoin, true);
         uint totalCollaterals = 0;
 
@@ -151,7 +151,7 @@ contract CCFLLoan is ICCFLLoan, Initializable {
                 (10 ** token.decimals());
         }
 
-        uint totalLoan = (initLoan.amount * stableCoinPrice) /
+        uint totalLoan = (currentDebt * stableCoinPrice) /
             (10 ** initLoan.stableCoin.decimals());
 
         uint healthFactor = (totalCollaterals * 100) / totalLoan;
@@ -204,22 +204,22 @@ contract CCFLLoan is ICCFLLoan, Initializable {
         }
     }
 
-    function liquidate() public {
-        require(getHealthFactor() < 100, "Can not liquidate");
+    function liquidate(uint currentDebt) public {
+        require(getHealthFactor(currentDebt) < 100, "Can not liquidate");
         // get all collateral from aave
         if (isStakeAave) withdrawLiquidity();
 
         IERC20Standard token = collateralToken;
 
         swapTokenForUSD(
-            initLoan.amount,
+            (currentDebt * 102) / 100,
             collateralAmount,
             initLoan.stableCoin,
             token
         );
 
         // close this loan
-        initLoan.stableCoin.approve(ccfl, initLoan.amount);
+        initLoan.stableCoin.approve(ccfl, (currentDebt * 102) / 100);
     }
 
     function updateCollateral(uint amount) external {

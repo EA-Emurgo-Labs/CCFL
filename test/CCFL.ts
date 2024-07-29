@@ -436,49 +436,6 @@ describe("CCFL system", function () {
       await usdc.transfer(loanAddr, BigInt(1000e18));
       await ccfl.liquidate(BigInt(1));
     });
-
-    //   it("Good Health factor but not pay monthly payment", async function () {
-    //     const {
-    //       usdc,
-    //       link,
-    //       ccflPool,
-    //       ccflStake,
-    //       ccfl,
-    //       owner,
-    //       borrower1,
-    //       borrower2,
-    //       borrower3,
-    //       lender1,
-    //       lender2,
-    //       lender3,
-    //       mockAggr,
-    //       aToken,
-    //     } = await loadFixture(deployFixture);
-    //     // lender deposit USDC
-    //     await usdc
-    //       .connect(lender1)
-    //       .approve(ccflPool.getAddress(), BigInt(10000e18));
-    //     await ccflPool.connect(lender1).depositUsdc(BigInt(10000e18));
-    //     // borrower lend
-    //     await link.connect(borrower1).approve(ccfl.getAddress(), BigInt(1000e18));
-    //     await ccfl.connect(borrower1).depositCollateral(BigInt(1000e18), 50);
-    //     await ccfl.connect(borrower1).createLoan(BigInt(1000e18), BigInt(90));
-    //     await ccflPool.connect(borrower1).withdrawLoan();
-    //     expect(BigInt(await usdc.balanceOf(borrower1)).toString()).to.eq(
-    //       BigInt(2000e18)
-    //     );
-    //     expect(await ccfl.getHealthFactor(borrower1)).to.greaterThanOrEqual(100);
-    //     await aToken.transfer(
-    //       await ccfl.aaveStakeAddresses(borrower1),
-    //       BigInt(60e18)
-    //     );
-    //     await link.transfer(borrower1, BigInt(60e18));
-    //     await usdc.transfer(await ccfl.getAddress(), BigInt(1000e18));
-    //     await ccfl.liquidateMonthlyPayment(
-    //       BigInt("1"),
-    //       await borrower1.getAddress()
-    //     );
-    //   });
   });
   // describe("Collateral", function () {
   //   it("Should remove liquidity", async function () {

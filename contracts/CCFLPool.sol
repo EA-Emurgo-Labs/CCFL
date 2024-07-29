@@ -288,17 +288,43 @@ contract CCFLPool is ICCFLPool {
         } else {
             amountScaled = _amount;
         }
-        uint256 total = debt[_loanId] - amountScaled;
-        totalDebt -= amountScaled;
+        if (debt[_loanId] < amountScaled) {
+            totalDebt -= debt[_loanId];
 
-        debt[_loanId] = total;
-        stableCoinAddress.transferFrom(msg.sender, address(this), _amount);
+            debt[_loanId] = 0;
+            amountScaled = WadRayMath.wadToRay(debt[_loanId]).rayMul(
+                reserve.variableBorrowIndex
+            );
+            amountScaled = WadRayMath.rayToWad(amountScaled);
+            stableCoinAddress.transferFrom(
+                msg.sender,
+                address(this),
+                amountScaled
+            );
+        } else {
+            uint256 total = debt[_loanId] - amountScaled;
+            totalDebt -= amountScaled;
+
+            debt[_loanId] = total;
+            stableCoinAddress.transferFrom(msg.sender, address(this), _amount);
+        }
     }
 
-    function getCurrentLoan(uint _loanId) public returns (uint256) {
+    function getCurrentLoan(uint _loanId) public view returns (uint256) {
+        DataTypes.ReserveCache memory reserveCache = cache();
+
+        uint256 cumulatedVariableBorrowInterest = MathUtils
+            .calculateCompoundedInterest(
+                reserveCache.currVariableBorrowRate,
+                reserveCache.reserveLastUpdateTimestamp
+            );
+        reserveCache.nextVariableBorrowIndex = cumulatedVariableBorrowInterest
+            .rayMul(reserveCache.currVariableBorrowIndex);
         return
-            WadRayMath.wadToRay(debt[_loanId]).rayMul(
-                reserve.variableBorrowIndex
+            WadRayMath.rayToWad(
+                WadRayMath.wadToRay(debt[_loanId]).rayMul(
+                    reserveCache.nextVariableBorrowIndex
+                )
             );
     }
 

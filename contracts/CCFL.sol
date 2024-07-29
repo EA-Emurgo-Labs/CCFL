@@ -14,11 +14,12 @@ import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 import "@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol";
 import "@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol";
+import "./ICCFL.sol";
 
 /// @title CCFL contract
 /// @author
 /// @notice Link/usd
-contract CCFL is Initializable {
+contract CCFL is ICCFL, Initializable {
     using Clones for address;
 
     address payable public owner;
@@ -40,18 +41,6 @@ contract CCFL is Initializable {
     mapping(IERC20Standard => AggregatorV3Interface) public priceFeeds;
     mapping(IERC20Standard => AggregatorV3Interface) public pricePoolFeeds;
     ISwapRouter swapRouter;
-    uint public rateLoan;
-
-    event LiquiditySupplied(
-        address indexed onBehalfOf,
-        address indexed _token,
-        uint256 indexed _amount
-    );
-    event LiquidityWithdrawn(
-        address indexed to,
-        address indexed _token,
-        uint256 indexed _amount
-    );
 
     modifier onlyOwner() {
         require(msg.sender == owner, "only the owner");
@@ -70,8 +59,6 @@ contract CCFL is Initializable {
         require(isValid == true, "Smart contract does not support this token");
         _;
     }
-
-    event Withdraw(address borrower, uint amount, uint when);
 
     function initialize(
         IERC20Standard[] memory _ccflPoolStableCoin,
@@ -100,7 +87,6 @@ contract CCFL is Initializable {
             aTokens[token] = _aTokens[i];
             aaveAddressProviders[token] = _aaveAddressProviders[i];
         }
-        rateLoan = 1200;
         ccflLoan = _ccflLoan;
         maxLTV = _maxLTV;
         liquidationThreshold = _liquidationThreshold;
@@ -151,7 +137,6 @@ contract CCFL is Initializable {
         loan.amount = _amount;
         loan.loanId = loandIds;
         loan.isPaid = false;
-        loan.rateLoan = rateLoan;
         loan.stableCoin = _stableCoin;
         // borrow loan on pool
         ccflPools[_stableCoin].borrow(loan.loanId, loan.amount, loan.borrower);
@@ -205,7 +190,9 @@ contract CCFL is Initializable {
         ccflPools[_stableCoin].repay(_loanId, _amount);
         // update collateral balance and get back collateral
         // Todo: if full payment, close loan
-        // loans[_loanId].closeLoan(msg.sender);
+        if (ccflPools[_stableCoin].getCurrentLoan(_loanId) == 0) {
+            loans[_loanId].closeLoan(msg.sender);
+        }
     }
 
     function getLatestPrice(
@@ -237,7 +224,11 @@ contract CCFL is Initializable {
 
     function getHealthFactor(uint _loanId) public view returns (uint) {
         ICCFLLoan loan = loans[_loanId];
-        return loan.getHealthFactor();
+        Loan memory loanInfo = loan.getLoanInfo();
+        uint curentDebt = ccflPools[loanInfo.stableCoin].getCurrentLoan(
+            _loanId
+        );
+        return loan.getHealthFactor(curentDebt);
     }
 
     function getLoanAddress(uint _loanId) public view returns (address) {
@@ -248,7 +239,10 @@ contract CCFL is Initializable {
     function liquidate(uint _loanId) public {
         ICCFLLoan loan = loans[_loanId];
         Loan memory loanInfo = loan.getLoanInfo();
-        loan.liquidate();
+        uint curentDebt = ccflPools[loanInfo.stableCoin].getCurrentLoan(
+            _loanId
+        );
+        loan.liquidate(curentDebt);
         // get back loan
         loanInfo.stableCoin.transferFrom(
             address(loan),
