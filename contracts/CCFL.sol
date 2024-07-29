@@ -184,7 +184,7 @@ contract CCFL is ICCFL, Initializable {
         uint _loanId,
         uint _amount,
         IERC20Standard _stableCoin
-    ) external {
+    ) public {
         // get back loan
         _stableCoin.transferFrom(msg.sender, address(this), _amount);
         // repay for pool

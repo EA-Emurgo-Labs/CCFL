@@ -60,6 +60,8 @@ contract CCFLPool is ICCFLPool {
         stableCoinAddress = _stableCoinAddress;
         reserve.interestRateStrategyAddress = interestRateStrategyAddress;
         owner = payable(msg.sender);
+        reserve.liquidityIndex = uint128(WadRayMath.RAY);
+        reserve.variableBorrowIndex = uint128(WadRayMath.RAY);
     }
 
     function setCCFL(address _ccfl) public onlyOwner {
@@ -246,10 +248,7 @@ contract CCFLPool is ICCFLPool {
         address _borrower
     ) public onlyCCFL {
         DataTypes.ReserveCache memory reserveCache = cache();
-
         updateState(reserveCache);
-
-        updateInterestRates(0, _amount);
 
         uint256 amountScaled = 0;
         if (reserve.variableBorrowIndex > 0) {
@@ -264,19 +263,19 @@ contract CCFLPool is ICCFLPool {
         totalDebt += amountScaled;
 
         Loan storage loan = loans[_loanId];
-
+        console.log("total", total, _loanId);
         debt[_loanId] = total;
         loan.loanId = _loanId;
         loan.amount = _amount;
         loan.borrower = _borrower;
+
+        updateInterestRates(0, 0);
     }
 
     function repay(uint _loanId, uint256 _amount) public onlyCCFL {
         DataTypes.ReserveCache memory reserveCache = cache();
 
         updateState(reserveCache);
-
-        updateInterestRates(_amount, 0);
 
         uint256 amountScaled = 0;
         if (reserve.variableBorrowIndex > 0) {
@@ -307,6 +306,8 @@ contract CCFLPool is ICCFLPool {
             debt[_loanId] = total;
             stableCoinAddress.transferFrom(msg.sender, address(this), _amount);
         }
+
+        updateInterestRates(0, 0);
     }
 
     function liquidatePenalty(uint256 _amount) public onlyCCFL {
@@ -333,7 +334,13 @@ contract CCFLPool is ICCFLPool {
                 reserveCache.reserveLastUpdateTimestamp
             );
         reserveCache.nextVariableBorrowIndex = cumulatedVariableBorrowInterest
-            .rayMul(reserveCache.currVariableBorrowIndex);
+            .rayMul(reserve.variableBorrowIndex);
+        console.log(_loanId, debt[_loanId]);
+        console.log(
+            cumulatedVariableBorrowInterest,
+            reserveCache.nextVariableBorrowIndex,
+            reserve.variableBorrowIndex
+        );
         return
             WadRayMath.rayToWad(
                 WadRayMath.wadToRay(debt[_loanId]).rayMul(
@@ -342,10 +349,16 @@ contract CCFLPool is ICCFLPool {
             );
     }
 
-    function getCurrentRate() public view returns (uint256, uint256) {
+    function getCurrentRate()
+        public
+        view
+        returns (uint256, uint256, uint256, uint256)
+    {
         return (
             reserve.currentVariableBorrowRate,
-            reserve.currentLiquidityRate
+            reserve.currentLiquidityRate,
+            reserve.liquidityIndex,
+            reserve.variableBorrowIndex
         );
     }
 }

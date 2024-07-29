@@ -175,6 +175,67 @@ describe("CCFL system", function () {
         .repayLoan(1, BigInt(1000e18), await usdc.getAddress());
     });
 
+    it.only("Should get back collateral", async function () {
+      const {
+        usdc,
+        link,
+        ccflPool,
+        ccfl,
+        owner,
+        borrower1,
+        borrower2,
+        borrower3,
+        lender1,
+        lender2,
+        lender3,
+      } = await loadFixture(deployFixture);
+      // lender deposit USDC
+      await usdc
+        .connect(lender1)
+        .approve(ccflPool.getAddress(), BigInt(10000e18));
+      await ccflPool.connect(lender1).supply(BigInt(10000e18));
+      console.log(await ccflPool.getCurrentRate());
+
+      // borrower lend
+      await link.connect(borrower1).approve(ccfl.getAddress(), BigInt(1000e18));
+      await ccfl
+        .connect(borrower1)
+        .createLoan(
+          BigInt(1000e18),
+          await usdc.getAddress(),
+          BigInt(1000e18),
+          await link.getAddress(),
+          false
+        );
+
+      await time.increase(30 * 24 * 3600);
+      console.log(await ccflPool.getCurrentRate());
+
+      await ccfl
+        .connect(borrower1)
+        .withdrawLoan(await usdc.getAddress(), BigInt(1));
+      expect(BigInt(await usdc.balanceOf(borrower1)).toString()).to.eq(
+        BigInt(2000e18)
+      );
+
+      // borrower return monthly payment
+      await usdc.connect(borrower1).approve(ccfl.getAddress(), BigInt(10e18));
+      await time.increase(30 * 24 * 3600);
+      // close loan
+      let debt = await ccflPool.getCurrentLoan(BigInt(1));
+      console.log({ debt });
+      await usdc.connect(borrower1).approve(ccfl.getAddress(), BigInt(1100e18));
+      await ccfl
+        .connect(borrower1)
+        .repayLoan(
+          1,
+          (BigInt(debt) * BigInt(101)) / BigInt(100),
+          await usdc.getAddress()
+        );
+      let debt1 = await ccflPool.getCurrentLoan(BigInt(1));
+      console.log({ debt1 });
+    });
+
     it("multi lender", async function () {
       const {
         usdc,
