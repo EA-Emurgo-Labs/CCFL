@@ -29,4 +29,6 @@ interface ICCFLPool {
     function repay(uint _loanId, uint256 _amount) external;
 
     function getCurrentLoan(uint _loanId) external returns (uint256);
+
+    function getCurrentRate() external view returns (uint256, uint256);
 }

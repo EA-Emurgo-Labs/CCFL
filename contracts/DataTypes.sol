@@ -109,7 +109,6 @@ library DataTypes {
         uint256 liquidityTaken;
         uint256 totalVariableDebt;
         uint256 totalSupply;
-        uint256 lockedFund;
     }
 
     struct InitReserveParams {

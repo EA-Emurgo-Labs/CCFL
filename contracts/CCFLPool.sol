@@ -21,76 +21,17 @@ struct Loan {
     address borrower;
 }
 
-struct ReserveConfigurationMap {
-    //bit 0-15: LTV
-    //bit 16-31: Liq. threshold
-    //bit 32-47: Liq. bonus
-    //bit 48-55: Decimals
-    //bit 56: reserve is active
-    //bit 57: reserve is frozen
-    //bit 58: borrowing is enabled
-    //bit 59: stable rate borrowing enabled
-    //bit 60: asset is paused
-    //bit 61: borrowing in isolation mode is enabled
-    //bit 62: siloed borrowing enabled
-    //bit 63: flashloaning enabled
-    //bit 64-79: reserve factor
-    //bit 80-115 borrow cap in whole tokens, borrowCap == 0 => no cap
-    //bit 116-151 supply cap in whole tokens, supplyCap == 0 => no cap
-    //bit 152-167 liquidation protocol fee
-    //bit 168-175 eMode category
-    //bit 176-211 unbacked mint cap in whole tokens, unbackedMintCap == 0 => minting disabled
-    //bit 212-251 debt ceiling for isolation mode with (ReserveConfiguration::DEBT_CEILING_DECIMALS) decimals
-    //bit 252-255 unused
-
-    uint256 data;
-}
-
-struct ReserveData {
-    //stores the reserve configuration
-    ReserveConfigurationMap configuration;
-    //the liquidity index. Expressed in ray
-    uint128 liquidityIndex;
-    //the current supply rate. Expressed in ray
-    uint128 currentLiquidityRate;
-    //variable borrow index. Expressed in ray
-    uint128 variableBorrowIndex;
-    //the current variable borrow rate. Expressed in ray
-    uint128 currentVariableBorrowRate;
-    //the current stable borrow rate. Expressed in ray
-    uint128 currentStableBorrowRate;
-    //timestamp of last update
-    uint40 lastUpdateTimestamp;
-    //the id of the reserve. Represents the position in the list of the active reserves
-    uint16 id;
-    //stableDebtToken address
-    address stableDebtTokenAddress;
-    //variableDebtToken address
-    address variableDebtTokenAddress;
-    //address of the interest rate strategy
-    address interestRateStrategyAddress;
-}
-
 struct ReserveCache {
     uint256 currScaledVariableDebt;
     uint256 nextScaledVariableDebt;
-    uint256 currPrincipalStableDebt;
-    uint256 currAvgStableBorrowRate;
-    uint256 currTotalStableDebt;
-    uint256 nextAvgStableBorrowRate;
-    uint256 nextTotalStableDebt;
     uint256 currLiquidityIndex;
     uint256 nextLiquidityIndex;
     uint256 currVariableBorrowIndex;
     uint256 nextVariableBorrowIndex;
     uint256 currLiquidityRate;
     uint256 currVariableBorrowRate;
-    uint256 reserveFactor;
-    ReserveConfigurationMap reserveConfiguration;
-    address stableDebtTokenAddress;
-    address variableDebtTokenAddress;
+    DataTypes.ReserveConfigurationMap reserveConfiguration;
     uint40 reserveLastUpdateTimestamp;
-    uint40 stableDebtLastUpdateTimestamp;
 }
 
 /// @title CCFL contract
@@ -109,10 +50,9 @@ contract CCFLPool is ICCFLPool {
     address public CCFL;
     address public BE;
 
-    ReserveData public reserve;
+    DataTypes.ReserveData public reserve;
     mapping(address => uint) public share;
     mapping(uint => uint) public debt;
-    uint public lockedFund;
 
     uint public totalSupply;
     uint public totalDebt;
@@ -141,7 +81,7 @@ contract CCFLPool is ICCFLPool {
     }
 
     function getRemainingPool() public view returns (uint amount) {
-        return stableCoinAddress.balanceOf(address(this));
+        return totalSupply - totalDebt;
     }
 
     // Modifier to check token allowance
@@ -156,7 +96,6 @@ contract CCFLPool is ICCFLPool {
     function withdrawLoan(address _receiver, uint _loanId) public onlyCCFL {
         require(loans[_loanId].isPaid == false, "Loan is paid");
         loans[_loanId].isPaid = true;
-        lockedFund -= loans[_loanId].amount;
         emit WithdrawLoan(_receiver, loans[_loanId].amount, block.timestamp);
         stableCoinAddress.transfer(_receiver, loans[_loanId].amount);
     }
@@ -173,9 +112,6 @@ contract CCFLPool is ICCFLPool {
             .nextVariableBorrowIndex = reserve.variableBorrowIndex;
         reserveCache.currLiquidityRate = reserve.currentLiquidityRate;
         reserveCache.currVariableBorrowRate = reserve.currentVariableBorrowRate;
-
-        reserveCache.variableDebtTokenAddress = reserve
-            .variableDebtTokenAddress;
 
         reserveCache.reserveLastUpdateTimestamp = reserve.lastUpdateTimestamp;
 
@@ -239,16 +175,10 @@ contract CCFLPool is ICCFLPool {
     }
 
     function updateInterestRates(
-        ReserveCache memory reserveCache,
         uint256 liquidityAdded,
         uint256 liquidityTaken
     ) internal {
         UpdateInterestRatesLocalVars memory vars;
-
-        vars.totalVariableDebt = reserveCache.nextScaledVariableDebt.rayMul(
-            reserveCache.nextVariableBorrowIndex
-        );
-
         (
             vars.nextLiquidityRate,
             vars.nextVariableRate
@@ -258,8 +188,7 @@ contract CCFLPool is ICCFLPool {
                     liquidityAdded: liquidityAdded,
                     liquidityTaken: liquidityTaken,
                     totalVariableDebt: totalDebt,
-                    totalSupply: totalSupply,
-                    lockedFund: lockedFund
+                    totalSupply: totalSupply
                 })
             );
 
@@ -281,15 +210,19 @@ contract CCFLPool is ICCFLPool {
 
         updateState(reserveCache);
 
-        updateInterestRates(reserveCache, _amount, 0);
+        updateInterestRates(_amount, 0);
 
         uint256 amountScaled = 0;
-        if (reserve.liquidityIndex > 0)
+        if (reserve.liquidityIndex > 0) {
             amountScaled = WadRayMath.wadToRay(_amount).rayDiv(
                 reserve.liquidityIndex
             );
-        uint256 total = share[msg.sender] + WadRayMath.rayToWad(amountScaled);
-        totalSupply += WadRayMath.rayToWad(amountScaled);
+            amountScaled = WadRayMath.rayToWad(amountScaled);
+        } else {
+            amountScaled = _amount;
+        }
+        uint256 total = share[msg.sender] + amountScaled;
+        totalSupply += amountScaled;
 
         share[msg.sender] = total;
         stableCoinAddress.transferFrom(msg.sender, address(this), _amount);
@@ -300,15 +233,19 @@ contract CCFLPool is ICCFLPool {
 
         updateState(reserveCache);
 
-        updateInterestRates(reserveCache, 0, _amount);
+        updateInterestRates(0, _amount);
 
         uint256 amountScaled = 0;
-        if (reserve.liquidityIndex > 0)
+        if (reserve.liquidityIndex > 0) {
             amountScaled = WadRayMath.wadToRay(_amount).rayDiv(
                 reserve.liquidityIndex
             );
-        uint256 total = share[msg.sender] - WadRayMath.rayToWad(amountScaled);
-        totalSupply -= WadRayMath.rayToWad(amountScaled);
+            amountScaled = WadRayMath.rayToWad(amountScaled);
+        } else {
+            amountScaled = _amount;
+        }
+        uint256 total = share[msg.sender] - amountScaled;
+        totalSupply -= amountScaled;
 
         share[msg.sender] = total;
         stableCoinAddress.transferFrom(msg.sender, address(this), _amount);
@@ -323,15 +260,19 @@ contract CCFLPool is ICCFLPool {
 
         updateState(reserveCache);
 
-        updateInterestRates(reserveCache, 0, _amount);
+        updateInterestRates(0, _amount);
 
         uint256 amountScaled = 0;
-        if (reserve.variableBorrowIndex > 0)
+        if (reserve.variableBorrowIndex > 0) {
             amountScaled = WadRayMath.wadToRay(_amount).rayDiv(
                 reserve.variableBorrowIndex
             );
-        uint256 total = debt[_loanId] + WadRayMath.rayToWad(amountScaled);
-        totalDebt += WadRayMath.rayToWad(amountScaled);
+            amountScaled = WadRayMath.rayToWad(amountScaled);
+        } else {
+            amountScaled = _amount;
+        }
+        uint256 total = debt[_loanId] + amountScaled;
+        totalDebt += amountScaled;
 
         Loan storage loan = loans[_loanId];
 
@@ -339,8 +280,6 @@ contract CCFLPool is ICCFLPool {
         loan.loanId = _loanId;
         loan.amount = _amount;
         loan.borrower = _borrower;
-
-        lockedFund += loans[_loanId].amount;
     }
 
     function repay(uint _loanId, uint256 _amount) public onlyCCFL {
@@ -348,15 +287,19 @@ contract CCFLPool is ICCFLPool {
 
         updateState(reserveCache);
 
-        updateInterestRates(reserveCache, _amount, 0);
+        updateInterestRates(_amount, 0);
 
         uint256 amountScaled = 0;
-        if (reserve.variableBorrowIndex > 0)
+        if (reserve.variableBorrowIndex > 0) {
             amountScaled = WadRayMath.wadToRay(_amount).rayDiv(
                 reserve.variableBorrowIndex
             );
-        uint256 total = debt[_loanId] - WadRayMath.rayToWad(amountScaled);
-        totalDebt -= WadRayMath.rayToWad(amountScaled);
+            amountScaled = WadRayMath.rayToWad(amountScaled);
+        } else {
+            amountScaled = _amount;
+        }
+        uint256 total = debt[_loanId] - amountScaled;
+        totalDebt -= amountScaled;
 
         debt[_loanId] = total;
         stableCoinAddress.transferFrom(msg.sender, address(this), _amount);
@@ -367,5 +310,12 @@ contract CCFLPool is ICCFLPool {
             WadRayMath.wadToRay(debt[_loanId]).rayMul(
                 reserve.variableBorrowIndex
             );
+    }
+
+    function getCurrentRate() public view returns (uint256, uint256) {
+        return (
+            reserve.currentVariableBorrowRate,
+            reserve.currentLiquidityRate
+        );
     }
 }

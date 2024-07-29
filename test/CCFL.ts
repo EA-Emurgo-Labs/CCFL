@@ -117,7 +117,7 @@ describe("CCFL system", function () {
   }
 
   describe("Lending", function () {
-    it("Should get loan fund", async function () {
+    it.only("Should get loan fund", async function () {
       const {
         usdc,
         link,
@@ -149,6 +149,15 @@ describe("CCFL system", function () {
         );
 
       await time.increase(30 * 24 * 3600);
+      console.log(await ccflPool.getCurrentRate());
+      // lender deposit USDC
+      await usdc
+        .connect(lender2)
+        .approve(ccflPool.getAddress(), BigInt(20000e18));
+      await ccflPool.connect(lender2).supply(BigInt(20000e18));
+      console.log(await ccflPool.getCurrentRate());
+      console.log(await ccflPool.getRemainingPool());
+
       await ccfl
         .connect(borrower1)
         .withdrawLoan(await usdc.getAddress(), BigInt(1));
