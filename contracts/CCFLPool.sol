@@ -35,7 +35,6 @@ contract CCFLPool is ICCFLPool {
 
     mapping(uint => Loan) public loans;
     address public CCFL;
-    address public BE;
 
     DataTypes.ReserveData public reserve;
     mapping(address => uint) public share;
@@ -308,6 +307,21 @@ contract CCFLPool is ICCFLPool {
             debt[_loanId] = total;
             stableCoinAddress.transferFrom(msg.sender, address(this), _amount);
         }
+    }
+
+    function liquidatePenalty(uint256 _amount) public onlyCCFL {
+        DataTypes.ReserveCache memory reserveCache = cache();
+
+        updateState(reserveCache);
+        uint256 totalSupplyScale = WadRayMath.wadToRay(totalSupply).rayMul(
+            reserveCache.nextLiquidityIndex
+        );
+        uint256 newLiquidityIndex = (totalSupplyScale +
+            WadRayMath.wadToRay(_amount)).rayDiv(totalSupplyScale).rayMul(
+                reserveCache.nextLiquidityIndex
+            );
+        reserve.liquidityIndex = newLiquidityIndex.toUint128();
+        stableCoinAddress.transferFrom(msg.sender, address(this), _amount);
     }
 
     function getCurrentLoan(uint _loanId) public view returns (uint256) {

@@ -41,6 +41,8 @@ contract CCFL is ICCFL, Initializable {
     mapping(IERC20Standard => AggregatorV3Interface) public priceFeeds;
     mapping(IERC20Standard => AggregatorV3Interface) public pricePoolFeeds;
     ISwapRouter swapRouter;
+    address public liquidator;
+    address public platform;
 
     modifier onlyOwner() {
         require(msg.sender == owner, "only the owner");
@@ -247,15 +249,32 @@ contract CCFL is ICCFL, Initializable {
         loanInfo.stableCoin.transferFrom(
             address(loan),
             address(this),
-            loanInfo.amount
+            (curentDebt * 102) / 100
         );
         // repay for pool
         loanInfo.stableCoin.approve(
             address(ccflPools[loanInfo.stableCoin]),
-            loanInfo.amount
+            curentDebt
         );
-        ccflPools[loanInfo.stableCoin].repay(_loanId, loanInfo.amount);
+        ccflPools[loanInfo.stableCoin].repay(_loanId, curentDebt);
         // update collateral balance and get back collateral
+
+        loanInfo.stableCoin.transfer(platform, (curentDebt * 5) / 1000);
+        loanInfo.stableCoin.transfer(liquidator, (curentDebt * 10) / 1000);
+        // penalty for pool
+        uint fundForLender = (curentDebt * 102) /
+            100 -
+            (curentDebt * 5) /
+            1000 -
+            (curentDebt * 10) /
+            1000;
+
+        loanInfo.stableCoin.approve(
+            address(ccflPools[loanInfo.stableCoin]),
+            fundForLender
+        );
+        ccflPools[loanInfo.stableCoin].liquidatePenalty(fundForLender);
+
         loans[_loanId].closeLoan(msg.sender);
     }
 
