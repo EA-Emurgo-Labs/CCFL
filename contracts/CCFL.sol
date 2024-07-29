@@ -98,6 +98,11 @@ contract CCFL is ICCFL, Initializable {
         swapRouter = _swapRouter;
     }
 
+    function setPlatformAddress(address _liquidator, address _plaform) public {
+        liquidator = _liquidator;
+        platform = _plaform;
+    }
+
     // Modifier to check token allowance
     modifier checkTokenAllowance(IERC20Standard _token, uint _amount) {
         require(
@@ -264,6 +269,7 @@ contract CCFL is ICCFL, Initializable {
         // penalty for pool
         uint fundForLender = (curentDebt * 102) /
             100 -
+            curentDebt -
             (curentDebt * 5) /
             1000 -
             (curentDebt * 10) /

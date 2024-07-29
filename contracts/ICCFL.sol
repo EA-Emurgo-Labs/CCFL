@@ -78,4 +78,6 @@ interface ICCFL {
     function getLoanAddress(uint _loanId) external view returns (address);
 
     function liquidate(uint _loanId) external;
+
+    function setPlatformAddress(address _liquidator, address _plaform) external;
 }

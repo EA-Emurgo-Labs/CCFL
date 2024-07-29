@@ -13,8 +13,17 @@ describe("CCFL system", function () {
   // and reset Hardhat Network to that snapshot in every test.
   async function deployFixture() {
     // Contracts are deployed using the first signer/account by default
-    const [owner, borrower1, borrower2, borrower3, lender1, lender2, lender3] =
-      await hre.ethers.getSigners();
+    const [
+      owner,
+      borrower1,
+      borrower2,
+      borrower3,
+      lender1,
+      lender2,
+      lender3,
+      liquidator,
+      platform,
+    ] = await hre.ethers.getSigners();
 
     const USDC = await hre.ethers.getContractFactory("MyERC20");
     const usdc = await USDC.deploy("USDC", "USDC");
@@ -82,7 +91,7 @@ describe("CCFL system", function () {
       ],
       { initializer: "initialize", kind: "uups" }
     );
-
+    await ccfl.setPlatformAddress(liquidator, platform);
     await ccflPool.setCCFL(await ccfl.getAddress());
     await ccfl.setSwapRouter(await mockSwap.getAddress());
 
@@ -494,7 +503,7 @@ describe("CCFL system", function () {
       );
       await link.transfer(borrower1, BigInt(60e18));
       let loanAddr = await ccfl.getLoanAddress(BigInt(1));
-      await usdc.transfer(loanAddr, BigInt(1000e18));
+      await usdc.transfer(loanAddr, BigInt(1200e18));
       await ccfl.liquidate(BigInt(1));
     });
   });
