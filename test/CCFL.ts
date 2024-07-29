@@ -117,7 +117,7 @@ describe("CCFL system", function () {
   }
 
   describe("Lending", function () {
-    it.only("Should get loan fund", async function () {
+    it("Should get loan fund", async function () {
       const {
         usdc,
         link,
