@@ -55,12 +55,6 @@ library DataTypes {
         uint256 data;
     }
 
-    enum InterestRateMode {
-        NONE,
-        STABLE,
-        VARIABLE
-    }
-
     struct ReserveCache {
         uint256 currScaledVariableDebt;
         uint256 currLiquidityIndex;
@@ -73,52 +67,10 @@ library DataTypes {
         uint40 reserveLastUpdateTimestamp;
     }
 
-    struct CalculateUserAccountDataParams {
-        UserConfigurationMap userConfig;
-        uint256 reservesCount;
-        address user;
-        address oracle;
-        uint8 userEModeCategory;
-    }
-
-    struct ValidateBorrowParams {
-        ReserveCache reserveCache;
-        UserConfigurationMap userConfig;
-        address asset;
-        address userAddress;
-        uint256 amount;
-        InterestRateMode interestRateMode;
-        uint256 maxStableLoanPercent;
-        uint256 reservesCount;
-        address oracle;
-        uint8 userEModeCategory;
-        address priceOracleSentinel;
-        bool isolationModeActive;
-        address isolationModeCollateralAddress;
-        uint256 isolationModeDebtCeiling;
-    }
-
-    struct ValidateLiquidationCallParams {
-        ReserveCache debtReserveCache;
-        uint256 totalDebt;
-        uint256 healthFactor;
-        address priceOracleSentinel;
-    }
-
     struct CalculateInterestRatesParams {
         uint256 liquidityAdded;
         uint256 liquidityTaken;
         uint256 totalVariableDebt;
         uint256 totalSupply;
-    }
-
-    struct InitReserveParams {
-        address asset;
-        address aTokenAddress;
-        address stableDebtAddress;
-        address variableDebtAddress;
-        address interestRateStrategyAddress;
-        uint16 reservesCount;
-        uint16 maxNumberReserves;
     }
 }
