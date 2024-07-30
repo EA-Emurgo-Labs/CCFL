@@ -12,6 +12,7 @@ import {DataTypes} from "./DataTypes.sol";
 import {IReserveInterestRateStrategy} from "./IReserveInterestRateStrategy.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "./IERC20Standard.sol";
 
 /// @title Pool contract
 /// @author
@@ -46,7 +47,7 @@ interface ICCFLPool {
     function liquidatePenalty(uint256 _amount) external;
 
     function initialize(
-        IERC20 _stableCoinAddress,
+        IERC20Standard _stableCoinAddress,
         address interestRateStrategyAddress
     ) external;
 }
