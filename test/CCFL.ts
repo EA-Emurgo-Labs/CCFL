@@ -446,7 +446,7 @@ describe("CCFL system", function () {
       expect(await ccfl.getHealthFactor(BigInt(1))).to.lessThan(100);
     });
 
-    it.only("Bad Health factor liquidation", async function () {
+    it("Bad Health factor liquidation", async function () {
       const {
         usdc,
         link,

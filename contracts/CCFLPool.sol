@@ -203,15 +203,11 @@ contract CCFLPool is ICCFLPool {
 
         updateInterestRates(_amount, 0);
 
-        uint256 amountScaled = 0;
-        if (reserve.liquidityIndex > 0) {
-            amountScaled = WadRayMath.wadToRay(_amount).rayDiv(
-                reserve.liquidityIndex
-            );
-            amountScaled = WadRayMath.rayToWad(amountScaled);
-        } else {
-            amountScaled = _amount;
-        }
+        uint256 amountScaled = WadRayMath.wadToRay(_amount).rayDiv(
+            reserve.liquidityIndex
+        );
+        amountScaled = WadRayMath.rayToWad(amountScaled);
+
         uint256 total = share[msg.sender] + amountScaled;
         totalSupply += amountScaled;
 
@@ -226,15 +222,11 @@ contract CCFLPool is ICCFLPool {
 
         updateInterestRates(0, _amount);
 
-        uint256 amountScaled = 0;
-        if (reserve.liquidityIndex > 0) {
-            amountScaled = WadRayMath.wadToRay(_amount).rayDiv(
-                reserve.liquidityIndex
-            );
-            amountScaled = WadRayMath.rayToWad(amountScaled);
-        } else {
-            amountScaled = _amount;
-        }
+        uint256 amountScaled = WadRayMath.wadToRay(_amount).rayDiv(
+            reserve.liquidityIndex
+        );
+        amountScaled = WadRayMath.rayToWad(amountScaled);
+
         uint256 total = share[msg.sender] - amountScaled;
         totalSupply -= amountScaled;
         require(total >= 0, "Don't have enough fund");
@@ -250,15 +242,11 @@ contract CCFLPool is ICCFLPool {
         DataTypes.ReserveCache memory reserveCache = cache();
         updateState(reserveCache);
 
-        uint256 amountScaled = 0;
-        if (reserve.variableBorrowIndex > 0) {
-            amountScaled = WadRayMath.wadToRay(_amount).rayDiv(
-                reserve.variableBorrowIndex
-            );
-            amountScaled = WadRayMath.rayToWad(amountScaled);
-        } else {
-            amountScaled = _amount;
-        }
+        uint256 amountScaled = WadRayMath.wadToRay(_amount).rayDiv(
+            reserve.variableBorrowIndex
+        );
+        amountScaled = WadRayMath.rayToWad(amountScaled);
+
         uint256 total = debt[_loanId] + amountScaled;
         totalDebt += amountScaled;
 
@@ -276,15 +264,11 @@ contract CCFLPool is ICCFLPool {
 
         updateState(reserveCache);
 
-        uint256 amountScaled = 0;
-        if (reserve.variableBorrowIndex > 0) {
-            amountScaled = WadRayMath.wadToRay(_amount).rayDiv(
-                reserve.variableBorrowIndex
-            );
-            amountScaled = WadRayMath.rayToWad(amountScaled);
-        } else {
-            amountScaled = _amount;
-        }
+        uint256 amountScaled = WadRayMath.wadToRay(_amount).rayDiv(
+            reserve.variableBorrowIndex
+        );
+        amountScaled = WadRayMath.rayToWad(amountScaled);
+
         if (debt[_loanId] < amountScaled) {
             totalDebt -= debt[_loanId];
 
