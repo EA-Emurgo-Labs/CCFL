@@ -45,9 +45,13 @@ describe("CCFL system", function () {
       );
 
     const CCFLPool = await hre.ethers.getContractFactory("CCFLPool");
-    const ccflPool = await CCFLPool.deploy(
-      usdc,
-      await defaultReserveInterestRateStrategy.getAddress()
+    const ccflPool = await hre.upgrades.deployProxy(
+      CCFLPool,
+      [
+        await usdc.getAddress(),
+        await defaultReserveInterestRateStrategy.getAddress(),
+      ],
+      { initializer: "initialize", kind: "uups" }
     );
 
     const MockAggr = await hre.ethers.getContractFactory("MockAggregator");

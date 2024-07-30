@@ -3,17 +3,19 @@ pragma solidity ^0.8.24;
 
 // Uncomment this line to use console.log
 import "hardhat/console.sol";
-import "./IERC20Standard.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "@openzeppelin/contracts/proxy/Clones.sol";
 import {IPool} from "@aave/core-v3/contracts/interfaces/IPool.sol";
 import {IPoolAddressesProvider} from "@aave/core-v3/contracts/interfaces/IPoolAddressesProvider.sol";
-import "@openzeppelin/contracts/proxy/Clones.sol";
-import "./ICCFLPool.sol";
-import "@openzeppelin/contracts/proxy/Clones.sol";
-import "./ICCFLLoan.sol";
-import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
+
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 import "@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol";
 import "@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol";
+
+import "./ICCFLPool.sol";
+import "./ICCFLLoan.sol";
+import "./IERC20Standard.sol";
 
 /// @title CCFL contract
 /// @author

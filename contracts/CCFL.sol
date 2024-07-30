@@ -1,28 +1,13 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.24;
-
-// Uncomment this line to use console.log
-import "hardhat/console.sol";
-import "./IERC20Standard.sol";
-import {IPool} from "@aave/core-v3/contracts/interfaces/IPool.sol";
-import {IPoolAddressesProvider} from "@aave/core-v3/contracts/interfaces/IPoolAddressesProvider.sol";
-import "@openzeppelin/contracts/proxy/Clones.sol";
-import "./ICCFLPool.sol";
-import "@openzeppelin/contracts/proxy/Clones.sol";
-import "./ICCFLLoan.sol";
-import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
-import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
-import "@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol";
-import "@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol";
 import "./ICCFL.sol";
 
 /// @title CCFL contract
 /// @author
 /// @notice Link/usd
-contract CCFL is ICCFL, Initializable {
+contract CCFL is ICCFL, UUPSUpgradeable, OwnableUpgradeable {
     using Clones for address;
 
-    address payable public owner;
     mapping(address => mapping(IERC20Standard => uint)) public collaterals;
 
     uint public loandIds;
@@ -43,11 +28,6 @@ contract CCFL is ICCFL, Initializable {
     ISwapRouter swapRouter;
     address public liquidator;
     address public platform;
-
-    modifier onlyOwner() {
-        require(msg.sender == owner, "only the owner");
-        _;
-    }
 
     modifier supportedToken(IERC20Standard _tokenAddress) {
         bool isValid = false;
@@ -74,8 +54,9 @@ contract CCFL is ICCFL, Initializable {
         uint _liquidationThreshold,
         ICCFLLoan _ccflLoan
     ) external initializer {
+        __Ownable_init(msg.sender);
+        __UUPSUpgradeable_init();
         ccflPoolStableCoins = _ccflPoolStableCoin;
-        owner = payable(msg.sender);
         loandIds = 1;
         for (uint i = 0; i < ccflPoolStableCoins.length; i++) {
             IERC20Standard token = ccflPoolStableCoins[i];
@@ -286,5 +267,7 @@ contract CCFL is ICCFL, Initializable {
 
     receive() external payable {}
 
-    function upgradeTo(address) public {}
+    function _authorizeUpgrade(
+        address newImplementation
+    ) internal virtual override {}
 }

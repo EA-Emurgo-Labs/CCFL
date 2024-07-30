@@ -4,6 +4,14 @@ pragma solidity ^0.8.24;
 // Uncomment this line to use console.log
 import "hardhat/console.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {MathUtils} from "./math/MathUtils.sol";
+import {WadRayMath} from "./math/WadRayMath.sol";
+import {PercentageMath} from "./math/PercentageMath.sol";
+import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
+import {DataTypes} from "./DataTypes.sol";
+import {IReserveInterestRateStrategy} from "./IReserveInterestRateStrategy.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
 /// @title Pool contract
 /// @author
@@ -36,4 +44,9 @@ interface ICCFLPool {
         returns (uint256, uint256, uint256, uint256);
 
     function liquidatePenalty(uint256 _amount) external;
+
+    function initialize(
+        IERC20 _stableCoinAddress,
+        address interestRateStrategyAddress
+    ) external;
 }

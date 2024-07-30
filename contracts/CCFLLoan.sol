@@ -1,10 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.24;
 
-// Uncomment this line to use console.log
-import "hardhat/console.sol";
-import {IPool} from "@aave/core-v3/contracts/interfaces/IPool.sol";
-import {IPoolAddressesProvider} from "@aave/core-v3/contracts/interfaces/IPoolAddressesProvider.sol";
 import "./ICCFLLoan.sol";
 import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 

@@ -1,16 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.24;
 
-// Uncomment this line to use console.log
-import "hardhat/console.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./ICCFLPool.sol";
-import {MathUtils} from "./math/MathUtils.sol";
-import {WadRayMath} from "./math/WadRayMath.sol";
-import {PercentageMath} from "./math/PercentageMath.sol";
-import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
-import {DataTypes} from "./DataTypes.sol";
-import {IReserveInterestRateStrategy} from "./IReserveInterestRateStrategy.sol";
 
 struct Loan {
     uint loanId;
@@ -24,12 +15,11 @@ struct Loan {
 /// @title CCFL contract
 /// @author
 /// @notice Link/usd
-contract CCFLPool is ICCFLPool {
+contract CCFLPool is ICCFLPool, UUPSUpgradeable, OwnableUpgradeable {
     using WadRayMath for uint256;
     using PercentageMath for uint256;
     using SafeCast for uint256;
 
-    address payable public owner;
     IERC20 public stableCoinAddress;
     address[] public lenders;
 
@@ -43,23 +33,21 @@ contract CCFLPool is ICCFLPool {
     uint public totalSupply;
     uint public totalDebt;
 
-    modifier onlyOwner() {
-        require(msg.sender == owner, "only the owner");
-        _;
-    }
-
     modifier onlyCCFL() {
         require(CCFL == msg.sender, "only the ccfl");
         _;
     }
 
-    constructor(
+    constructor() {}
+
+    function initialize(
         IERC20 _stableCoinAddress,
         address interestRateStrategyAddress
-    ) {
+    ) external initializer {
+        __Ownable_init(msg.sender);
+        __UUPSUpgradeable_init();
         stableCoinAddress = _stableCoinAddress;
         reserve.interestRateStrategyAddress = interestRateStrategyAddress;
-        owner = payable(msg.sender);
         reserve.liquidityIndex = uint128(WadRayMath.RAY);
         reserve.variableBorrowIndex = uint128(WadRayMath.RAY);
     }
@@ -338,4 +326,8 @@ contract CCFLPool is ICCFLPool {
             reserve.variableBorrowIndex
         );
     }
+
+    function _authorizeUpgrade(
+        address newImplementation
+    ) internal virtual override {}
 }
