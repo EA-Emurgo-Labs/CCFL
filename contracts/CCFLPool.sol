@@ -57,7 +57,13 @@ contract CCFLPool is ICCFLPool, UUPSUpgradeable, OwnableUpgradeable {
     }
 
     function getRemainingPool() public view returns (uint amount) {
-        return totalSupply - totalDebt;
+        return
+            WadRayMath.rayToWad(
+                WadRayMath.wadToRay(totalSupply) *
+                    reserve.liquidityIndex -
+                    WadRayMath.wadToRay(totalDebt) *
+                    reserve.variableBorrowIndex
+            );
     }
 
     // Modifier to check token allowance

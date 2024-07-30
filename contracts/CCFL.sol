@@ -108,13 +108,16 @@ contract CCFL is ICCFL, UUPSUpgradeable, OwnableUpgradeable {
         bool isYieldGenerating
     ) public {
         require(
-            _amountCollateral * getLatestPrice(_collateral, false) * maxLTV >=
-                (_amount * getLatestPrice(_stableCoin, true)) * 10000,
+            (_amountCollateral * getLatestPrice(_collateral, false) * maxLTV) /
+                _collateral.decimals() >=
+                ((_amount * getLatestPrice(_stableCoin, true)) * 10000) /
+                    _stableCoin.decimals(),
             "Don't have enough collateral"
         );
         // check pool reseve
         require(
-            ccflPools[_stableCoin].getRemainingPool() >= _amount,
+            ccflPools[_stableCoin].getRemainingPool() / 1e18 >=
+                _amount / _stableCoin.decimals(),
             "Pool don't have enough fund"
         );
 
