@@ -54,6 +54,15 @@ describe("CCFL system", function () {
       { initializer: "initialize", kind: "uups" }
     );
 
+    console.log(
+      "pool implement",
+      await hre.upgrades.erc1967.getImplementationAddress(
+        await ccflPool.getAddress()
+      ),
+      "pool proxy",
+      await ccflPool.getAddress()
+    );
+
     const MockAggr = await hre.ethers.getContractFactory("MockAggregator");
     const mockAggr = await MockAggr.deploy();
 
