@@ -158,7 +158,10 @@ describe("CCFL system", function () {
         .connect(lender1)
         .approve(ccflPool.getAddress(), BigInt(10000e18));
       await ccflPool.connect(lender1).supply(BigInt(10000e18));
-      // borrower lend
+      await time.increase(30 * 24 * 3600);
+      console.log("remain", (await ccflPool.getRemainingPool()) / BigInt(1e18));
+      console.log("rate", await ccflPool.getCurrentRate());
+      // borrower
       await link.connect(borrower1).approve(ccfl.getAddress(), BigInt(1000e18));
       await ccfl
         .connect(borrower1)
@@ -169,19 +172,40 @@ describe("CCFL system", function () {
           await link.getAddress(),
           false
         );
-
-      await time.increase(30 * 24 * 3600);
+      console.log("remain", (await ccflPool.getRemainingPool()) / BigInt(1e18));
+      console.log("rate", await ccflPool.getCurrentRate());
+      await time.increase(300 * 24 * 3600);
+      console.log("remain", (await ccflPool.getRemainingPool()) / BigInt(1e18));
+      console.log("rate", await ccflPool.getCurrentRate());
       // lender deposit USDC
       await usdc
         .connect(lender2)
         .approve(ccflPool.getAddress(), BigInt(20000e18));
       await ccflPool.connect(lender2).supply(BigInt(20000e18));
+      console.log("remain", (await ccflPool.getRemainingPool()) / BigInt(1e18));
+      console.log("rate", await ccflPool.getCurrentRate());
+      await time.increase(90 * 24 * 3600);
+      // borrower
+      await link.connect(borrower2).approve(ccfl.getAddress(), BigInt(1000e18));
+      await ccfl
+        .connect(borrower2)
+        .createLoan(
+          BigInt(2000e18),
+          await usdc.getAddress(),
+          BigInt(1000e18),
+          await link.getAddress(),
+          false
+        );
+      await time.increase(180 * 24 * 3600);
+      console.log("remain", (await ccflPool.getRemainingPool()) / BigInt(1e18));
+      console.log("rate", await ccflPool.getCurrentRate());
       await ccfl
         .connect(borrower1)
         .withdrawLoan(await usdc.getAddress(), BigInt(1));
       expect(BigInt(await usdc.balanceOf(borrower1)).toString()).to.eq(
         BigInt(2000e18)
       );
+
       // borrower return monthly payment
       await usdc.connect(borrower1).approve(ccfl.getAddress(), BigInt(10e18));
       await time.increase(30 * 24 * 3600);
@@ -190,6 +214,8 @@ describe("CCFL system", function () {
       await ccfl
         .connect(borrower1)
         .repayLoan(1, BigInt(1000e18), await usdc.getAddress());
+      console.log("remain", (await ccflPool.getRemainingPool()) / BigInt(1e18));
+      console.log("rate", await ccflPool.getCurrentRate());
     });
 
     it("Should get back collateral", async function () {

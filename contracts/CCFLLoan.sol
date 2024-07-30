@@ -135,6 +135,7 @@ contract CCFLLoan is ICCFLLoan, Initializable {
     // 5. Liquidation
     // Good > 100, bad < 100
     function getHealthFactor(uint currentDebt) public view returns (uint) {
+        console.log(currentDebt / 1e18);
         uint stableCoinPrice = getLatestPrice(initLoan.stableCoin, true);
         uint totalCollaterals = 0;
 

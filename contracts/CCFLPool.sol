@@ -58,11 +58,33 @@ contract CCFLPool is ICCFLPool, UUPSUpgradeable, OwnableUpgradeable {
     }
 
     function getRemainingPool() public view returns (uint amount) {
+        DataTypes.ReserveCache memory reserveCache = cache();
+
+        uint256 cumulatedLiquidityRate = MathUtils.calculateLinearInterest(
+            reserveCache.currLiquidityRate,
+            reserveCache.reserveLastUpdateTimestamp
+        );
+        reserveCache.nextLiquidityIndex = cumulatedLiquidityRate.rayMul(
+            reserveCache.nextLiquidityIndex
+        );
         return
-            WadRayMath.rayToWad(
-                totalSupply.rayMul(reserve.liquidityIndex) -
-                    totalDebt.rayMul(reserve.variableBorrowIndex)
+            (totalSupply.rayMul(reserveCache.nextLiquidityIndex) *
+                (10 ** stableCoinAddress.decimals())) / uint128(WadRayMath.RAY);
+    }
+
+    function getDebtPool() public view returns (uint amount) {
+        DataTypes.ReserveCache memory reserveCache = cache();
+
+        uint256 cumulatedVariableBorrowInterest = MathUtils
+            .calculateCompoundedInterest(
+                reserveCache.currVariableBorrowRate,
+                reserveCache.reserveLastUpdateTimestamp
             );
+        reserveCache.nextVariableBorrowIndex = cumulatedVariableBorrowInterest
+            .rayMul(reserve.variableBorrowIndex);
+        return
+            (totalDebt.rayMul(reserveCache.nextVariableBorrowIndex) *
+                (10 ** stableCoinAddress.decimals())) / uint128(WadRayMath.RAY);
     }
 
     // Modifier to check token allowance
@@ -240,7 +262,9 @@ contract CCFLPool is ICCFLPool, UUPSUpgradeable, OwnableUpgradeable {
         uint256 rayAmount = (_amount * uint128(WadRayMath.RAY)) /
             (10 ** stableCoinAddress.decimals());
 
-        uint256 amountScaled = rayAmount.rayDiv(reserve.variableBorrowIndex);
+        uint256 amountScaled = rayAmount.rayDiv(
+            reserveCache.nextVariableBorrowIndex
+        );
 
         uint256 total = debt[_loanId] + amountScaled;
         totalDebt += amountScaled;
@@ -253,7 +277,8 @@ contract CCFLPool is ICCFLPool, UUPSUpgradeable, OwnableUpgradeable {
         loan.amount = _amount;
         loan.borrower = _borrower;
 
-        updateInterestRates(0, 0);
+        updateInterestRates(0, rayAmount);
+        totalSupply -= rayAmount.rayDiv(reserveCache.nextLiquidityIndex);
     }
 
     function repay(uint _loanId, uint256 _amount) public onlyCCFL {
@@ -274,6 +299,11 @@ contract CCFLPool is ICCFLPool, UUPSUpgradeable, OwnableUpgradeable {
             uint256 amountPayToken = (amountPayScaled *
                 (10 ** stableCoinAddress.decimals())) / uint128(WadRayMath.RAY);
             debt[_loanId] = 0;
+
+            updateInterestRates(debt[_loanId], 0);
+            totalSupply += debt[_loanId].rayDiv(
+                reserveCache.nextLiquidityIndex
+            );
             stableCoinAddress.transferFrom(
                 msg.sender,
                 address(this),
@@ -285,9 +315,10 @@ contract CCFLPool is ICCFLPool, UUPSUpgradeable, OwnableUpgradeable {
 
             debt[_loanId] = total;
             stableCoinAddress.transferFrom(msg.sender, address(this), _amount);
-        }
 
-        updateInterestRates(0, 0);
+            updateInterestRates(rayAmount, 0);
+            totalSupply += rayAmount.rayDiv(reserveCache.nextLiquidityIndex);
+        }
     }
 
     function liquidatePenalty(uint256 _amount) public onlyCCFL {
@@ -320,9 +351,8 @@ contract CCFLPool is ICCFLPool, UUPSUpgradeable, OwnableUpgradeable {
         reserveCache.nextVariableBorrowIndex = cumulatedVariableBorrowInterest
             .rayMul(reserve.variableBorrowIndex);
         return
-            (WadRayMath.rayToWad(
-                debt[_loanId].rayMul(reserveCache.nextVariableBorrowIndex)
-            ) * (10 ** stableCoinAddress.decimals())) / uint128(WadRayMath.RAY);
+            (debt[_loanId].rayMul(reserveCache.nextVariableBorrowIndex) *
+                (10 ** stableCoinAddress.decimals())) / uint128(WadRayMath.RAY);
     }
 
     function getCurrentRate()
@@ -333,8 +363,8 @@ contract CCFLPool is ICCFLPool, UUPSUpgradeable, OwnableUpgradeable {
         return (
             reserve.currentVariableBorrowRate,
             reserve.currentLiquidityRate,
-            reserve.liquidityIndex,
-            reserve.variableBorrowIndex
+            reserve.variableBorrowIndex,
+            reserve.liquidityIndex
         );
     }
 
