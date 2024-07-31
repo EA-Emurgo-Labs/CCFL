@@ -162,6 +162,18 @@ contract CCFL is ICCFL, UUPSUpgradeable, OwnableUpgradeable {
         loandIds++;
     }
 
+    function addCollateral(
+        uint _loandId,
+        uint _amountCollateral,
+        IERC20Standard _collateral
+    ) public {
+        ICCFLLoan loan = loans[_loandId];
+        // transfer collateral
+        loan.updateCollateral(_amountCollateral);
+        // get from user to loan
+        _collateral.transferFrom(msg.sender, address(loan), _amountCollateral);
+    }
+
     // withdraw loan
     function withdrawLoan(IERC20Standard _stableCoin, uint _loanId) public {
         ccflPools[_stableCoin].withdrawLoan(msg.sender, _loanId);
