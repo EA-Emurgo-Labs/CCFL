@@ -177,7 +177,9 @@ contract CCFL is ICCFL, UUPSUpgradeable, OwnableUpgradeable {
 
     // withdraw loan
     function withdrawLoan(IERC20Standard _stableCoin, uint _loanId) public {
-        ccflPools[_stableCoin].withdrawLoan(msg.sender, _loanId);
+        ICCFLLoan loan = loans[_loanId];
+        Loan memory info = loan.getLoanInfo();
+        ccflPools[_stableCoin].withdrawLoan(info.borrower, _loanId);
     }
 
     // repay loan
@@ -200,7 +202,8 @@ contract CCFL is ICCFL, UUPSUpgradeable, OwnableUpgradeable {
 
     function withdrawAllCollateral(uint _loanId) public {
         ICCFLLoan loan = loans[_loanId];
-        loan.withdrawAllCollateral(msg.sender);
+        Loan memory info = loan.getLoanInfo();
+        loan.withdrawAllCollateral(info.borrower);
     }
 
     function getLatestPrice(

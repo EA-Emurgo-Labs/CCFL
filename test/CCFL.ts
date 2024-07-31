@@ -51,7 +51,7 @@ describe("CCFL system", function () {
         await usdc.getAddress(),
         await defaultReserveInterestRateStrategy.getAddress(),
       ],
-      { initializer: "initialize", kind: "uups" }
+      { initializer: "initialize", kind: "uups", unsafeAllowCustomTypes: true }
     );
 
     console.log(
@@ -102,7 +102,7 @@ describe("CCFL system", function () {
         7500,
         await ccflLoan.getAddress(),
       ],
-      { initializer: "initialize", kind: "uups" }
+      { initializer: "initialize", kind: "uups", unsafeAllowCustomTypes: true }
     );
     await ccfl.setPlatformAddress(liquidator, platform);
     await ccflPool.setCCFL(await ccfl.getAddress());
