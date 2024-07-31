@@ -251,8 +251,18 @@ describe("CCFL system", function () {
       expect(BigInt(await usdc.balanceOf(borrower1)).toString()).to.eq(
         BigInt(2000e18)
       );
-
-      // borrower return monthly payment
+      console.log("remain", (await ccflPool.getRemainingPool()) / BigInt(1e18));
+      console.log(
+        "total supply",
+        (await ccflPool.getTotalSupply()) / BigInt(1e18)
+      );
+      console.log(
+        "coin in sc",
+        (await usdc.balanceOf(await ccflPool.getAddress())) / BigInt(1e18)
+      );
+      console.log("debt", (await ccflPool.getDebtPool()) / BigInt(1e18));
+      console.log("rate", await ccflPool.getCurrentRate());
+      // borrower
       await usdc.connect(borrower1).approve(ccfl.getAddress(), BigInt(10e18));
       await time.increase(30 * 24 * 3600);
       // close loan
