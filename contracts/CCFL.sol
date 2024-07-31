@@ -116,8 +116,7 @@ contract CCFL is ICCFL, UUPSUpgradeable, OwnableUpgradeable {
         );
         // check pool reseve
         require(
-            ccflPools[_stableCoin].getRemainingPool() / 1e18 >=
-                _amount / (10 ** _stableCoin.decimals()),
+            ccflPools[_stableCoin].getRemainingPool() >= _amount,
             "Pool don't have enough fund"
         );
 

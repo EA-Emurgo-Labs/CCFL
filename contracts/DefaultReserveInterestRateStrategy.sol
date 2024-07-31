@@ -117,7 +117,7 @@ contract DefaultReserveInterestRateStrategy is IDefaultInterestRateStrategy {
 
         if (vars.totalDebt != 0) {
             vars.availableLiquidity =
-                params.totalSupply +
+                params.totalLiquidity +
                 params.liquidityAdded -
                 params.liquidityTaken;
 

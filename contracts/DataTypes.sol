@@ -71,6 +71,6 @@ library DataTypes {
         uint256 liquidityAdded;
         uint256 liquidityTaken;
         uint256 totalVariableDebt;
-        uint256 totalSupply;
+        uint256 totalLiquidity;
     }
 }

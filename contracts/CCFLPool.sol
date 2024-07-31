@@ -32,7 +32,10 @@ contract CCFLPool is ICCFLPool, UUPSUpgradeable, OwnableUpgradeable {
     mapping(uint => uint) public debt;
 
     uint public totalSupply;
+    uint public totalLiquidity;
     uint public totalDebt;
+
+    uint public remainingPool;
 
     modifier onlyCCFL() {
         require(CCFL == msg.sender, "only the ccfl");
@@ -58,18 +61,7 @@ contract CCFLPool is ICCFLPool, UUPSUpgradeable, OwnableUpgradeable {
     }
 
     function getRemainingPool() public view returns (uint amount) {
-        DataTypes.ReserveCache memory reserveCache = cache();
-
-        uint256 cumulatedLiquidityRate = MathUtils.calculateLinearInterest(
-            reserveCache.currLiquidityRate,
-            reserveCache.reserveLastUpdateTimestamp
-        );
-        reserveCache.nextLiquidityIndex = cumulatedLiquidityRate.rayMul(
-            reserveCache.nextLiquidityIndex
-        );
-        return
-            (totalSupply.rayMul(reserveCache.nextLiquidityIndex) *
-                (10 ** stableCoinAddress.decimals())) / uint128(WadRayMath.RAY);
+        return remainingPool;
     }
 
     function getDebtPool() public view returns (uint amount) {
@@ -196,7 +188,9 @@ contract CCFLPool is ICCFLPool, UUPSUpgradeable, OwnableUpgradeable {
                     totalVariableDebt: totalDebt.rayMul(
                         reserve.variableBorrowIndex
                     ),
-                    totalSupply: totalSupply.rayMul(reserve.liquidityIndex)
+                    totalLiquidity: totalLiquidity.rayMul(
+                        reserve.liquidityIndex
+                    )
                 })
             );
 
@@ -227,8 +221,10 @@ contract CCFLPool is ICCFLPool, UUPSUpgradeable, OwnableUpgradeable {
 
         uint256 total = share[msg.sender] + amountScaled;
         totalSupply += amountScaled;
+        totalLiquidity += amountScaled;
 
         share[msg.sender] = total;
+        remainingPool += _amount;
         stableCoinAddress.transferFrom(msg.sender, address(this), _amount);
     }
 
@@ -246,8 +242,10 @@ contract CCFLPool is ICCFLPool, UUPSUpgradeable, OwnableUpgradeable {
 
         uint256 total = share[msg.sender] - amountScaled;
         totalSupply -= amountScaled;
+        totalLiquidity -= amountScaled;
         require(total >= 0, "Don't have enough fund");
         share[msg.sender] = total;
+        remainingPool -= _amount;
         stableCoinAddress.transfer(msg.sender, _amount);
     }
 
@@ -269,7 +267,7 @@ contract CCFLPool is ICCFLPool, UUPSUpgradeable, OwnableUpgradeable {
         uint256 total = debt[_loanId] + amountScaled;
         totalDebt += amountScaled;
 
-        require(totalDebt <= totalSupply, "Do not have enough liquidity");
+        require(_amount <= remainingPool, "Do not have enough liquidity");
 
         Loan storage loan = loans[_loanId];
         debt[_loanId] = total;
@@ -278,7 +276,8 @@ contract CCFLPool is ICCFLPool, UUPSUpgradeable, OwnableUpgradeable {
         loan.borrower = _borrower;
 
         updateInterestRates(0, rayAmount);
-        totalSupply -= rayAmount.rayDiv(reserveCache.nextLiquidityIndex);
+        totalLiquidity -= rayAmount.rayDiv(reserveCache.nextLiquidityIndex);
+        remainingPool -= _amount;
     }
 
     function repay(uint _loanId, uint256 _amount) public onlyCCFL {
@@ -301,9 +300,10 @@ contract CCFLPool is ICCFLPool, UUPSUpgradeable, OwnableUpgradeable {
             debt[_loanId] = 0;
 
             updateInterestRates(debt[_loanId], 0);
-            totalSupply += debt[_loanId].rayDiv(
+            totalLiquidity += debt[_loanId].rayDiv(
                 reserveCache.nextLiquidityIndex
             );
+            remainingPool += amountPayToken;
             stableCoinAddress.transferFrom(
                 msg.sender,
                 address(this),
@@ -314,10 +314,11 @@ contract CCFLPool is ICCFLPool, UUPSUpgradeable, OwnableUpgradeable {
             totalDebt -= amountScaled;
 
             debt[_loanId] = total;
-            stableCoinAddress.transferFrom(msg.sender, address(this), _amount);
 
             updateInterestRates(rayAmount, 0);
-            totalSupply += rayAmount.rayDiv(reserveCache.nextLiquidityIndex);
+            totalLiquidity += rayAmount.rayDiv(reserveCache.nextLiquidityIndex);
+            remainingPool += _amount;
+            stableCoinAddress.transferFrom(msg.sender, address(this), _amount);
         }
     }
 
@@ -329,14 +330,15 @@ contract CCFLPool is ICCFLPool, UUPSUpgradeable, OwnableUpgradeable {
         uint256 rayAmount = (_amount * uint128(WadRayMath.RAY)) /
             (10 ** stableCoinAddress.decimals());
 
-        uint256 totalSupplyScale = totalSupply.rayMul(
+        uint256 totalLiquidityScale = totalLiquidity.rayMul(
             reserveCache.nextLiquidityIndex
         );
-        uint256 newLiquidityIndex = (totalSupplyScale + rayAmount)
+        uint256 newLiquidityIndex = (totalLiquidityScale + rayAmount)
             .rayMul(reserveCache.nextLiquidityIndex)
-            .rayDiv(totalSupplyScale);
+            .rayDiv(totalLiquidityScale);
 
         reserve.liquidityIndex = newLiquidityIndex.toUint128();
+        remainingPool += _amount;
         stableCoinAddress.transferFrom(msg.sender, address(this), _amount);
     }
 
@@ -371,4 +373,19 @@ contract CCFLPool is ICCFLPool, UUPSUpgradeable, OwnableUpgradeable {
     function _authorizeUpgrade(
         address newImplementation
     ) internal virtual override {}
+
+    function getTotalSupply() public view returns (uint256) {
+        DataTypes.ReserveCache memory reserveCache = cache();
+
+        uint256 cumulatedLiquidityRate = MathUtils.calculateLinearInterest(
+            reserveCache.currLiquidityRate,
+            reserveCache.reserveLastUpdateTimestamp
+        );
+        reserveCache.nextLiquidityIndex = cumulatedLiquidityRate.rayMul(
+            reserveCache.nextLiquidityIndex
+        );
+        return
+            (totalSupply.rayMul(reserveCache.nextLiquidityIndex) *
+                (10 ** stableCoinAddress.decimals())) / uint128(WadRayMath.RAY);
+    }
 }

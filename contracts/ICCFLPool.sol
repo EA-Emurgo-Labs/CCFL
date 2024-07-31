@@ -27,7 +27,9 @@ interface ICCFLPool {
 
     function setCCFL(address _ccfl) external;
 
-    function getRemainingPool() external returns (uint amount);
+    function getRemainingPool() external view returns (uint amount);
+
+    function getDebtPool() external view returns (uint amount);
 
     function borrow(uint _loanId, uint256 _amount, address _borrower) external;
 
@@ -50,4 +52,6 @@ interface ICCFLPool {
         IERC20Standard _stableCoinAddress,
         address interestRateStrategyAddress
     ) external;
+
+    function getTotalSupply() external view returns (uint256);
 }
