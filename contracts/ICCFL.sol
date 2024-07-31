@@ -84,7 +84,7 @@ interface ICCFL {
     function setPlatformAddress(address _liquidator, address _plaform) external;
 
     function addCollateral(
-        uint _loandId,
+        uint _loanId,
         uint _amountCollateral,
         IERC20Standard _collateral
     ) external;

@@ -145,7 +145,8 @@ contract CCFL is ICCFL, UUPSUpgradeable, OwnableUpgradeable {
             liquidationThreshold,
             priceFeeds[token],
             _pricePoolFeeds,
-            swapRouter
+            swapRouter,
+            platform
         );
         cloneSC.setCCFL(address(this));
         if (isYieldGenerating == true) cloneSC.supplyLiquidity();
@@ -163,11 +164,11 @@ contract CCFL is ICCFL, UUPSUpgradeable, OwnableUpgradeable {
     }
 
     function addCollateral(
-        uint _loandId,
+        uint _loanId,
         uint _amountCollateral,
         IERC20Standard _collateral
     ) public {
-        ICCFLLoan loan = loans[_loandId];
+        ICCFLLoan loan = loans[_loanId];
         // transfer collateral
         loan.updateCollateral(_amountCollateral);
         // get from user to loan
@@ -193,8 +194,13 @@ contract CCFL is ICCFL, UUPSUpgradeable, OwnableUpgradeable {
         // update collateral balance and get back collateral
         // Todo: if full payment, close loan
         if (ccflPools[_stableCoin].getCurrentLoan(_loanId) == 0) {
-            loans[_loanId].closeLoan(msg.sender);
+            loans[_loanId].closeLoan();
         }
+    }
+
+    function withdrawAllCollateral(uint _loanId) public {
+        ICCFLLoan loan = loans[_loanId];
+        loan.withdrawAllCollateral(msg.sender);
     }
 
     function getLatestPrice(
@@ -276,7 +282,7 @@ contract CCFL is ICCFL, UUPSUpgradeable, OwnableUpgradeable {
         );
         ccflPools[loanInfo.stableCoin].liquidatePenalty(fundForLender);
 
-        loans[_loanId].closeLoan(msg.sender);
+        loans[_loanId].closeLoan();
     }
 
     receive() external payable {}

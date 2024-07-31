@@ -31,6 +31,7 @@ contract CCFLLoan is ICCFLLoan, Initializable {
 
     // ccfl sc
     address ccfl;
+    address platform;
 
     modifier onlyOwner() {
         require(msg.sender == owner, "only the owner");
@@ -52,13 +53,13 @@ contract CCFLLoan is ICCFLLoan, Initializable {
         uint _threshold,
         AggregatorV3Interface _priceFeed,
         AggregatorV3Interface _pricePoolFeed,
-        ISwapRouter _swapRouter
+        ISwapRouter _swapRouter,
+        address _platform
     ) external initializer {
         owner = msg.sender;
         initLoan = _loan;
         collateralToken = _collateralToken;
-        owner = payable(msg.sender);
-
+        owner = msg.sender;
         aaveAddressProvider = _aaveAddressProvider;
         LTV = _ltv;
         liquidationThreshold = _threshold;
@@ -66,6 +67,7 @@ contract CCFLLoan is ICCFLLoan, Initializable {
         priceFeed = _priceFeed;
         pricePoolFeed = _pricePoolFeed;
         swapRouter = _swapRouter;
+        platform = _platform;
     }
 
     function supplyLiquidity() public onlyOwner {
@@ -79,12 +81,16 @@ contract CCFLLoan is ICCFLLoan, Initializable {
         isStakeAave = true;
     }
 
-    function withdrawLiquidity() public {
+    function withdrawLiquidity() public onlyOwner {
         uint amount = aToken.balanceOf(address(this));
         IPool aavePool = IPool(aaveAddressProvider.getPool());
         aavePool.withdraw(address(aToken), amount, address(this));
         emit LiquidityWithdrawn(address(this), address(aToken), amount);
         isStakeAave = false;
+        // share 30% for platform;
+        uint currentCollateral = collateralToken.balanceOf(address(this));
+        uint earn = ((currentCollateral - collateralAmount) * 30) / 100;
+        collateralToken.transfer(platform, earn);
     }
 
     function getUserAccountData(
@@ -201,7 +207,7 @@ contract CCFLLoan is ICCFLLoan, Initializable {
         }
     }
 
-    function liquidate(uint currentDebt) public {
+    function liquidate(uint currentDebt) public onlyOwner {
         require(getHealthFactor(currentDebt) < 100, "Can not liquidate");
         // get all collateral from aave
         if (isStakeAave) withdrawLiquidity();
@@ -210,7 +216,7 @@ contract CCFLLoan is ICCFLLoan, Initializable {
 
         swapTokenForUSD(
             (currentDebt * 102) / 100,
-            collateralAmount,
+            collateralToken.balanceOf(address(this)),
             initLoan.stableCoin,
             token
         );
@@ -219,14 +225,21 @@ contract CCFLLoan is ICCFLLoan, Initializable {
         initLoan.stableCoin.approve(ccfl, (currentDebt * 102) / 100);
     }
 
-    function updateCollateral(uint amount) external {
+    function updateCollateral(uint amount) external onlyOwner {
         collateralAmount += amount;
     }
 
-    function closeLoan(address _receiver) public {
+    function closeLoan() public onlyOwner {
         initLoan.isClosed = true;
-        collateralToken.transfer(_receiver, collateralAmount);
-        collateralAmount = 0;
+        if (isStakeAave) withdrawLiquidity();
+    }
+
+    function withdrawAllCollateral(address _receiver) public onlyOwner {
+        require(initLoan.isClosed == true, "Loan is not closed");
+        collateralToken.transfer(
+            _receiver,
+            collateralToken.balanceOf(address(this))
+        );
     }
 
     function getLoanInfo() public view returns (Loan memory) {

@@ -78,10 +78,11 @@ interface ICCFLLoan {
         uint _threshold,
         AggregatorV3Interface _priceFeed,
         AggregatorV3Interface _pricePoolFeed,
-        ISwapRouter _swapRouter
+        ISwapRouter _swapRouter,
+        address _platform
     ) external;
 
-    function closeLoan(address _receiver) external;
+    function closeLoan() external;
 
     function setCCFL(address _ccfl) external;
 
@@ -92,4 +93,6 @@ interface ICCFLLoan {
     function liquidate(uint currentDebt) external;
 
     function getLoanInfo() external view returns (Loan memory);
+
+    function withdrawAllCollateral(address _receiver) external;
 }
