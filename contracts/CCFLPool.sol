@@ -15,7 +15,7 @@ struct Loan {
 /// @title CCFL contract
 /// @author
 /// @notice Link/usd
-contract CCFLPool is ICCFLPool, UUPSUpgradeable, OwnableUpgradeable {
+contract CCFLPool is ICCFLPool, Initializable {
     using WadRayMath for uint256;
     using PercentageMath for uint256;
     using SafeCast for uint256;
@@ -37,23 +37,27 @@ contract CCFLPool is ICCFLPool, UUPSUpgradeable, OwnableUpgradeable {
 
     uint public remainingPool;
 
+    address owner;
+
     modifier onlyCCFL() {
         require(CCFL == msg.sender, "only the ccfl");
         _;
     }
 
-    constructor() {}
+    modifier onlyOwner() {
+        require(owner == msg.sender, "only the owner");
+        _;
+    }
 
     function initialize(
         IERC20Standard _stableCoinAddress,
         address interestRateStrategyAddress
     ) external initializer {
-        __Ownable_init(msg.sender);
-        __UUPSUpgradeable_init();
         stableCoinAddress = _stableCoinAddress;
         reserve.interestRateStrategyAddress = interestRateStrategyAddress;
         reserve.liquidityIndex = uint128(WadRayMath.RAY);
         reserve.variableBorrowIndex = uint128(WadRayMath.RAY);
+        owner = msg.sender;
     }
 
     function setCCFL(address _ccfl) public onlyOwner {
@@ -369,10 +373,6 @@ contract CCFLPool is ICCFLPool, UUPSUpgradeable, OwnableUpgradeable {
             reserve.liquidityIndex
         );
     }
-
-    function _authorizeUpgrade(
-        address newImplementation
-    ) internal virtual override {}
 
     function getTotalSupply() public view returns (uint256) {
         DataTypes.ReserveCache memory reserveCache = cache();

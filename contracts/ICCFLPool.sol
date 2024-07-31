@@ -10,8 +10,7 @@ import {PercentageMath} from "./math/PercentageMath.sol";
 import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import {DataTypes} from "./DataTypes.sol";
 import {IReserveInterestRateStrategy} from "./IReserveInterestRateStrategy.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "./IERC20Standard.sol";
 
 /// @title Pool contract

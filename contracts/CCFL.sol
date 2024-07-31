@@ -5,7 +5,7 @@ import "./ICCFL.sol";
 /// @title CCFL contract
 /// @author
 /// @notice Link/usd
-contract CCFL is ICCFL, UUPSUpgradeable, OwnableUpgradeable {
+contract CCFL is ICCFL, Initializable {
     using Clones for address;
 
     mapping(address => mapping(IERC20Standard => uint)) public collaterals;
@@ -54,8 +54,6 @@ contract CCFL is ICCFL, UUPSUpgradeable, OwnableUpgradeable {
         uint _liquidationThreshold,
         ICCFLLoan _ccflLoan
     ) external initializer {
-        __Ownable_init(msg.sender);
-        __UUPSUpgradeable_init();
         ccflPoolStableCoins = _ccflPoolStableCoin;
         loandIds = 1;
         for (uint i = 0; i < ccflPoolStableCoins.length; i++) {
@@ -289,8 +287,4 @@ contract CCFL is ICCFL, UUPSUpgradeable, OwnableUpgradeable {
     }
 
     receive() external payable {}
-
-    function _authorizeUpgrade(
-        address newImplementation
-    ) internal virtual override {}
 }
