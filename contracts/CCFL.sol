@@ -163,6 +163,67 @@ contract CCFL is ICCFL, UUPSUpgradeable, OwnableUpgradeable {
         loandIds++;
     }
 
+    // create loan
+    function createLoanETH(
+        uint _amount,
+        IERC20Standard _stableCoin,
+        bool isYieldGenerating
+    ) public {
+        require(
+            (msg.amount * getETHLatestPrice() * maxLTV) / (10 ** 18) >=
+                ((_amount * getLatestPrice(_stableCoin, true)) * 10000) /
+                    (10 ** _stableCoin.decimals()),
+            "Don't have enough collateral"
+        );
+        // check pool reseve
+        require(
+            ccflPools[_stableCoin].getRemainingPool() >= _amount,
+            "Pool don't have enough fund"
+        );
+
+        // make loan ins
+        Loan memory loan;
+        address _borrower = msg.sender;
+        loan.borrower = _borrower;
+        loan.amount = _amount;
+        loan.loanId = loandIds;
+        loan.isPaid = false;
+        loan.stableCoin = _stableCoin;
+        // borrow loan on pool
+        ccflPools[_stableCoin].borrow(loan.loanId, loan.amount, loan.borrower);
+
+        AggregatorV3Interface _pricePoolFeeds = pricePoolFeeds[_stableCoin];
+        IERC20Standard token = _collateral;
+        // clone a loan SC
+        address loanIns = address(ccflLoan).clone();
+        ICCFLLoan cloneSC = ICCFLLoan(loanIns);
+        cloneSC.initialize(
+            loan,
+            token,
+            aaveAddressProviders[token],
+            aTokens[token],
+            maxLTV,
+            liquidationThreshold,
+            priceFeeds[token],
+            _pricePoolFeeds,
+            swapRouter,
+            platform
+        );
+        cloneSC.setCCFL(address(this));
+        if (isYieldGenerating == true) cloneSC.supplyLiquidity();
+
+        // transfer collateral
+        cloneSC.updateCollateral(_amountCollateral);
+        // get from user to loan
+        _collateral.transferFrom(
+            msg.sender,
+            address(loanIns),
+            _amountCollateral
+        );
+        loans[loandIds] = cloneSC;
+        loandIds++;
+    }
+
     function addCollateral(
         uint _loanId,
         uint _amountCollateral,
@@ -204,6 +265,19 @@ contract CCFL is ICCFL, UUPSUpgradeable, OwnableUpgradeable {
         ICCFLLoan loan = loans[_loanId];
         Loan memory info = loan.getLoanInfo();
         loan.withdrawAllCollateral(info.borrower);
+    }
+
+    function getETHLatestPrice() public view returns (uint) {
+        // (
+        //     uint80 roundID,
+        //     int256 price,
+        //     uint256 startedAt,
+        //     uint256 timeStamp,
+        //     uint80 answeredInRound
+        // ) = priceFeeds[_stableCoin].latestRoundData();
+        // // for LINK / USD price is scaled up by 10 ** 8
+        // return uint(price);
+        return 0;
     }
 
     function getLatestPrice(
