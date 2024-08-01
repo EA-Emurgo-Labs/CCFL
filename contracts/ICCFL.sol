@@ -87,4 +87,10 @@ interface ICCFL {
         uint _amountCollateral,
         IERC20Standard _collateral
     ) external;
+
+    function getMinimalCollateral(
+        uint _amount,
+        IERC20Standard _stableCoin,
+        IERC20Standard _collateral
+    ) external returns (uint);
 }

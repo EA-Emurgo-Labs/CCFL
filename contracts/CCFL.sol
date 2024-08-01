@@ -107,6 +107,18 @@ contract CCFL is ICCFL, Initializable {
         else loan.withdrawLiquidity();
     }
 
+    function getMinimalCollateral(
+        uint _amount,
+        IERC20Standard _stableCoin,
+        IERC20Standard _collateral
+    ) public returns (uint) {
+        return ((((_amount * (10 ** _collateral.decimals()) * maxLTV) *
+            getLatestPrice(_stableCoin, true)) /
+            (10 ** _stableCoin.decimals())) /
+            10000 /
+            getLatestPrice(_collateral, false));
+    }
+
     // create loan
     function createLoan(
         uint _amount,
