@@ -40,7 +40,7 @@ contract CCFLLoan is ICCFLLoan, Initializable {
 
     constructor() {}
 
-    function setCCFL(address _ccfl) public {
+    function setCCFL(address _ccfl) public onlyOwner {
         ccfl = _ccfl;
     }
 

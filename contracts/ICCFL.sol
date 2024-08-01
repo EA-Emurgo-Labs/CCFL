@@ -48,8 +48,6 @@ interface ICCFL {
 
     function setSwapRouter(ISwapRouter _swapRouter) external;
 
-    function makeYieldGenerating(uint _loanId, bool isYield) external;
-
     // create loan
     function createLoan(
         uint _amount,
@@ -92,5 +90,5 @@ interface ICCFL {
         uint _amount,
         IERC20Standard _stableCoin,
         IERC20Standard _collateral
-    ) external returns (uint);
+    ) external view returns (uint);
 }
