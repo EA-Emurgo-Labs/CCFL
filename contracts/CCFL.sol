@@ -8,8 +8,6 @@ import "./ICCFL.sol";
 contract CCFL is ICCFL, Initializable {
     using Clones for address;
 
-    mapping(address => mapping(IERC20Standard => uint)) public collaterals;
-
     uint public loandIds;
     mapping(IERC20Standard => ICCFLPool) public ccflPools;
     IERC20Standard[] public ccflPoolStableCoins;
@@ -20,11 +18,14 @@ contract CCFL is ICCFL, Initializable {
     IERC20Standard[] public collateralTokens;
     mapping(IERC20Standard => IPoolAddressesProvider)
         public aaveAddressProviders;
+    IPoolAddressesProvider public ethAddressProviders;
     mapping(IERC20Standard => IERC20Standard) public aTokens;
+    IERC20Standard public aETH;
     uint public maxLTV;
     uint public liquidationThreshold;
     mapping(IERC20Standard => AggregatorV3Interface) public priceFeeds;
     mapping(IERC20Standard => AggregatorV3Interface) public pricePoolFeeds;
+    AggregatorV3Interface public priceETHFeed;
     ISwapRouter swapRouter;
     address public liquidator;
     address public platform;
@@ -187,10 +188,11 @@ contract CCFL is ICCFL, Initializable {
     function createLoanETH(
         uint _amount,
         IERC20Standard _stableCoin,
+        uint _amountCollateral,
         bool isYieldGenerating
-    ) public {
+    ) public payable {
         require(
-            (msg.amount * getETHLatestPrice() * maxLTV) / (10 ** 18) >=
+            (msg.value * getETHLatestPrice() * maxLTV) / (10 ** 18) >=
                 ((_amount * getLatestPrice(_stableCoin, true)) * 10000) /
                     (10 ** _stableCoin.decimals()),
             "Don't have enough collateral"
@@ -213,18 +215,18 @@ contract CCFL is ICCFL, Initializable {
         ccflPools[_stableCoin].borrow(loan.loanId, loan.amount, loan.borrower);
 
         AggregatorV3Interface _pricePoolFeeds = pricePoolFeeds[_stableCoin];
-        IERC20Standard token = _collateral;
+        // IERC20Standard token = _collateral;
         // clone a loan SC
         address loanIns = address(ccflLoan).clone();
         ICCFLLoan cloneSC = ICCFLLoan(loanIns);
         cloneSC.initialize(
             loan,
-            token,
-            aaveAddressProviders[token],
-            aTokens[token],
+            IERC20Standard(address(0)),
+            ethAddressProviders,
+            aETH,
             maxLTV,
             liquidationThreshold,
-            priceFeeds[token],
+            priceETHFeed,
             _pricePoolFeeds,
             swapRouter,
             platform
@@ -235,11 +237,7 @@ contract CCFL is ICCFL, Initializable {
         // transfer collateral
         cloneSC.updateCollateral(_amountCollateral);
         // get from user to loan
-        _collateral.transferFrom(
-            msg.sender,
-            address(loanIns),
-            _amountCollateral
-        );
+        payable(address(loanIns)).transfer(_amountCollateral);
         loans[loandIds] = cloneSC;
         loandIds++;
     }
