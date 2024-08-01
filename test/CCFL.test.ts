@@ -11,6 +11,9 @@ describe("CCFL contract", function () {
   // We define a fixture to reuse the same setup in every test.
   // We use loadFixture to run this setup once, snapshot that state,
   // and reset Hardhat Network to that snapshot in every test.
+
+  let mockSwap, liquidatorAddress, platformAddress;
+
   async function deployFixture() {
     // Contracts are deployed using the first signer/account by default
     const [
@@ -24,6 +27,9 @@ describe("CCFL contract", function () {
       liquidator,
       platform,
     ] = await hre.ethers.getSigners();
+
+    liquidatorAddress = liquidator;
+    platformAddress = platform;
 
     const USDC = await hre.ethers.getContractFactory("MyERC20");
     const usdc = await USDC.deploy("USDC", "USDC");
@@ -54,14 +60,14 @@ describe("CCFL contract", function () {
       { initializer: "initialize" }
     );
 
-    console.log(
-      "pool implement",
-      await hre.upgrades.erc1967.getImplementationAddress(
-        await ccflPool.getAddress()
-      ),
-      "pool proxy",
-      await ccflPool.getAddress()
-    );
+    // console.log(
+    //   "pool implement",
+    //   await hre.upgrades.erc1967.getImplementationAddress(
+    //     await ccflPool.getAddress()
+    //   ),
+    //   "pool proxy",
+    //   await ccflPool.getAddress()
+    // );
 
     const MockAggr = await hre.ethers.getContractFactory("MockAggregator");
     const mockAggr = await MockAggr.deploy();
@@ -71,8 +77,10 @@ describe("CCFL contract", function () {
     const MockAggr2 = await hre.ethers.getContractFactory("MockAggregator");
     const mockAggr2 = await MockAggr2.deploy();
 
+    await mockAggr2.setPrice(2e8);
+
     const MockSwap = await hre.ethers.getContractFactory("MockSwapRouter");
-    const mockSwap = await MockSwap.deploy();
+    mockSwap = await MockSwap.deploy();
 
     const MockAavePool = await hre.ethers.getContractFactory("MockAavePool");
     const mockAavePool = await MockAavePool.deploy();
@@ -98,8 +106,8 @@ describe("CCFL contract", function () {
         [await mockAggr2.getAddress()],
         [await aToken.getAddress()],
         [await mockPoolAddressesProvider.getAddress()],
-        7000,
-        7500,
+        5000,
+        8000,
         await ccflLoan.getAddress(),
       ],
       { initializer: "initialize" }
@@ -117,9 +125,9 @@ describe("CCFL contract", function () {
     await usdc.transfer(lender2, BigInt(20000e18));
     await usdc.transfer(lender3, BigInt(30000e18));
 
-    await usdc.transfer(borrower1, BigInt(1000e18));
-    await usdc.transfer(borrower2, BigInt(2000e18));
-    await usdc.transfer(borrower3, BigInt(3000e18));
+    // await usdc.transfer(borrower1, BigInt(1000e18));
+    // await usdc.transfer(borrower2, BigInt(2000e18));
+    // await usdc.transfer(borrower3, BigInt(3000e18));
 
     return {
       usdc,
@@ -160,62 +168,509 @@ describe("CCFL contract", function () {
 
     it("Should only allow owner to set swap router", async () => {
       // TODO: test method setSwapRouter()
+      const {
+        usdc,
+        link,
+        ccflPool,
+        ccfl,
+        owner,
+        borrower1,
+        borrower2,
+        borrower3,
+        lender1,
+        lender2,
+        lender3,
+      } = await loadFixture(deployFixture);
+
+      await expect(ccfl.connect(borrower1).setSwapRouter(mockSwap.getAddress())).to.be.revertedWith("only the owner");
     });
 
     it("Should only allow owner to set platform address", async () => {
       // TODO: test method setPlatformAddress()
+      const {
+        usdc,
+        link,
+        ccflPool,
+        ccfl,
+        owner,
+        borrower1,
+        borrower2,
+        borrower3,
+        lender1,
+        lender2,
+        lender3,
+      } = await loadFixture(deployFixture);
+
+      await expect(ccfl.connect(borrower1).setPlatformAddress(liquidatorAddress, platformAddress)).to.be.revertedWith("only the owner");
     });
   });
 
   describe("Loan Functionality", () => {
     it("Should create loan successfully with yield generating", async () => {
       // TODO: test method createLoan()
+      const {
+        usdc,
+        link,
+        ccflPool,
+        ccfl,
+        owner,
+        borrower1,
+        borrower2,
+        borrower3,
+        lender1,
+        lender2,
+        lender3,
+      } = await loadFixture(deployFixture);
+
+      await usdc
+        .connect(lender1)
+        .approve(ccflPool.getAddress(), BigInt(10000e18));
+      await ccflPool.connect(lender1).supply(BigInt(10000e18));
+
+      await link.connect(borrower1).approve(ccfl.getAddress(), BigInt(1000e18));
+      await ccfl
+        .connect(borrower1)
+        .createLoan(
+          BigInt(1000e18),
+          await usdc.getAddress(),
+          BigInt(1000e18),
+          await link.getAddress(),
+          true
+        );
     });
 
     it("Should create loan successfully without yield generating", async () => {
       // TODO: test method createLoan()
+      const {
+        usdc,
+        link,
+        ccflPool,
+        ccfl,
+        owner,
+        borrower1,
+        borrower2,
+        borrower3,
+        lender1,
+        lender2,
+        lender3,
+      } = await loadFixture(deployFixture);
+
+      await usdc
+        .connect(lender1)
+        .approve(ccflPool.getAddress(), BigInt(10000e18));
+      await ccflPool.connect(lender1).supply(BigInt(10000e18));
+
+      await link.connect(borrower1).approve(ccfl.getAddress(), BigInt(1000e18));
+      await ccfl
+        .connect(borrower1)
+        .createLoan(
+          BigInt(1000e18),
+          await usdc.getAddress(),
+          BigInt(1000e18),
+          await link.getAddress(),
+          false
+        );
     });
 
     it("Should fail to create loan if insufficient collateral", async () => {
       // TODO: test method createLoan()
+      const {
+        usdc,
+        link,
+        ccflPool,
+        ccfl,
+        owner,
+        borrower1,
+        borrower2,
+        borrower3,
+        lender1,
+        lender2,
+        lender3,
+      } = await loadFixture(deployFixture);
+
+      await usdc
+        .connect(lender1)
+        .approve(ccflPool.getAddress(), BigInt(10000e18));
+      await ccflPool.connect(lender1).supply(BigInt(10000e18));
+
+      await link.connect(borrower1).approve(ccfl.getAddress(), BigInt(1000e18));
+      await expect(ccfl
+        .connect(borrower1)
+        .createLoan(
+          BigInt(1000e18),
+          await usdc.getAddress(),
+          BigInt(500e18),
+          await link.getAddress(),
+          false
+        )).to.be.revertedWith("Don't have enough collateral");
     });
 
     it("Should withdraw loan successfully", async () => {
       // TODO: test method withdrawLoan()
+      const {
+        usdc,
+        link,
+        ccflPool,
+        ccfl,
+        owner,
+        borrower1,
+        borrower2,
+        borrower3,
+        lender1,
+        lender2,
+        lender3,
+      } = await loadFixture(deployFixture);
+
+      await usdc
+        .connect(lender1)
+        .approve(ccflPool.getAddress(), BigInt(10000e18));
+      await ccflPool.connect(lender1).supply(BigInt(10000e18));
+
+      await link.connect(borrower1).approve(ccfl.getAddress(), BigInt(1000e18));
+      await ccfl
+        .connect(borrower1)
+        .createLoan(
+          BigInt(1000e18),
+          await usdc.getAddress(),
+          BigInt(1000e18),
+          await link.getAddress(),
+          false
+        );
+
+      await ccfl
+        .connect(borrower1)
+        .withdrawLoan(await usdc.getAddress(), BigInt(1));
+
+      expect(BigInt(await usdc.balanceOf(borrower1)).toString()).to.eq(
+        BigInt(1000e18));
     });
 
     it("Should add collateral successfully", async () => {
       // TODO: test method addCollateral()
+      const {
+        usdc,
+        link,
+        ccflPool,
+        ccfl,
+        owner,
+        borrower1,
+        borrower2,
+        borrower3,
+        lender1,
+        lender2,
+        lender3,
+      } = await loadFixture(deployFixture);
+
+      await usdc
+        .connect(lender1)
+        .approve(ccflPool.getAddress(), BigInt(10000e18));
+      await ccflPool.connect(lender1).supply(BigInt(10000e18));
+
+      await link.connect(borrower1).approve(ccfl.getAddress(), BigInt(1500e18));
+      await ccfl
+        .connect(borrower1)
+        .createLoan(
+          BigInt(1000e18),
+          await usdc.getAddress(),
+          BigInt(1000e18),
+          await link.getAddress(),
+          false
+        );
+
+      await ccfl.connect(borrower1).addCollateral(BigInt(1), BigInt(500e18), await link.getAddress());
     });
 
     it("Should repay loan succesfully", async () => {
       // TODO: test method repayLoan()
+      const {
+        usdc,
+        link,
+        ccflPool,
+        ccfl,
+        owner,
+        borrower1,
+        borrower2,
+        borrower3,
+        lender1,
+        lender2,
+        lender3,
+      } = await loadFixture(deployFixture);
+
+      await usdc
+        .connect(lender1)
+        .approve(ccflPool.getAddress(), BigInt(10000e18));
+      await ccflPool.connect(lender1).supply(BigInt(10000e18));
+
+      await link.connect(borrower1).approve(ccfl.getAddress(), BigInt(1000e18));
+      await ccfl
+        .connect(borrower1)
+        .createLoan(
+          BigInt(1000e18),
+          await usdc.getAddress(),
+          BigInt(1000e18),
+          await link.getAddress(),
+          false
+        );
+
+      await ccfl
+        .connect(borrower1)
+        .withdrawLoan(await usdc.getAddress(), BigInt(1));
+
+      await usdc.connect(borrower1).approve(ccfl.getAddress(), BigInt(1000e18));
+
+      await ccfl
+        .connect(borrower1)
+        .repayLoan(1, BigInt(1000e18), await usdc.getAddress());
     });
 
     it("Should withdraw all collateral successfully", async () => {
       // TODO: test method withdrawAllCollateral()
+      const {
+        usdc,
+        link,
+        ccflPool,
+        ccfl,
+        owner,
+        borrower1,
+        borrower2,
+        borrower3,
+        lender1,
+        lender2,
+        lender3,
+      } = await loadFixture(deployFixture);
+
+      await usdc
+        .connect(lender1)
+        .approve(ccflPool.getAddress(), BigInt(10000e18));
+      await ccflPool.connect(lender1).supply(BigInt(10000e18));
+
+      await link.connect(borrower1).approve(ccfl.getAddress(), BigInt(1000e18));
+      await ccfl
+        .connect(borrower1)
+        .createLoan(
+          BigInt(1000e18),
+          await usdc.getAddress(),
+          BigInt(1000e18),
+          await link.getAddress(),
+          false
+        );
+
+      await ccfl
+        .connect(borrower1)
+        .withdrawLoan(await usdc.getAddress(), BigInt(1));
+
+      await usdc.connect(borrower1).approve(ccfl.getAddress(), BigInt(1000e18));
+
+      await ccfl
+        .connect(borrower1)
+        .repayLoan(1, BigInt(1000e18), await usdc.getAddress());
+
+      const check = await ccflPool.connect(borrower1).getCurrentLoan(1);
+      console.log('check: ', check);
+
+      await ccfl.connect(borrower1).withdrawAllCollateral(1);
     });
 
     it("Should liquidate loan successfully", async () => {
       // TODO: test method liquidate()
+      const {
+        usdc,
+        link,
+        ccflPool,
+        ccfl,
+        owner,
+        borrower1,
+        borrower2,
+        borrower3,
+        lender1,
+        lender2,
+        lender3,
+        mockAggr,
+        aToken,
+        mockAggr2,
+      } = await loadFixture(deployFixture);
+
+      // lender deposit USDC
+      await usdc
+        .connect(lender1)
+        .approve(ccflPool.getAddress(), BigInt(10000e18));
+      await ccflPool.connect(lender1).supply(BigInt(10000e18));
+
+      // borrower lend
+      await link.connect(borrower1).approve(ccfl.getAddress(), BigInt(1000e18));
+      await ccfl
+        .connect(borrower1)
+        .createLoan(
+          BigInt(1000e18),
+          await usdc.getAddress(),
+          BigInt(1000e18),
+          await link.getAddress(),
+          false
+        );
+
+      await ccfl
+        .connect(borrower1)
+        .withdrawLoan(await usdc.getAddress(), BigInt(1));
+
+      expect(BigInt(await usdc.balanceOf(borrower1)).toString()).to.eq(
+        BigInt(1000e18)
+      );
+      await mockAggr2.setPrice(BigInt(999999));
+
+      // expect(await ccfl.getHealthFactor(BigInt(1))).to.lessThan(100);
+
+      await aToken.transfer(
+        await ccfl.getLoanAddress(BigInt(1)),
+        BigInt(60e18)
+      );
+
+      await link.transfer(borrower1, BigInt(60e18));
+      let loanAddr = await ccfl.getLoanAddress(BigInt(1));
+      await usdc.transfer(loanAddr, BigInt(1200e18));
+      await ccfl.liquidate(BigInt(1));
     });
   });
 
   describe("Get info", () => {
     it("Should get the minimal collateral", async () => {
       // TODO: test method getMinimalCollateral()
+      const {
+        usdc,
+        link,
+        ccflPool,
+        ccfl,
+        owner,
+        borrower1,
+        borrower2,
+        borrower3,
+        lender1,
+        lender2,
+        lender3,
+        mockAggr,
+        aToken,
+        mockAggr2,
+      } = await loadFixture(deployFixture);
+
+      const check = await ccfl
+        .getMinimalCollateral(
+          BigInt(1000e18),
+          await usdc.getAddress(),
+          await link.getAddress()
+        );
+
+      console.log('minimal: ', check);
     });
 
     it("Should get the latest price", async () => {
       // TODO: test method getLatestPrice()
+
+      const {
+        usdc,
+        link,
+        ccflPool,
+        ccfl,
+        owner,
+        borrower1,
+        borrower2,
+        borrower3,
+        lender1,
+        lender2,
+        lender3,
+        mockAggr,
+        aToken,
+        mockAggr2,
+      } = await loadFixture(deployFixture);
+
+      const latestPrice = await ccfl.getLatestPrice(await usdc.getAddress(), true);
+
+      expect(latestPrice).to.eq(1e8);
     });
 
     it("Should get health factor", async () => {
       // TODO: test method getHealthFactor()
+      const {
+        usdc,
+        link,
+        ccflPool,
+        ccfl,
+        owner,
+        borrower1,
+        borrower2,
+        borrower3,
+        lender1,
+        lender2,
+        lender3,
+        mockAggr,
+        aToken,
+        mockAggr2,
+      } = await loadFixture(deployFixture);
+
+      await usdc
+        .connect(lender1)
+        .approve(ccflPool.getAddress(), BigInt(10000e18));
+      await ccflPool.connect(lender1).supply(BigInt(10000e18));
+
+      await link.connect(borrower1).approve(ccfl.getAddress(), BigInt(1000e18));
+      await ccfl
+        .connect(borrower1)
+        .createLoan(
+          BigInt(1000e18),
+          await usdc.getAddress(),
+          BigInt(1000e18),
+          await link.getAddress(),
+          false
+        );
+
+      await ccfl
+        .connect(borrower1)
+        .withdrawLoan(await usdc.getAddress(), BigInt(1));
+
+      const healthFactor = await ccfl.getHealthFactor(1);
+      console.log('healthFactor: ', healthFactor);
+
+      expect(healthFactor).to.gt(BigInt(100));
     });
 
     it("Should get loan address", async () => {
       // TODO: test method getLoanAddress()
+      const {
+        usdc,
+        link,
+        ccflPool,
+        ccfl,
+        owner,
+        borrower1,
+        borrower2,
+        borrower3,
+        lender1,
+        lender2,
+        lender3,
+        mockAggr,
+        aToken,
+        mockAggr2,
+      } = await loadFixture(deployFixture);
+
+      await usdc
+        .connect(lender1)
+        .approve(ccflPool.getAddress(), BigInt(10000e18));
+      await ccflPool.connect(lender1).supply(BigInt(10000e18));
+
+      await link.connect(borrower1).approve(ccfl.getAddress(), BigInt(1000e18));
+      await ccfl
+        .connect(borrower1)
+        .createLoan(
+          BigInt(1000e18),
+          await usdc.getAddress(),
+          BigInt(1000e18),
+          await link.getAddress(),
+          false
+        );
+
+      await ccfl
+        .connect(borrower1)
+        .withdrawLoan(await usdc.getAddress(), BigInt(1));
+
+      await ccfl.getLoanAddress(1);
     });
   })
 });
