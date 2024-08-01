@@ -3,8 +3,7 @@ pragma solidity ^0.8.24;
 
 // Uncomment this line to use console.log
 import "hardhat/console.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts/proxy/Clones.sol";
 import {IPool} from "@aave/core-v3/contracts/interfaces/IPool.sol";
 import {IPoolAddressesProvider} from "@aave/core-v3/contracts/interfaces/IPoolAddressesProvider.sol";
@@ -88,4 +87,10 @@ interface ICCFL {
         uint _amountCollateral,
         IERC20Standard _collateral
     ) external;
+
+    function getMinimalCollateral(
+        uint _amount,
+        IERC20Standard _stableCoin,
+        IERC20Standard _collateral
+    ) external returns (uint);
 }

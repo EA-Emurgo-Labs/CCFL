@@ -5,7 +5,7 @@ import "./ICCFL.sol";
 /// @title CCFL contract
 /// @author
 /// @notice Link/usd
-contract CCFL is ICCFL, UUPSUpgradeable, OwnableUpgradeable {
+contract CCFL is ICCFL, Initializable {
     using Clones for address;
 
     mapping(address => mapping(IERC20Standard => uint)) public collaterals;
@@ -28,6 +28,12 @@ contract CCFL is ICCFL, UUPSUpgradeable, OwnableUpgradeable {
     ISwapRouter swapRouter;
     address public liquidator;
     address public platform;
+    address public owner;
+
+    modifier onlyOwner() {
+        require(msg.sender == owner, "only the owner");
+        _;
+    }
 
     modifier supportedToken(IERC20Standard _tokenAddress) {
         bool isValid = false;
@@ -54,8 +60,6 @@ contract CCFL is ICCFL, UUPSUpgradeable, OwnableUpgradeable {
         uint _liquidationThreshold,
         ICCFLLoan _ccflLoan
     ) external initializer {
-        __Ownable_init(msg.sender);
-        __UUPSUpgradeable_init();
         ccflPoolStableCoins = _ccflPoolStableCoin;
         loandIds = 1;
         for (uint i = 0; i < ccflPoolStableCoins.length; i++) {
@@ -73,13 +77,17 @@ contract CCFL is ICCFL, UUPSUpgradeable, OwnableUpgradeable {
         ccflLoan = _ccflLoan;
         maxLTV = _maxLTV;
         liquidationThreshold = _liquidationThreshold;
+        owner = msg.sender;
     }
 
-    function setSwapRouter(ISwapRouter _swapRouter) public {
+    function setSwapRouter(ISwapRouter _swapRouter) public onlyOwner {
         swapRouter = _swapRouter;
     }
 
-    function setPlatformAddress(address _liquidator, address _plaform) public {
+    function setPlatformAddress(
+        address _liquidator,
+        address _plaform
+    ) public onlyOwner {
         liquidator = _liquidator;
         platform = _plaform;
     }
@@ -97,6 +105,18 @@ contract CCFL is ICCFL, UUPSUpgradeable, OwnableUpgradeable {
         ICCFLLoan loan = loans[_loanId];
         if (isYield == true) loan.supplyLiquidity();
         else loan.withdrawLiquidity();
+    }
+
+    function getMinimalCollateral(
+        uint _amount,
+        IERC20Standard _stableCoin,
+        IERC20Standard _collateral
+    ) public returns (uint) {
+        return ((((_amount * (10 ** _collateral.decimals()) * maxLTV) *
+            getLatestPrice(_stableCoin, true)) /
+            (10 ** _stableCoin.decimals())) /
+            10000 /
+            getLatestPrice(_collateral, false));
     }
 
     // create loan
@@ -363,8 +383,4 @@ contract CCFL is ICCFL, UUPSUpgradeable, OwnableUpgradeable {
     }
 
     receive() external payable {}
-
-    function _authorizeUpgrade(
-        address newImplementation
-    ) internal virtual override {}
 }
