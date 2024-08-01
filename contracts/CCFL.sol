@@ -28,6 +28,12 @@ contract CCFL is ICCFL, Initializable {
     ISwapRouter swapRouter;
     address public liquidator;
     address public platform;
+    address public owner;
+
+    modifier onlyOwner() {
+        require(msg.sender == owner, "only the owner");
+        _;
+    }
 
     modifier supportedToken(IERC20Standard _tokenAddress) {
         bool isValid = false;
@@ -71,13 +77,17 @@ contract CCFL is ICCFL, Initializable {
         ccflLoan = _ccflLoan;
         maxLTV = _maxLTV;
         liquidationThreshold = _liquidationThreshold;
+        owner = msg.sender;
     }
 
-    function setSwapRouter(ISwapRouter _swapRouter) public {
+    function setSwapRouter(ISwapRouter _swapRouter) public onlyOwner {
         swapRouter = _swapRouter;
     }
 
-    function setPlatformAddress(address _liquidator, address _plaform) public {
+    function setPlatformAddress(
+        address _liquidator,
+        address _plaform
+    ) public onlyOwner {
         liquidator = _liquidator;
         platform = _plaform;
     }
