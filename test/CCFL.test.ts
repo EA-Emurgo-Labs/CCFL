@@ -157,5 +157,65 @@ describe("CCFL system", function () {
 
       expect(await ccfl.owner()).to.equal(owner.address);
     });
+
+    it("Should only allow owner to set swap router", async () => {
+      // TODO: test method setSwapRouter()
+    });
+
+    it("Should only allow owner to set platform address", async () => {
+      // TODO: test method setPlatformAddress()
+    });
   });
+
+  describe("Loan Functionality", () => {
+    it("Should create loan successfully with yield generating", async () => {
+      // TODO: test method createLoan()
+    });
+
+    it("Should create loan successfully without yield generating", async () => {
+      // TODO: test method createLoan()
+    });
+
+    it("Should fail to create loan if insufficient collateral", async () => {
+      // TODO: test method createLoan()
+    });
+
+    it("Should withdraw loan successfully", async () => {
+      // TODO: test method withdrawLoan()
+    });
+
+    it("Should add collateral successfully", async () => {
+      // TODO: test method addCollateral()
+    });
+
+    it("Should repay loan succesfully", async () => {
+      // TODO: test method repayLoan()
+    });
+
+    it("Should withdraw all collateral successfully", async () => {
+      // TODO: test method withdrawAllCollateral()
+    });
+
+    it("Should liquidate loan successfully", async () => {
+      // TODO: test method liquidate()
+    });
+  });
+
+  describe("Get info", () => {
+    it("Should get the minimal collateral", async () => {
+      // TODO: test method getMinimalCollateral()
+    });
+
+    it("Should get the latest price", async () => {
+      // TODO: test method getLatestPrice()
+    });
+
+    it("Should get health factor", async () => {
+      // TODO: test method getHealthFactor()
+    });
+
+    it("Should get loan address", async () => {
+      // TODO: test method getLoanAddress()
+    });
+  })
 });
