@@ -31,6 +31,9 @@ describe("CCFL contract", function () {
     liquidatorAddress = liquidator;
     platformAddress = platform;
 
+    const WETH9 = await hre.ethers.getContractFactory("WETH9");
+    const wETH9 = await WETH9.deploy();
+
     const USDC = await hre.ethers.getContractFactory("MyERC20");
     const usdc = await USDC.deploy("USDC", "USDC");
 
@@ -112,6 +115,7 @@ describe("CCFL contract", function () {
       ],
       { initializer: "initialize" }
     );
+    await ccfl.setWETH(await wETH9.getAddress());
 
     await ccfl.setPlatformAddress(liquidator, platform);
     await ccflPool.setCCFL(await ccfl.getAddress());
@@ -235,7 +239,8 @@ describe("CCFL contract", function () {
           await usdc.getAddress(),
           BigInt(1000e18),
           await link.getAddress(),
-          true
+          true,
+          false
         );
     });
 
@@ -268,6 +273,7 @@ describe("CCFL contract", function () {
           await usdc.getAddress(),
           BigInt(1000e18),
           await link.getAddress(),
+          false,
           false
         );
     });
@@ -301,6 +307,7 @@ describe("CCFL contract", function () {
           await usdc.getAddress(),
           BigInt(500e18),
           await link.getAddress(),
+          false,
           false
         )).to.be.revertedWith("Don't have enough collateral");
     });
@@ -334,6 +341,7 @@ describe("CCFL contract", function () {
           await usdc.getAddress(),
           BigInt(1000e18),
           await link.getAddress(),
+          false,
           false
         );
 
@@ -374,10 +382,11 @@ describe("CCFL contract", function () {
           await usdc.getAddress(),
           BigInt(1000e18),
           await link.getAddress(),
+          false,
           false
         );
 
-      await ccfl.connect(borrower1).addCollateral(BigInt(1), BigInt(500e18), await link.getAddress());
+      await ccfl.connect(borrower1).addCollateral(BigInt(1), BigInt(500e18), await link.getAddress(), false);
     });
 
     it("Should repay loan succesfully", async () => {
@@ -409,6 +418,7 @@ describe("CCFL contract", function () {
           await usdc.getAddress(),
           BigInt(1000e18),
           await link.getAddress(),
+          false,
           false
         );
 
@@ -452,6 +462,7 @@ describe("CCFL contract", function () {
           await usdc.getAddress(),
           BigInt(1000e18),
           await link.getAddress(),
+          false,
           false
         );
 
@@ -468,7 +479,7 @@ describe("CCFL contract", function () {
       const check = await ccflPool.connect(borrower1).getCurrentLoan(1);
       console.log('check: ', check);
 
-      await ccfl.connect(borrower1).withdrawAllCollateral(1);
+      await ccfl.connect(borrower1).withdrawAllCollateral(1, false);
     });
 
     it("Should liquidate loan successfully", async () => {
@@ -505,6 +516,7 @@ describe("CCFL contract", function () {
           await usdc.getAddress(),
           BigInt(1000e18),
           await link.getAddress(),
+          false,
           false
         );
 
@@ -618,6 +630,7 @@ describe("CCFL contract", function () {
           await usdc.getAddress(),
           BigInt(1000e18),
           await link.getAddress(),
+          false,
           false
         );
 
@@ -663,6 +676,7 @@ describe("CCFL contract", function () {
           await usdc.getAddress(),
           BigInt(1000e18),
           await link.getAddress(),
+          false,
           false
         );
 
