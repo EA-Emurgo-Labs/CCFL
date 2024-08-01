@@ -12,6 +12,8 @@ import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 import "@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol";
 import "@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol";
 
+import "@aave/core-v3/contracts/misc/interfaces/IWETH.sol";
+
 interface AggregatorV3Interface {
     function latestRoundData()
         external
@@ -79,7 +81,8 @@ interface ICCFLLoan {
         AggregatorV3Interface _priceFeed,
         AggregatorV3Interface _pricePoolFeed,
         ISwapRouter _swapRouter,
-        address _platform
+        address _platform,
+        IWETH _iWETH
     ) external;
 
     function closeLoan() external;
@@ -94,5 +97,5 @@ interface ICCFLLoan {
 
     function getLoanInfo() external view returns (Loan memory);
 
-    function withdrawAllCollateral(address _receiver) external;
+    function withdrawAllCollateral(address _receiver, bool _isETH) external;
 }

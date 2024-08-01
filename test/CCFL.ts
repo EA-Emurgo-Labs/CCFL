@@ -2,7 +2,6 @@ import {
   time,
   loadFixture,
 } from "@nomicfoundation/hardhat-toolbox/network-helpers";
-import { anyValue } from "@nomicfoundation/hardhat-chai-matchers/withArgs";
 import { expect } from "chai";
 import hre from "hardhat";
 import { assert, parseUnits } from "ethers";
@@ -24,6 +23,9 @@ describe("CCFL system", function () {
       liquidator,
       platform,
     ] = await hre.ethers.getSigners();
+
+    const WETH9 = await hre.ethers.getContractFactory("WETH9");
+    const wETH9 = await WETH9.deploy();
 
     const USDC = await hre.ethers.getContractFactory("MyERC20");
     const usdc = await USDC.deploy("USDC", "USDC");
@@ -104,6 +106,7 @@ describe("CCFL system", function () {
       ],
       { initializer: "initialize" }
     );
+    await ccfl.setWETH(await wETH9.getAddress());
 
     await ccfl.setPlatformAddress(liquidator, platform);
     await ccflPool.setCCFL(await ccfl.getAddress());
@@ -180,6 +183,7 @@ describe("CCFL system", function () {
           await usdc.getAddress(),
           BigInt(1000e18),
           await link.getAddress(),
+          false,
           false
         );
       console.log("remain", (await ccflPool.getRemainingPool()) / BigInt(1e18));
@@ -232,6 +236,7 @@ describe("CCFL system", function () {
           await usdc.getAddress(),
           BigInt(1000e18),
           await link.getAddress(),
+          false,
           false
         );
       await time.increase(180 * 24 * 3600);
@@ -313,6 +318,7 @@ describe("CCFL system", function () {
           await usdc.getAddress(),
           BigInt(1000e18),
           await link.getAddress(),
+          false,
           false
         );
 
@@ -376,6 +382,7 @@ describe("CCFL system", function () {
           await usdc.getAddress(),
           BigInt(1000e18),
           await link.getAddress(),
+          false,
           false
         );
       await ccfl
@@ -495,6 +502,7 @@ describe("CCFL system", function () {
           await usdc.getAddress(),
           BigInt(1000e18),
           await link.getAddress(),
+          false,
           false
         );
       await ccfl
@@ -538,6 +546,7 @@ describe("CCFL system", function () {
           await usdc.getAddress(),
           BigInt(1000e18),
           await link.getAddress(),
+          false,
           false
         );
       await ccfl
@@ -582,6 +591,7 @@ describe("CCFL system", function () {
           await usdc.getAddress(),
           BigInt(1000e18),
           await link.getAddress(),
+          false,
           false
         );
       await ccfl

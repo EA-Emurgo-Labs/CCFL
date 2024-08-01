@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.24;
 import "./ICCFL.sol";
+import "@aave/core-v3/contracts/misc/interfaces/IWETH.sol";
 
 /// @title CCFL contract
 /// @author
@@ -29,6 +30,7 @@ contract CCFL is ICCFL, Initializable {
     address public liquidator;
     address public platform;
     address public owner;
+    IWETH public wETH;
 
     modifier onlyOwner() {
         require(msg.sender == owner, "only the owner");
@@ -84,6 +86,10 @@ contract CCFL is ICCFL, Initializable {
         swapRouter = _swapRouter;
     }
 
+    function setWETH(IWETH _iWETH) public onlyOwner {
+        wETH = _iWETH;
+    }
+
     function setPlatformAddress(
         address _liquidator,
         address _plaform
@@ -119,8 +125,17 @@ contract CCFL is ICCFL, Initializable {
         IERC20Standard _stableCoin,
         uint _amountCollateral,
         IERC20Standard _collateral,
-        bool isYieldGenerating
-    ) public {
+        bool _isYieldGenerating,
+        bool _isETH
+    ) public payable {
+        if (_isETH) {
+            require(
+                _amountCollateral <= msg.value,
+                "do not have enough deposited ETH"
+            );
+            wETH.deposit();
+            wETH.approve(address(this), _amountCollateral);
+        }
         require(
             (_amountCollateral * getLatestPrice(_collateral, false) * maxLTV) /
                 (10 ** _collateral.decimals()) >=
@@ -160,10 +175,11 @@ contract CCFL is ICCFL, Initializable {
             priceFeeds[token],
             _pricePoolFeeds,
             swapRouter,
-            platform
+            platform,
+            wETH
         );
         cloneSC.setCCFL(address(this));
-        if (isYieldGenerating == true) cloneSC.supplyLiquidity();
+        if (_isYieldGenerating == true) cloneSC.supplyLiquidity();
 
         // transfer collateral
         cloneSC.updateCollateral(_amountCollateral);
@@ -180,8 +196,17 @@ contract CCFL is ICCFL, Initializable {
     function addCollateral(
         uint _loanId,
         uint _amountCollateral,
-        IERC20Standard _collateral
-    ) public {
+        IERC20Standard _collateral,
+        bool _isETH
+    ) public payable {
+        if (_isETH) {
+            require(
+                _amountCollateral <= msg.value,
+                "do not have enough deposited ETH"
+            );
+            wETH.deposit();
+            wETH.approve(address(this), _amountCollateral);
+        }
         ICCFLLoan loan = loans[_loanId];
         // transfer collateral
         loan.updateCollateral(_amountCollateral);
@@ -214,10 +239,10 @@ contract CCFL is ICCFL, Initializable {
         }
     }
 
-    function withdrawAllCollateral(uint _loanId) public {
+    function withdrawAllCollateral(uint _loanId, bool isETH) public {
         ICCFLLoan loan = loans[_loanId];
         Loan memory info = loan.getLoanInfo();
-        loan.withdrawAllCollateral(info.borrower);
+        loan.withdrawAllCollateral(info.borrower, isETH);
     }
 
     function getLatestPrice(

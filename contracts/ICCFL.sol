@@ -54,8 +54,9 @@ interface ICCFL {
         IERC20Standard _stableCoin,
         uint _amountCollateral,
         IERC20Standard _collateral,
-        bool isYieldGenerating
-    ) external;
+        bool _isYieldGenerating,
+        bool _isETH
+    ) external payable;
 
     // withdraw loan
     function withdrawLoan(IERC20Standard _stableCoin, uint _loanId) external;
@@ -83,8 +84,9 @@ interface ICCFL {
     function addCollateral(
         uint _loanId,
         uint _amountCollateral,
-        IERC20Standard _collateral
-    ) external;
+        IERC20Standard _collateral,
+        bool _isETH
+    ) external payable;
 
     function getMinimalCollateral(
         uint _amount,
