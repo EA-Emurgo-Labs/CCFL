@@ -7,7 +7,7 @@ import { expect } from "chai";
 import hre from "hardhat";
 import { assert, parseUnits } from "ethers";
 
-describe("CCFL contract", function () {
+describe("CCFLLoan contract", function () {
   // We define a fixture to reuse the same setup in every test.
   // We use loadFixture to run this setup once, snapshot that state,
   // and reset Hardhat Network to that snapshot in every test.
@@ -141,72 +141,50 @@ describe("CCFL contract", function () {
 
   describe("Initialization", () => {
     it("Should initialize correctly", async () => {
-      const {
-        usdc,
-        link,
-        ccflPool,
-        ccfl,
-        owner,
-        borrower1,
-        borrower2,
-        borrower3,
-        lender1,
-        lender2,
-        lender3,
-      } = await loadFixture(deployFixture);
-
-      expect(await ccfl.owner()).to.equal(owner.address);
+      // TODO: test method initialize()
     });
 
-    it("Should only allow owner to set swap router", async () => {
-      // TODO: test method setSwapRouter()
-    });
-
-    it("Should only allow owner to set platform address", async () => {
-      // TODO: test method setPlatformAddress()
+    it("Should only allow owner to set CCFL address", async () => {
+      // TODO: test method setCCFL() 
     });
   });
 
-  describe("Loan Functionality", () => {
-    it("Should create loan successfully with yield generating", async () => {
-      // TODO: test method createLoan()
+  describe("Functionality", () => {
+    it("Should supply liquidity successfully", async () => {
+      // TODO: test method supplyLiquidity()
     });
 
-    it("Should create loan successfully without yield generating", async () => {
-      // TODO: test method createLoan()
+    it("Should withdraw liquidity successfully", async () => {
+      // TODO: test method withdrawLiquidity()
     });
 
-    it("Should fail to create loan if insufficient collateral", async () => {
-      // TODO: test method createLoan()
+    it("Should swap token for usd successfully", async () => {
+      // TODO: test method swapTokenForUSD()
     });
 
-    it("Should withdraw loan successfully", async () => {
-      // TODO: test method withdrawLoan()
+    it("Should liquidate successfully", async () => {
+      // TODO: test method liquidate()
     });
 
-    it("Should add collateral successfully", async () => {
-      // TODO: test method addCollateral()
+    it("Should update collateral successfully", async () => {
+      // TODO: test method updateCollateral()
     });
 
-    it("Should repay loan succesfully", async () => {
-      // TODO: test method repayLoan()
+    it("Should close loan successfully", async () => {
+      // TODO: test method closeLoan()
     });
 
     it("Should withdraw all collateral successfully", async () => {
       // TODO: test method withdrawAllCollateral()
     });
-
-    it("Should liquidate loan successfully", async () => {
-      // TODO: test method liquidate()
-    });
   });
 
   describe("Get info", () => {
-    it("Should get the minimal collateral", async () => {
-      // TODO: test method getMinimalCollateral()
+    it("Should get user account data", async () => {
+      // TODO: test method getUserAccountData()
     });
 
-    it("Should get the latest price", async () => {
+    it("Should get latest price", async () => {
       // TODO: test method getLatestPrice()
     });
 
@@ -214,8 +192,8 @@ describe("CCFL contract", function () {
       // TODO: test method getHealthFactor()
     });
 
-    it("Should get loan address", async () => {
-      // TODO: test method getLoanAddress()
+    it("Should get loan info", async () => {
+      // TODO: test method getLoanInfo()
     });
-  })
+  });
 });
