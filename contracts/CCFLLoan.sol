@@ -32,6 +32,7 @@ contract CCFLLoan is ICCFLLoan, Initializable {
     // ccfl sc
     address ccfl;
     address platform;
+    IWETH public wETH;
 
     modifier onlyOwner() {
         require(msg.sender == owner, "only the owner");
@@ -40,7 +41,7 @@ contract CCFLLoan is ICCFLLoan, Initializable {
 
     constructor() {}
 
-    function setCCFL(address _ccfl) public {
+    function setCCFL(address _ccfl) public onlyOwner {
         ccfl = _ccfl;
     }
 
@@ -54,7 +55,8 @@ contract CCFLLoan is ICCFLLoan, Initializable {
         AggregatorV3Interface _priceFeed,
         AggregatorV3Interface _pricePoolFeed,
         ISwapRouter _swapRouter,
-        address _platform
+        address _platform,
+        IWETH _iWETH
     ) external initializer {
         owner = msg.sender;
         initLoan = _loan;
@@ -68,6 +70,7 @@ contract CCFLLoan is ICCFLLoan, Initializable {
         pricePoolFeed = _pricePoolFeed;
         swapRouter = _swapRouter;
         platform = _platform;
+        wETH = _iWETH;
     }
 
     function supplyLiquidity() public onlyOwner {
@@ -234,12 +237,22 @@ contract CCFLLoan is ICCFLLoan, Initializable {
         if (isStakeAave) withdrawLiquidity();
     }
 
-    function withdrawAllCollateral(address _receiver) public onlyOwner {
+    function withdrawAllCollateral(
+        address _receiver,
+        bool _isETH
+    ) public onlyOwner {
         require(initLoan.isClosed == true, "Loan is not closed");
-        collateralToken.transfer(
-            _receiver,
-            collateralToken.balanceOf(address(this))
-        );
+        if (_isETH) {
+            wETH.withdraw(collateralToken.balanceOf(address(this)));
+            payable(_receiver).transfer(
+                collateralToken.balanceOf(address(this))
+            );
+        } else {
+            collateralToken.transfer(
+                _receiver,
+                collateralToken.balanceOf(address(this))
+            );
+        }
     }
 
     function getLoanInfo() public view returns (Loan memory) {
