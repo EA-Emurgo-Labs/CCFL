@@ -115,7 +115,7 @@ contract CCFL is ICCFL, Initializable {
         IERC20Standard[] memory _ccflPoolStableCoin,
         AggregatorV3Interface[] memory _poolAggregators,
         ICCFLPool[] memory _ccflPools
-    ) public {
+    ) public onlyOwner {
         for (uint i = 0; i < _ccflPoolStableCoin.length; i++) {
             IERC20Standard token = _ccflPoolStableCoin[i];
             if (checkExistElement(ccflPoolStableCoins, token) == false)
@@ -131,7 +131,7 @@ contract CCFL is ICCFL, Initializable {
         AggregatorV3Interface[] memory _collateralAggregators,
         IERC20Standard[] memory _aTokens,
         IPoolAddressesProvider[] memory _aaveAddressProviders
-    ) public {
+    ) public onlyOwner {
         for (uint i = 0; i < _collateralTokens.length; i++) {
             IERC20Standard token = _collateralTokens[i];
             if (checkExistElement(collateralTokens, token) == false)
@@ -147,7 +147,7 @@ contract CCFL is ICCFL, Initializable {
         IERC20Standard _token,
         bool _isActived,
         bool _isPoolToken
-    ) public {
+    ) public onlyOwner {
         if (_isPoolToken) {
             require(
                 checkExistElement(ccflPoolStableCoins, _token) == true,
@@ -161,6 +161,14 @@ contract CCFL is ICCFL, Initializable {
             );
             ccflActivePoolStableCoins[_token] = _isActived;
         }
+    }
+
+    function setThreshold(
+        uint _maxLTV,
+        uint _liquidationThreshold
+    ) public onlyOwner {
+        maxLTV = _maxLTV;
+        liquidationThreshold = _liquidationThreshold;
     }
 
     function setPenalty(
