@@ -84,13 +84,13 @@ contract CCFLPool is ICCFLPool, Initializable {
     }
 
     // Modifier to check token allowance
-    modifier checkUsdAllowance(uint amount) {
-        require(
-            stableCoinAddress.allowance(msg.sender, address(this)) >= amount,
-            "Error"
-        );
-        _;
-    }
+    // modifier checkUsdAllowance(uint amount) {
+    //     require(
+    //         stableCoinAddress.allowance(msg.sender, address(this)) >= amount,
+    //         "Error"
+    //     );
+    //     _;
+    // }
 
     function withdrawLoan(address _receiver, uint _loanId) public onlyCCFL {
         require(loans[_loanId].isPaid == false, "Loan is paid");

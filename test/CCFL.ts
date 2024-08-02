@@ -56,6 +56,13 @@ describe("CCFL system", function () {
         parseUnits("3", 27).toString()
       );
 
+    console.log(
+      await defaultReserveInterestRateStrategy.getBaseVariableBorrowRate(),
+      await defaultReserveInterestRateStrategy.getVariableRateSlope1(),
+      await defaultReserveInterestRateStrategy.getVariableRateSlope2(),
+      await defaultReserveInterestRateStrategy.getMaxVariableBorrowRate()
+    );
+
     const CCFLPool = await hre.ethers.getContractFactory("CCFLPool");
     const ccflPool = await hre.upgrades.deployProxy(
       CCFLPool,
@@ -207,6 +214,88 @@ describe("CCFL system", function () {
   }
 
   describe("Lending", function () {
+    it("Should get loan fund at over 80% pool", async function () {
+      const {
+        usdc,
+        link,
+        ccflPool,
+        ccfl,
+        owner,
+        borrower1,
+        borrower2,
+        borrower3,
+        lender1,
+        lender2,
+        lender3,
+      } = await loadFixture(deployFixture);
+      // lender deposit USDC
+      await usdc
+        .connect(lender1)
+        .approve(ccflPool.getAddress(), BigInt(1100e18));
+      await ccflPool.connect(lender1).supply(BigInt(1100e18));
+      await time.increase(30 * 24 * 3600);
+      // console.log("remain", (await ccflPool.getRemainingPool()) / BigInt(1e18));
+      // console.log(
+      //   "total supply",
+      //   (await ccflPool.getTotalSupply()) / BigInt(1e18)
+      // );
+      // console.log(
+      //   "coin in sc",
+      //   (await usdc.balanceOf(await ccflPool.getAddress())) / BigInt(1e18)
+      // );
+      // console.log("debt", (await ccflPool.getDebtPool()) / BigInt(1e18));
+      // console.log("rate", await ccflPool.getCurrentRate());
+      // borrower
+      await link.connect(borrower1).approve(ccfl.getAddress(), BigInt(500e18));
+      await ccfl
+        .connect(borrower1)
+        .createLoan(
+          BigInt(950e18),
+          await usdc.getAddress(),
+          BigInt(500e18),
+          await link.getAddress(),
+          false,
+          false
+        );
+      // console.log("remain", (await ccflPool.getRemainingPool()) / BigInt(1e18));
+      // console.log(
+      //   "total supply",
+      //   (await ccflPool.getTotalSupply()) / BigInt(1e18)
+      // );
+      // console.log(
+      //   "coin in sc",
+      //   (await usdc.balanceOf(await ccflPool.getAddress())) / BigInt(1e18)
+      // );
+
+      // console.log("debt", (await ccflPool.getDebtPool()) / BigInt(1e18));
+      // console.log("rate", await ccflPool.getCurrentRate());
+      await time.increase(300 * 24 * 3600);
+      // borrower
+      await link.connect(borrower1).approve(ccfl.getAddress(), BigInt(300e18));
+      await ccfl
+        .connect(borrower1)
+        .createLoan(
+          BigInt(80e18),
+          await usdc.getAddress(),
+          BigInt(300e18),
+          await link.getAddress(),
+          false,
+          false
+        );
+
+      await link.connect(borrower1).approve(ccfl.getAddress(), BigInt(200e18));
+      await ccfl
+        .connect(borrower1)
+        .createLoan(
+          BigInt(40e18),
+          await usdc.getAddress(),
+          BigInt(200e18),
+          await link.getAddress(),
+          false,
+          false
+        );
+    });
+
     it("Should get loan fund", async function () {
       const {
         usdc,
@@ -227,17 +316,17 @@ describe("CCFL system", function () {
         .approve(ccflPool.getAddress(), BigInt(10000e18));
       await ccflPool.connect(lender1).supply(BigInt(10000e18));
       await time.increase(30 * 24 * 3600);
-      console.log("remain", (await ccflPool.getRemainingPool()) / BigInt(1e18));
-      console.log(
-        "total supply",
-        (await ccflPool.getTotalSupply()) / BigInt(1e18)
-      );
-      console.log(
-        "coin in sc",
-        (await usdc.balanceOf(await ccflPool.getAddress())) / BigInt(1e18)
-      );
-      console.log("debt", (await ccflPool.getDebtPool()) / BigInt(1e18));
-      console.log("rate", await ccflPool.getCurrentRate());
+      // console.log("remain", (await ccflPool.getRemainingPool()) / BigInt(1e18));
+      // console.log(
+      //   "total supply",
+      //   (await ccflPool.getTotalSupply()) / BigInt(1e18)
+      // );
+      // console.log(
+      //   "coin in sc",
+      //   (await usdc.balanceOf(await ccflPool.getAddress())) / BigInt(1e18)
+      // );
+      // console.log("debt", (await ccflPool.getDebtPool()) / BigInt(1e18));
+      // console.log("rate", await ccflPool.getCurrentRate());
       // borrower
       await link.connect(borrower1).approve(ccfl.getAddress(), BigInt(1000e18));
       await ccfl
@@ -250,46 +339,46 @@ describe("CCFL system", function () {
           false,
           false
         );
-      console.log("remain", (await ccflPool.getRemainingPool()) / BigInt(1e18));
-      console.log(
-        "total supply",
-        (await ccflPool.getTotalSupply()) / BigInt(1e18)
-      );
-      console.log(
-        "coin in sc",
-        (await usdc.balanceOf(await ccflPool.getAddress())) / BigInt(1e18)
-      );
+      // console.log("remain", (await ccflPool.getRemainingPool()) / BigInt(1e18));
+      // console.log(
+      //   "total supply",
+      //   (await ccflPool.getTotalSupply()) / BigInt(1e18)
+      // );
+      // console.log(
+      //   "coin in sc",
+      //   (await usdc.balanceOf(await ccflPool.getAddress())) / BigInt(1e18)
+      // );
 
-      console.log("debt", (await ccflPool.getDebtPool()) / BigInt(1e18));
-      console.log("rate", await ccflPool.getCurrentRate());
+      // console.log("debt", (await ccflPool.getDebtPool()) / BigInt(1e18));
+      // console.log("rate", await ccflPool.getCurrentRate());
       await time.increase(300 * 24 * 3600);
-      console.log("remain", (await ccflPool.getRemainingPool()) / BigInt(1e18));
-      console.log(
-        "total supply",
-        (await ccflPool.getTotalSupply()) / BigInt(1e18)
-      );
-      console.log(
-        "coin in sc",
-        (await usdc.balanceOf(await ccflPool.getAddress())) / BigInt(1e18)
-      );
-      console.log("debt", (await ccflPool.getDebtPool()) / BigInt(1e18));
-      console.log("rate", await ccflPool.getCurrentRate());
+      // console.log("remain", (await ccflPool.getRemainingPool()) / BigInt(1e18));
+      // console.log(
+      //   "total supply",
+      //   (await ccflPool.getTotalSupply()) / BigInt(1e18)
+      // );
+      // console.log(
+      //   "coin in sc",
+      //   (await usdc.balanceOf(await ccflPool.getAddress())) / BigInt(1e18)
+      // );
+      // console.log("debt", (await ccflPool.getDebtPool()) / BigInt(1e18));
+      // console.log("rate", await ccflPool.getCurrentRate());
       // lender deposit USDC
       await usdc
         .connect(lender2)
         .approve(ccflPool.getAddress(), BigInt(20000e18));
       await ccflPool.connect(lender2).supply(BigInt(20000e18));
-      console.log("remain", (await ccflPool.getRemainingPool()) / BigInt(1e18));
-      console.log(
-        "total supply",
-        (await ccflPool.getTotalSupply()) / BigInt(1e18)
-      );
-      console.log(
-        "coin in sc",
-        (await usdc.balanceOf(await ccflPool.getAddress())) / BigInt(1e18)
-      );
-      console.log("debt", (await ccflPool.getDebtPool()) / BigInt(1e18));
-      console.log("rate", await ccflPool.getCurrentRate());
+      // console.log("remain", (await ccflPool.getRemainingPool()) / BigInt(1e18));
+      // console.log(
+      //   "total supply",
+      //   (await ccflPool.getTotalSupply()) / BigInt(1e18)
+      // );
+      // console.log(
+      //   "coin in sc",
+      //   (await usdc.balanceOf(await ccflPool.getAddress())) / BigInt(1e18)
+      // );
+      // console.log("debt", (await ccflPool.getDebtPool()) / BigInt(1e18));
+      // console.log("rate", await ccflPool.getCurrentRate());
       await time.increase(90 * 24 * 3600);
       // borrower
       await link.connect(borrower2).approve(ccfl.getAddress(), BigInt(1000e18));
@@ -304,34 +393,34 @@ describe("CCFL system", function () {
           false
         );
       await time.increase(180 * 24 * 3600);
-      console.log("remain", (await ccflPool.getRemainingPool()) / BigInt(1e18));
-      console.log(
-        "total supply",
-        (await ccflPool.getTotalSupply()) / BigInt(1e18)
-      );
-      console.log(
-        "coin in sc",
-        (await usdc.balanceOf(await ccflPool.getAddress())) / BigInt(1e18)
-      );
-      console.log("debt", (await ccflPool.getDebtPool()) / BigInt(1e18));
-      console.log("rate", await ccflPool.getCurrentRate());
+      // console.log("remain", (await ccflPool.getRemainingPool()) / BigInt(1e18));
+      // console.log(
+      //   "total supply",
+      //   (await ccflPool.getTotalSupply()) / BigInt(1e18)
+      // );
+      // console.log(
+      //   "coin in sc",
+      //   (await usdc.balanceOf(await ccflPool.getAddress())) / BigInt(1e18)
+      // );
+      // console.log("debt", (await ccflPool.getDebtPool()) / BigInt(1e18));
+      // console.log("rate", await ccflPool.getCurrentRate());
       await ccfl
         .connect(borrower1)
         .withdrawLoan(await usdc.getAddress(), BigInt(1));
       expect(BigInt(await usdc.balanceOf(borrower1)).toString()).to.eq(
         BigInt(2000e18)
       );
-      console.log("remain", (await ccflPool.getRemainingPool()) / BigInt(1e18));
-      console.log(
-        "total supply",
-        (await ccflPool.getTotalSupply()) / BigInt(1e18)
-      );
-      console.log(
-        "coin in sc",
-        (await usdc.balanceOf(await ccflPool.getAddress())) / BigInt(1e18)
-      );
-      console.log("debt", (await ccflPool.getDebtPool()) / BigInt(1e18));
-      console.log("rate", await ccflPool.getCurrentRate());
+      // console.log("remain", (await ccflPool.getRemainingPool()) / BigInt(1e18));
+      // console.log(
+      //   "total supply",
+      //   (await ccflPool.getTotalSupply()) / BigInt(1e18)
+      // );
+      // console.log(
+      //   "coin in sc",
+      //   (await usdc.balanceOf(await ccflPool.getAddress())) / BigInt(1e18)
+      // );
+      // console.log("debt", (await ccflPool.getDebtPool()) / BigInt(1e18));
+      // console.log("rate", await ccflPool.getCurrentRate());
       // borrower
       await usdc.connect(borrower1).approve(ccfl.getAddress(), BigInt(10e18));
       await time.increase(30 * 24 * 3600);
@@ -340,17 +429,17 @@ describe("CCFL system", function () {
       await ccfl
         .connect(borrower1)
         .repayLoan(1, BigInt(2000e18), await usdc.getAddress());
-      console.log("remain", (await ccflPool.getRemainingPool()) / BigInt(1e18));
-      console.log(
-        "total supply",
-        (await ccflPool.getTotalSupply()) / BigInt(1e18)
-      );
-      console.log(
-        "coin in sc",
-        (await usdc.balanceOf(await ccflPool.getAddress())) / BigInt(1e18)
-      );
-      console.log("debt", (await ccflPool.getDebtPool()) / BigInt(1e18));
-      console.log("rate", await ccflPool.getCurrentRate());
+      // console.log("remain", (await ccflPool.getRemainingPool()) / BigInt(1e18));
+      // console.log(
+      //   "total supply",
+      //   (await ccflPool.getTotalSupply()) / BigInt(1e18)
+      // );
+      // console.log(
+      //   "coin in sc",
+      //   (await usdc.balanceOf(await ccflPool.getAddress())) / BigInt(1e18)
+      // );
+      // console.log("debt", (await ccflPool.getDebtPool()) / BigInt(1e18));
+      // console.log("rate", await ccflPool.getCurrentRate());
       await ccfl.connect(borrower1).withdrawAllCollateral(BigInt(1), false);
     });
 
