@@ -31,11 +31,20 @@ describe("CCFL system", function () {
     const USDC = await hre.ethers.getContractFactory("MyERC20");
     const usdc = await USDC.deploy("USDC", "USDC");
 
+    const USDT = await hre.ethers.getContractFactory("MyERC20");
+    const usdt = await USDT.deploy("USDT", "USDT");
+
     const LINK = await hre.ethers.getContractFactory("MyERC20");
     const link = await LINK.deploy("LINK", "LINK");
 
+    const WBTC = await hre.ethers.getContractFactory("MyERC20");
+    const wBTC = await WBTC.deploy("WBTC", "WBTC");
+
     const ATOKEN = await hre.ethers.getContractFactory("MyERC20");
     const aToken = await ATOKEN.deploy("ATOKEN", "ATOKEN");
+
+    const AWBTC = await hre.ethers.getContractFactory("MyERC20");
+    const aWBTC = await AWBTC.deploy("AWBTC", "AWBTC");
 
     const DefaultReserveInterestRateStrategy =
       await hre.ethers.getContractFactory("DefaultReserveInterestRateStrategy");
@@ -66,10 +75,30 @@ describe("CCFL system", function () {
       await ccflPool.getAddress()
     );
 
-    const MockAggr = await hre.ethers.getContractFactory("MockAggregator");
-    const mockAggr = await MockAggr.deploy();
+    const CCFLPool2 = await hre.ethers.getContractFactory("CCFLPool");
+    const ccflPool2 = await hre.upgrades.deployProxy(
+      CCFLPool2,
+      [
+        await usdt.getAddress(),
+        await defaultReserveInterestRateStrategy.getAddress(),
+      ],
+      { initializer: "initialize" }
+    );
 
-    await mockAggr.setPrice(1e8);
+    const MockAggrUSDC = await hre.ethers.getContractFactory("MockAggregator");
+    const mockAggrUSDC = await MockAggrUSDC.deploy();
+
+    await mockAggrUSDC.setPrice(1e8);
+
+    const MockAggrUSDT = await hre.ethers.getContractFactory("MockAggregator");
+    const mockAggrUSDT = await MockAggrUSDT.deploy();
+
+    await mockAggrUSDT.setPrice(1.1e8);
+
+    const MockAggrWBTC = await hre.ethers.getContractFactory("MockAggregator");
+    const mockAggrWBTC = await MockAggrWBTC.deploy();
+
+    await mockAggrWBTC.setPrice(60000e8);
 
     const MockAggr2 = await hre.ethers.getContractFactory("MockAggregator");
     const mockAggr2 = await MockAggr2.deploy();
@@ -87,6 +116,22 @@ describe("CCFL system", function () {
       await mockAavePool.getAddress()
     );
 
+    const MockSwapWBTC = await hre.ethers.getContractFactory("MockSwapRouter");
+    const mockSwapWBTC = await MockSwapWBTC.deploy();
+
+    const MockAavePoolWBTC = await hre.ethers.getContractFactory(
+      "MockAavePool"
+    );
+    const mockAavePoolWBTC = await MockAavePoolWBTC.deploy();
+
+    const MockPoolAddressesProviderWBTC = await hre.ethers.getContractFactory(
+      "MockPoolAddressesProvider"
+    );
+    const mockPoolAddressesProviderWBTC =
+      await MockPoolAddressesProviderWBTC.deploy(
+        await mockAavePoolWBTC.getAddress()
+      );
+
     const CCFLLoan = await hre.ethers.getContractFactory("CCFLLoan");
     const ccflLoan = await CCFLLoan.deploy();
 
@@ -95,7 +140,7 @@ describe("CCFL system", function () {
       CCFL,
       [
         [await usdc.getAddress()],
-        [await mockAggr.getAddress()],
+        [await mockAggrUSDC.getAddress()],
         [await ccflPool.getAddress()],
         [await link.getAddress()],
         [await mockAggr2.getAddress()],
@@ -113,6 +158,23 @@ describe("CCFL system", function () {
     await ccfl.setPlatformAddress(liquidator, platform);
     await ccflPool.setCCFL(await ccfl.getAddress());
     await ccfl.setSwapRouter(await mockSwap.getAddress());
+
+    await ccfl.setPools(
+      [await usdt.getAddress()],
+      [await mockAggrUSDT.getAddress()],
+      [await ccflPool2.getAddress()]
+    );
+
+    await ccfl.setCollaterals(
+      [await wBTC.getAddress()],
+      [await mockAggrWBTC.getAddress()],
+      [await aWBTC.getAddress()],
+      [await mockPoolAddressesProviderWBTC.getAddress()]
+    );
+
+    await ccfl.setActiveToken(await usdt.getAddress(), true, true);
+    await ccfl.setActiveToken(await link.getAddress(), true, false);
+    await ccfl.setThreshold(7000, 7500);
 
     await link.transfer(borrower1, BigInt(10000e18));
     await link.transfer(borrower2, BigInt(20000e18));
@@ -138,7 +200,7 @@ describe("CCFL system", function () {
       lender1,
       lender2,
       lender3,
-      mockAggr,
+      mockAggrUSDC,
       aToken,
       mockAggr2,
     };
