@@ -129,9 +129,9 @@ describe("CCFL contract", function () {
     await usdc.transfer(lender2, BigInt(20000e18));
     await usdc.transfer(lender3, BigInt(30000e18));
 
-    // await usdc.transfer(borrower1, BigInt(1000e18));
-    // await usdc.transfer(borrower2, BigInt(2000e18));
-    // await usdc.transfer(borrower3, BigInt(3000e18));
+    await usdc.transfer(borrower1, BigInt(1000e18));
+    await usdc.transfer(borrower2, BigInt(2000e18));
+    await usdc.transfer(borrower3, BigInt(3000e18));
 
     return {
       usdc,
@@ -242,6 +242,8 @@ describe("CCFL contract", function () {
           true,
           false
         );
+
+      expect(await ccfl.loandIds()).to.equal(2);
     });
 
     it("Should create loan successfully without yield generating", async () => {
@@ -276,6 +278,8 @@ describe("CCFL contract", function () {
           false,
           false
         );
+
+      expect(await ccfl.loandIds()).to.equal(2);
     });
 
     it("Should fail to create loan if insufficient collateral", async () => {
@@ -350,7 +354,7 @@ describe("CCFL contract", function () {
         .withdrawLoan(await usdc.getAddress(), BigInt(1));
 
       expect(BigInt(await usdc.balanceOf(borrower1)).toString()).to.eq(
-        BigInt(1000e18));
+        BigInt(2000e18));
     });
 
     it("Should add collateral successfully", async () => {
@@ -387,6 +391,8 @@ describe("CCFL contract", function () {
         );
 
       await ccfl.connect(borrower1).addCollateral(BigInt(1), BigInt(500e18), await link.getAddress(), false);
+
+      expect(await link.balanceOf(await ccfl.getLoanAddress(1))).to.equal(BigInt(1500e18));
     });
 
     it("Should repay loan succesfully", async () => {
@@ -426,11 +432,13 @@ describe("CCFL contract", function () {
         .connect(borrower1)
         .withdrawLoan(await usdc.getAddress(), BigInt(1));
 
-      await usdc.connect(borrower1).approve(ccfl.getAddress(), BigInt(1000e18));
+      await usdc.connect(borrower1).approve(ccfl.getAddress(), BigInt(1100e18));
 
       await ccfl
         .connect(borrower1)
-        .repayLoan(1, BigInt(1000e18), await usdc.getAddress());
+        .repayLoan(1, BigInt(1100e18), await usdc.getAddress());
+
+      expect(await usdc.balanceOf(await borrower1.getAddress())).to.lt(BigInt(1000e18));
     });
 
     it("Should withdraw all collateral successfully", async () => {
@@ -470,16 +478,18 @@ describe("CCFL contract", function () {
         .connect(borrower1)
         .withdrawLoan(await usdc.getAddress(), BigInt(1));
 
-      await usdc.connect(borrower1).approve(ccfl.getAddress(), BigInt(1000e18));
+      await usdc.connect(borrower1).approve(ccfl.getAddress(), BigInt(1100e18));
 
       await ccfl
         .connect(borrower1)
-        .repayLoan(1, BigInt(1000e18), await usdc.getAddress());
+        .repayLoan(1, BigInt(1100e18), await usdc.getAddress());
 
-      const check = await ccflPool.connect(borrower1).getCurrentLoan(1);
-      console.log('check: ', check);
+      // const check = await ccflPool.connect(borrower1).getCurrentLoan(1);
+      // console.log('check: ', check);
 
       await ccfl.connect(borrower1).withdrawAllCollateral(1, false);
+
+      expect(await link.balanceOf(await borrower1.getAddress())).to.equal(BigInt(10000e18));
     });
 
     it("Should liquidate loan successfully", async () => {
@@ -500,6 +510,10 @@ describe("CCFL contract", function () {
         aToken,
         mockAggr2,
       } = await loadFixture(deployFixture);
+
+      // let usdcAmount0 = await usdc.balanceOf(borrower1.getAddress());
+      // let linkAmount0 = await link.balanceOf(borrower1.getAddress());
+      // console.log('before: ', usdcAmount0, linkAmount0);
 
       // lender deposit USDC
       await usdc
@@ -525,11 +539,11 @@ describe("CCFL contract", function () {
         .withdrawLoan(await usdc.getAddress(), BigInt(1));
 
       expect(BigInt(await usdc.balanceOf(borrower1)).toString()).to.eq(
-        BigInt(1000e18)
+        BigInt(2000e18)
       );
       await mockAggr2.setPrice(BigInt(999999));
 
-      // expect(await ccfl.getHealthFactor(BigInt(1))).to.lessThan(100);
+      expect(await ccfl.getHealthFactor(BigInt(1))).to.lessThan(100);
 
       await aToken.transfer(
         await ccfl.getLoanAddress(BigInt(1)),
@@ -540,6 +554,13 @@ describe("CCFL contract", function () {
       let loanAddr = await ccfl.getLoanAddress(BigInt(1));
       await usdc.transfer(loanAddr, BigInt(1200e18));
       await ccfl.liquidate(BigInt(1));
+
+      let usdcAmount = await usdc.balanceOf(borrower1.getAddress());
+      let linkAmount = await link.balanceOf(borrower1.getAddress());
+      // console.log('after: ', usdcAmount, linkAmount);
+
+      expect(usdcAmount).to.equal(BigInt(2000e18));
+      expect(linkAmount).to.lt(BigInt(10000e18));
     });
   });
 
@@ -563,19 +584,18 @@ describe("CCFL contract", function () {
         mockAggr2,
       } = await loadFixture(deployFixture);
 
-      const check = await ccfl
+      const minimal = await ccfl
         .getMinimalCollateral(
           BigInt(1000e18),
           await usdc.getAddress(),
           await link.getAddress()
         );
 
-      console.log('minimal: ', check);
+      expect(minimal).to.gt(BigInt(0));
     });
 
     it("Should get the latest price", async () => {
       // TODO: test method getLatestPrice()
-
       const {
         usdc,
         link,
@@ -639,7 +659,7 @@ describe("CCFL contract", function () {
         .withdrawLoan(await usdc.getAddress(), BigInt(1));
 
       const healthFactor = await ccfl.getHealthFactor(1);
-      console.log('healthFactor: ', healthFactor);
+      // console.log('healthFactor: ', healthFactor);
 
       expect(healthFactor).to.gt(BigInt(100));
     });
@@ -684,7 +704,7 @@ describe("CCFL contract", function () {
         .connect(borrower1)
         .withdrawLoan(await usdc.getAddress(), BigInt(1));
 
-      await ccfl.getLoanAddress(1);
+      expect(await ccfl.getLoanAddress(1)).to.not.eq("");
     });
   })
 });
