@@ -287,6 +287,7 @@ describe("CCFL system", function () {
       );
       console.log("debt", (await ccflPool.getDebtPool()) / BigInt(1e18));
       console.log("rate", await ccflPool.getCurrentRate());
+      await ccfl.connect(borrower1).withdrawAllCollateral(BigInt(1), false);
     });
 
     it("Should get back collateral", async function () {
@@ -331,6 +332,14 @@ describe("CCFL system", function () {
         BigInt(2000e18)
       );
 
+      await ccfl
+        .connect(borrower1)
+        .addCollateral(
+          BigInt(1),
+          BigInt(100e18),
+          await link.getAddress(),
+          false
+        );
       // borrower return monthly payment
       await usdc.connect(borrower1).approve(ccfl.getAddress(), BigInt(10e18));
       await time.increase(30 * 24 * 3600);

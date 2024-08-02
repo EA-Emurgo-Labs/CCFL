@@ -93,4 +93,6 @@ interface ICCFL {
         IERC20Standard _stableCoin,
         IERC20Standard _collateral
     ) external view returns (uint);
+
+    function withdrawAllCollateral(uint _loanId, bool isETH) external;
 }
