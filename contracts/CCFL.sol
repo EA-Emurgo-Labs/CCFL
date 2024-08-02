@@ -17,8 +17,12 @@ contract CCFL is ICCFL, Initializable {
     ICCFLLoan ccflLoan;
     mapping(uint => ICCFLLoan) loans;
 
+    mapping(IERC20Standard => bool) public ccflActivePoolStableCoins;
+
     // init for clone loan sc
     IERC20Standard[] public collateralTokens;
+    mapping(IERC20Standard => bool) public ccflActiveCollaterals;
+
     mapping(IERC20Standard => IPoolAddressesProvider)
         public aaveAddressProviders;
     mapping(IERC20Standard => IERC20Standard) public aTokens;
@@ -42,18 +46,36 @@ contract CCFL is ICCFL, Initializable {
         _;
     }
 
-    // modifier supportedToken(IERC20Standard _tokenAddress) {
-    //     bool isValid = false;
-    //     // check _tokenAddress is valid
-    //     for (uint i = 0; i < collateralTokens.length; i++) {
-    //         if (collateralTokens[i] == _tokenAddress) {
-    //             isValid = true;
-    //             break;
-    //         }
-    //     }
-    //     require(isValid == true, "Smart contract does not support this token");
-    //     _;
-    // }
+    modifier supportedPoolToken(IERC20Standard _tokenAddress) {
+        require(
+            ccflActivePoolStableCoins[_tokenAddress] == true,
+            "Pool token is not actived"
+        );
+        _;
+    }
+
+    modifier supportedCollateralToken(IERC20Standard _tokenAddress) {
+        require(
+            ccflActiveCollaterals[_tokenAddress] == true,
+            "Collateral token is not actived"
+        );
+        _;
+    }
+
+    function checkExistElement(
+        IERC20Standard[] memory array,
+        IERC20Standard el
+    ) public pure returns (bool) {
+        bool isExist = false;
+        // check _tokenAddress is valid
+        for (uint i = 0; i < array.length; i++) {
+            if (array[i] == el) {
+                isExist = true;
+                break;
+            }
+        }
+        return isExist;
+    }
 
     function initialize(
         IERC20Standard[] memory _ccflPoolStableCoin,
@@ -73,6 +95,7 @@ contract CCFL is ICCFL, Initializable {
             IERC20Standard token = ccflPoolStableCoins[i];
             ccflPools[token] = _ccflPools[i];
             pricePoolFeeds[token] = _poolAggregators[i];
+            ccflActivePoolStableCoins[token] = true;
         }
         collateralTokens = _collateralTokens;
         for (uint i = 0; i < collateralTokens.length; i++) {
@@ -80,11 +103,64 @@ contract CCFL is ICCFL, Initializable {
             priceFeeds[token] = _collateralAggregators[i];
             aTokens[token] = _aTokens[i];
             aaveAddressProviders[token] = _aaveAddressProviders[i];
+            ccflActiveCollaterals[token] = true;
         }
         ccflLoan = _ccflLoan;
         maxLTV = _maxLTV;
         liquidationThreshold = _liquidationThreshold;
         owner = msg.sender;
+    }
+
+    function setPools(
+        IERC20Standard[] memory _ccflPoolStableCoin,
+        AggregatorV3Interface[] memory _poolAggregators,
+        ICCFLPool[] memory _ccflPools
+    ) public {
+        for (uint i = 0; i < _ccflPoolStableCoin.length; i++) {
+            IERC20Standard token = _ccflPoolStableCoin[i];
+            if (checkExistElement(ccflPoolStableCoins, token) == false)
+                ccflPoolStableCoins.push(token);
+            ccflPools[token] = _ccflPools[i];
+            pricePoolFeeds[token] = _poolAggregators[i];
+            ccflActivePoolStableCoins[token] = true;
+        }
+    }
+
+    function setCollaterals(
+        IERC20Standard[] memory _collateralTokens,
+        AggregatorV3Interface[] memory _collateralAggregators,
+        IERC20Standard[] memory _aTokens,
+        IPoolAddressesProvider[] memory _aaveAddressProviders
+    ) public {
+        for (uint i = 0; i < _collateralTokens.length; i++) {
+            IERC20Standard token = _collateralTokens[i];
+            if (checkExistElement(collateralTokens, token) == false)
+                collateralTokens.push(token);
+            priceFeeds[token] = _collateralAggregators[i];
+            aTokens[token] = _aTokens[i];
+            aaveAddressProviders[token] = _aaveAddressProviders[i];
+            ccflActiveCollaterals[token] = true;
+        }
+    }
+
+    function setActiveToken(
+        IERC20Standard _token,
+        bool _isActived,
+        bool _isPoolToken
+    ) public {
+        if (_isPoolToken) {
+            require(
+                checkExistElement(ccflPoolStableCoins, _token) == true,
+                "Token is not existed"
+            );
+            ccflActiveCollaterals[_token] = _isActived;
+        } else {
+            require(
+                checkExistElement(collateralTokens, _token) == true,
+                "Token is not existed"
+            );
+            ccflActivePoolStableCoins[_token] = _isActived;
+        }
     }
 
     function setPenalty(
@@ -142,7 +218,12 @@ contract CCFL is ICCFL, Initializable {
         IERC20Standard _collateral,
         bool _isYieldGenerating,
         bool _isETH
-    ) public payable {
+    )
+        public
+        payable
+        supportedPoolToken(_stableCoin)
+        supportedCollateralToken(_collateral)
+    {
         if (_isETH) {
             require(
                 _amountCollateral <= msg.value,
@@ -213,7 +294,7 @@ contract CCFL is ICCFL, Initializable {
         uint _amountCollateral,
         IERC20Standard _collateral,
         bool _isETH
-    ) public payable {
+    ) public payable supportedCollateralToken(_collateral) {
         if (_isETH) {
             require(
                 _amountCollateral <= msg.value,
@@ -241,7 +322,7 @@ contract CCFL is ICCFL, Initializable {
         uint _loanId,
         uint _amount,
         IERC20Standard _stableCoin
-    ) public {
+    ) public supportedPoolToken(_stableCoin) {
         // get back loan
         _stableCoin.transferFrom(msg.sender, address(this), _amount);
         // repay for pool
