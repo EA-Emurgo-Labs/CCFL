@@ -32,6 +32,11 @@ contract CCFL is ICCFL, Initializable {
     address public owner;
     IWETH public wETH;
 
+    // penalty / 1000
+    uint public penaltyPlatform;
+    uint public penaltyLiquidator;
+    uint public penaltyLender;
+
     modifier onlyOwner() {
         require(msg.sender == owner, "only the owner");
         _;
@@ -82,6 +87,16 @@ contract CCFL is ICCFL, Initializable {
         owner = msg.sender;
     }
 
+    function setPenalty(
+        uint _platform,
+        uint _liquidator,
+        uint _lender
+    ) public onlyOwner {
+        penaltyLender = _lender;
+        penaltyLiquidator = _liquidator;
+        penaltyPlatform = _platform;
+    }
+
     function setSwapRouter(ISwapRouter _swapRouter) public onlyOwner {
         swapRouter = _swapRouter;
     }
@@ -92,10 +107,10 @@ contract CCFL is ICCFL, Initializable {
 
     function setPlatformAddress(
         address _liquidator,
-        address _plaform
+        address _platform
     ) public onlyOwner {
         liquidator = _liquidator;
-        platform = _plaform;
+        platform = _platform;
     }
 
     // Modifier to check token allowance
@@ -292,12 +307,17 @@ contract CCFL is ICCFL, Initializable {
         uint curentDebt = ccflPools[loanInfo.stableCoin].getCurrentLoan(
             _loanId
         );
-        loan.liquidate(curentDebt);
+        loan.liquidate(
+            curentDebt,
+            penaltyLender + penaltyLiquidator + penaltyPlatform
+        );
         // get back loan
         loanInfo.stableCoin.transferFrom(
             address(loan),
             address(this),
-            (curentDebt * 102) / 100
+            (curentDebt *
+                (1000 + penaltyLender + penaltyLiquidator + penaltyPlatform)) /
+                1000
         );
         // repay for pool
         loanInfo.stableCoin.approve(
@@ -307,15 +327,22 @@ contract CCFL is ICCFL, Initializable {
         ccflPools[loanInfo.stableCoin].repay(_loanId, curentDebt);
         // update collateral balance and get back collateral
 
-        loanInfo.stableCoin.transfer(platform, (curentDebt * 5) / 1000);
-        loanInfo.stableCoin.transfer(liquidator, (curentDebt * 10) / 1000);
+        loanInfo.stableCoin.transfer(
+            platform,
+            (curentDebt * penaltyPlatform) / 1000
+        );
+        loanInfo.stableCoin.transfer(
+            liquidator,
+            (curentDebt * penaltyLiquidator) / 1000
+        );
         // penalty for pool
-        uint fundForLender = (curentDebt * 102) /
-            100 -
-            curentDebt -
-            (curentDebt * 5) /
+        uint fundForLender = (curentDebt *
+            (1000 + penaltyLender + penaltyLiquidator + penaltyPlatform)) /
             1000 -
-            (curentDebt * 10) /
+            curentDebt -
+            (curentDebt * penaltyPlatform) /
+            1000 -
+            (curentDebt * penaltyLiquidator) /
             1000;
 
         loanInfo.stableCoin.approve(

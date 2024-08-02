@@ -5,6 +5,7 @@ import {
 import { expect } from "chai";
 import hre from "hardhat";
 import { assert, parseUnits } from "ethers";
+import { bigint } from "hardhat/internal/core/params/argumentTypes";
 
 describe("CCFL system", function () {
   // We define a fixture to reuse the same setup in every test.
@@ -107,6 +108,7 @@ describe("CCFL system", function () {
       { initializer: "initialize" }
     );
     await ccfl.setWETH(await wETH9.getAddress());
+    await ccfl.setPenalty(BigInt(5), BigInt(10), BigInt(5));
 
     await ccfl.setPlatformAddress(liquidator, platform);
     await ccflPool.setCCFL(await ccfl.getAddress());
@@ -317,7 +319,7 @@ describe("CCFL system", function () {
         .createLoan(
           BigInt(1000e18),
           await usdc.getAddress(),
-          BigInt(1000e18),
+          BigInt(900e18),
           await link.getAddress(),
           false,
           false
