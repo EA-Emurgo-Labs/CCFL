@@ -82,6 +82,11 @@ describe("CCFL contract", function () {
 
     await mockAggr2.setPrice(2e8);
 
+    const MockAggr3 = await hre.ethers.getContractFactory("MockAggregator");
+    const mockAggr3 = await MockAggr3.deploy();
+
+    await mockAggr3.setPrice(2e8);
+
     const MockSwap = await hre.ethers.getContractFactory("MockSwapRouter");
     mockSwap = await MockSwap.deploy();
 
@@ -105,10 +110,10 @@ describe("CCFL contract", function () {
         [await usdc.getAddress()],
         [await mockAggr.getAddress()],
         [await ccflPool.getAddress()],
-        [await link.getAddress()],
-        [await mockAggr2.getAddress()],
-        [await aToken.getAddress()],
-        [await mockPoolAddressesProvider.getAddress()],
+        [await link.getAddress(), await wETH9.getAddress()],
+        [await mockAggr2.getAddress(), await mockAggr3.getAddress()],
+        [await aToken.getAddress(), await aToken.getAddress()],
+        [await mockPoolAddressesProvider.getAddress(), await mockPoolAddressesProvider.getAddress()],
         5000,
         8000,
         await ccflLoan.getAddress(),
@@ -125,6 +130,11 @@ describe("CCFL contract", function () {
     await link.transfer(borrower2, BigInt(20000e18));
     await link.transfer(borrower3, BigInt(30000e18));
 
+    await wETH9.deposit({ value: BigInt(6500e18) })
+    await wETH9.transfer(borrower1, BigInt(1500e18));
+    await wETH9.transfer(borrower2, BigInt(2000e18));
+    await wETH9.transfer(borrower3, BigInt(3000e18));
+
     await usdc.transfer(lender1, BigInt(10000e18));
     await usdc.transfer(lender2, BigInt(20000e18));
     await usdc.transfer(lender3, BigInt(30000e18));
@@ -136,6 +146,7 @@ describe("CCFL contract", function () {
     return {
       usdc,
       link,
+      wETH9,
       ccflPool,
       ccfl,
       owner,
@@ -148,6 +159,7 @@ describe("CCFL contract", function () {
       mockAggr,
       aToken,
       mockAggr2,
+      mockAggr3
     };
   }
 
@@ -156,6 +168,7 @@ describe("CCFL contract", function () {
       const {
         usdc,
         link,
+        wETH9,
         ccflPool,
         ccfl,
         owner,
@@ -175,6 +188,7 @@ describe("CCFL contract", function () {
       const {
         usdc,
         link,
+        wETH9,
         ccflPool,
         ccfl,
         owner,
@@ -194,6 +208,7 @@ describe("CCFL contract", function () {
       const {
         usdc,
         link,
+        wETH9,
         ccflPool,
         ccfl,
         owner,
@@ -209,12 +224,17 @@ describe("CCFL contract", function () {
     });
   });
 
-  describe("Loan Functionality", () => {
+  describe("Lender Functionality", () => {
+
+  });
+
+  describe("Borrower Functionality", () => {
     it("Should create loan successfully with yield generating", async () => {
       // TODO: test method createLoan()
       const {
         usdc,
         link,
+        wETH9,
         ccflPool,
         ccfl,
         owner,
@@ -251,6 +271,7 @@ describe("CCFL contract", function () {
       const {
         usdc,
         link,
+        wETH9,
         ccflPool,
         ccfl,
         owner,
@@ -282,11 +303,50 @@ describe("CCFL contract", function () {
       expect(await ccfl.loandIds()).to.equal(2);
     });
 
+    it("Should create loan successfully with collateral is ETH", async () => {
+       // TODO: test method createLoan()
+      const {
+        usdc,
+        link,
+        wETH9,
+        ccflPool,
+        ccfl,
+        owner,
+        borrower1,
+        borrower2,
+        borrower3,
+        lender1,
+        lender2,
+        lender3,
+      } = await loadFixture(deployFixture);
+
+      await usdc
+        .connect(lender1)
+        .approve(ccflPool.getAddress(), BigInt(10000e18));
+      await ccflPool.connect(lender1).supply(BigInt(10000e18));
+
+      await wETH9.connect(borrower1).approve(ccfl.getAddress(), BigInt(1000e18));
+      await ccfl
+        .connect(borrower1)
+        .createLoan(
+          BigInt(1000e18),
+          await usdc.getAddress(),
+          BigInt(1000e18),
+          await wETH9.getAddress(),
+          false,
+          true,
+          { value: BigInt(1000e18) }
+        );
+
+      expect(await ccfl.loandIds()).to.equal(2);
+    });
+
     it("Should fail to create loan if insufficient collateral", async () => {
       // TODO: test method createLoan()
       const {
         usdc,
         link,
+        wETH9,
         ccflPool,
         ccfl,
         owner,
@@ -321,6 +381,7 @@ describe("CCFL contract", function () {
       const {
         usdc,
         link,
+        wETH9,
         ccflPool,
         ccfl,
         owner,
@@ -362,6 +423,7 @@ describe("CCFL contract", function () {
       const {
         usdc,
         link,
+        wETH9,
         ccflPool,
         ccfl,
         owner,
@@ -395,11 +457,56 @@ describe("CCFL contract", function () {
       expect(await link.balanceOf(await ccfl.getLoanAddress(1))).to.equal(BigInt(1500e18));
     });
 
+    it("Should add collateral (ETH) successfully", async () => {
+      // TODO: test method addCollateral()
+      const {
+        usdc,
+        link,
+        wETH9,
+        ccflPool,
+        ccfl,
+        owner,
+        borrower1,
+        borrower2,
+        borrower3,
+        lender1,
+        lender2,
+        lender3,
+      } = await loadFixture(deployFixture);
+
+      await usdc
+        .connect(lender1)
+        .approve(ccflPool.getAddress(), BigInt(10000e18));
+      await ccflPool.connect(lender1).supply(BigInt(10000e18));
+
+      await wETH9.connect(borrower1).approve(ccfl.getAddress(), BigInt(1500e18));
+      await ccfl
+        .connect(borrower1)
+        .createLoan(
+          BigInt(1000e18),
+          await usdc.getAddress(),
+          BigInt(1000e18),
+          await wETH9.getAddress(),
+          false,
+          true,
+          { value: BigInt(1000e18) }
+        );
+
+      await ccfl
+        .connect(borrower1)
+        .addCollateral(
+          BigInt(1), BigInt(500e18), await wETH9.getAddress(), true, { value: BigInt(500e18) }
+        );
+
+      expect(await wETH9.balanceOf(await ccfl.getLoanAddress(1))).to.equal(BigInt(1500e18));
+    });
+
     it("Should repay loan succesfully", async () => {
       // TODO: test method repayLoan()
       const {
         usdc,
         link,
+        wETH9,
         ccflPool,
         ccfl,
         owner,
@@ -446,6 +553,7 @@ describe("CCFL contract", function () {
       const {
         usdc,
         link,
+        wETH9,
         ccflPool,
         ccfl,
         owner,
@@ -497,6 +605,7 @@ describe("CCFL contract", function () {
       const {
         usdc,
         link,
+        wETH9,
         ccflPool,
         ccfl,
         owner,
@@ -570,6 +679,7 @@ describe("CCFL contract", function () {
       const {
         usdc,
         link,
+        wETH9,
         ccflPool,
         ccfl,
         owner,
@@ -599,6 +709,7 @@ describe("CCFL contract", function () {
       const {
         usdc,
         link,
+        wETH9,
         ccflPool,
         ccfl,
         owner,
@@ -623,6 +734,7 @@ describe("CCFL contract", function () {
       const {
         usdc,
         link,
+        wETH9,
         ccflPool,
         ccfl,
         owner,
@@ -669,6 +781,7 @@ describe("CCFL contract", function () {
       const {
         usdc,
         link,
+        wETH9,
         ccflPool,
         ccfl,
         owner,
@@ -706,5 +819,5 @@ describe("CCFL contract", function () {
 
       expect(await ccfl.getLoanAddress(1)).to.not.eq("");
     });
-  })
+  });
 });
