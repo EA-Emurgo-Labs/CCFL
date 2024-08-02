@@ -63,15 +63,6 @@ describe("CCFL contract", function () {
       { initializer: "initialize" }
     );
 
-    // console.log(
-    //   "pool implement",
-    //   await hre.upgrades.erc1967.getImplementationAddress(
-    //     await ccflPool.getAddress()
-    //   ),
-    //   "pool proxy",
-    //   await ccflPool.getAddress()
-    // );
-
     const MockAggr = await hre.ethers.getContractFactory("MockAggregator");
     const mockAggr = await MockAggr.deploy();
 
@@ -1065,30 +1056,30 @@ describe("CCFL contract", function () {
       expect(latestPrice).to.eq(1e8);
     });
 
-    // it("Should get the latest price of eth", async () => {
-    //   // TODO: test method getLatestPrice()
-    //   const {
-    //     usdc,
-    //     link,
-    //     wETH9,
-    //     ccflPool,
-    //     ccfl,
-    //     owner,
-    //     borrower1,
-    //     borrower2,
-    //     borrower3,
-    //     lender1,
-    //     lender2,
-    //     lender3,
-    //     mockAggr,
-    //     aToken,
-    //     mockAggr2,
-    //   } = await loadFixture(deployFixture);
+    it("Should get the latest price of eth", async () => {
+      // TODO: test method getLatestPrice()
+      const {
+        usdc,
+        link,
+        wETH9,
+        ccflPool,
+        ccfl,
+        owner,
+        borrower1,
+        borrower2,
+        borrower3,
+        lender1,
+        lender2,
+        lender3,
+        mockAggr,
+        aToken,
+        mockAggr2,
+      } = await loadFixture(deployFixture);
 
-    //   const latestPrice = await ccfl.getLatestPrice(await wETH9.getAddress(), false);
+      const latestPrice = await ccfl.getLatestPrice(await wETH9.getAddress(), false);
 
-    //   expect(latestPrice).to.eq(2e8);
-    // });
+      expect(latestPrice).to.eq(2e8);
+    });
 
     it("Should get health factor", async () => {
       // TODO: test method getHealthFactor()
