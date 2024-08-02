@@ -30,8 +30,8 @@ contract CCFLLoan is ICCFLLoan, Initializable {
     AggregatorV3Interface public pricePoolFeed;
 
     // ccfl sc
-    address ccfl;
-    address platform;
+    address public ccfl;
+    address public platform;
     IWETH public wETH;
 
     modifier onlyOwner() {
@@ -210,22 +210,25 @@ contract CCFLLoan is ICCFLLoan, Initializable {
         }
     }
 
-    function liquidate(uint currentDebt) public onlyOwner {
-        require(getHealthFactor(currentDebt) < 100, "Can not liquidate");
+    function liquidate(uint _currentDebt, uint _percent) public onlyOwner {
+        require(getHealthFactor(_currentDebt) < 100, "Can not liquidate");
         // get all collateral from aave
         if (isStakeAave) withdrawLiquidity();
 
         IERC20Standard token = collateralToken;
 
         swapTokenForUSD(
-            (currentDebt * 102) / 100,
+            (_currentDebt * (1000 + _percent)) / 1000,
             collateralToken.balanceOf(address(this)),
             initLoan.stableCoin,
             token
         );
 
         // close this loan
-        initLoan.stableCoin.approve(ccfl, (currentDebt * 102) / 100);
+        initLoan.stableCoin.approve(
+            ccfl,
+            (_currentDebt * (1000 + _percent)) / 1000
+        );
     }
 
     function updateCollateral(uint amount) external onlyOwner {

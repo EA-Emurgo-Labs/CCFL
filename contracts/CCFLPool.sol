@@ -104,7 +104,6 @@ contract CCFLPool is ICCFLPool, Initializable {
     function cache() internal view returns (DataTypes.ReserveCache memory) {
         DataTypes.ReserveCache memory reserveCache;
 
-        reserveCache.reserveConfiguration = reserve.configuration;
         reserveCache.currLiquidityIndex = reserveCache
             .nextLiquidityIndex = reserve.liquidityIndex;
         reserveCache.currVariableBorrowIndex = reserveCache
