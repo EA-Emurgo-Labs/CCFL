@@ -709,6 +709,12 @@ describe("CCFL system", function () {
         true,
         { value: parseUnits("2", 18).toString() }
       );
+
+      console.log(
+        await ccflPool.getTotalSupply(),
+        await ccflPool.getDebtPool(),
+        await ccflPool.getCurrentRate()
+      );
     });
   });
   describe("Liquidation", function () {
