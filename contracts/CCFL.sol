@@ -237,8 +237,7 @@ contract CCFL is ICCFL, Initializable {
                 _amountCollateral <= msg.value,
                 "do not have enough deposited ETH"
             );
-            wETH.deposit();
-            wETH.approve(address(this), _amountCollateral);
+            wETH.deposit{value: _amountCollateral}();
         }
         require(
             (_amountCollateral * getLatestPrice(_collateral, false) * maxLTV) /
@@ -288,11 +287,15 @@ contract CCFL is ICCFL, Initializable {
         // transfer collateral
         cloneSC.updateCollateral(_amountCollateral);
         // get from user to loan
-        _collateral.transferFrom(
-            msg.sender,
-            address(loanIns),
-            _amountCollateral
-        );
+        if (_isETH) {
+            _collateral.transfer(address(loanIns), _amountCollateral);
+        } else {
+            _collateral.transferFrom(
+                msg.sender,
+                address(loanIns),
+                _amountCollateral
+            );
+        }
         loans[loandIds] = cloneSC;
         loandIds++;
     }
@@ -308,14 +311,21 @@ contract CCFL is ICCFL, Initializable {
                 _amountCollateral <= msg.value,
                 "do not have enough deposited ETH"
             );
-            wETH.deposit();
-            wETH.approve(address(this), _amountCollateral);
+            wETH.deposit{value: _amountCollateral}();
         }
         ICCFLLoan loan = loans[_loanId];
         // transfer collateral
         loan.updateCollateral(_amountCollateral);
         // get from user to loan
-        _collateral.transferFrom(msg.sender, address(loan), _amountCollateral);
+        if (_isETH) {
+            _collateral.transfer(address(loan), _amountCollateral);
+        } else {
+            _collateral.transferFrom(
+                msg.sender,
+                address(loan),
+                _amountCollateral
+            );
+        }
     }
 
     // withdraw loan

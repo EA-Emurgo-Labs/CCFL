@@ -46,6 +46,9 @@ describe("CCFL system", function () {
     const AWBTC = await hre.ethers.getContractFactory("MyERC20");
     const aWBTC = await AWBTC.deploy("AWBTC", "AWBTC");
 
+    const AWETH = await hre.ethers.getContractFactory("MyERC20");
+    const aWETH = await AWETH.deploy("AWETH", "AWETH");
+
     const DefaultReserveInterestRateStrategy =
       await hre.ethers.getContractFactory("DefaultReserveInterestRateStrategy");
     const defaultReserveInterestRateStrategy =
@@ -107,6 +110,11 @@ describe("CCFL system", function () {
 
     await mockAggrWBTC.setPrice(60000e8);
 
+    const MockAggrWETH = await hre.ethers.getContractFactory("MockAggregator");
+    const mockAggrWETH = await MockAggrWETH.deploy();
+
+    await mockAggrWETH.setPrice(4000e8);
+
     const MockAggr2 = await hre.ethers.getContractFactory("MockAggregator");
     const mockAggr2 = await MockAggr2.deploy();
 
@@ -136,6 +144,14 @@ describe("CCFL system", function () {
     );
     const mockPoolAddressesProviderWBTC =
       await MockPoolAddressesProviderWBTC.deploy(
+        await mockAavePoolWBTC.getAddress()
+      );
+
+    const MockPoolAddressesProviderWETH = await hre.ethers.getContractFactory(
+      "MockPoolAddressesProvider"
+    );
+    const mockPoolAddressesProviderWETH =
+      await MockPoolAddressesProviderWETH.deploy(
         await mockAavePoolWBTC.getAddress()
       );
 
@@ -179,6 +195,13 @@ describe("CCFL system", function () {
       [await mockPoolAddressesProviderWBTC.getAddress()]
     );
 
+    await ccfl.setCollaterals(
+      [await wETH9.getAddress()],
+      [await mockAggrWETH.getAddress()],
+      [await aWETH.getAddress()],
+      [await mockPoolAddressesProviderWETH.getAddress()]
+    );
+
     await ccfl.setActiveToken(await usdt.getAddress(), true, true);
     await ccfl.setActiveToken(await link.getAddress(), true, false);
     await ccfl.setThreshold(7000, 7500);
@@ -210,6 +233,7 @@ describe("CCFL system", function () {
       mockAggrUSDC,
       aToken,
       mockAggr2,
+      wETH9,
     };
   }
 
@@ -608,32 +632,77 @@ describe("CCFL system", function () {
       await ccflPool.connect(lender1).supply(BigInt(5000e18));
     });
   });
-  describe("Earn", function () {
-    // it("Should get loan fund", async function () {
-    //   const {
-    //     usdc,
-    //     link,
-    //     ccflPool,
-    //     ccfl,
-    //     owner,
-    //     borrower1,
-    //     borrower2,
-    //     borrower3,
-    //     lender1,
-    //     lender2,
-    //     lender3,
-    //   } = await loadFixture(deployFixture);
-    //   // lender deposit USDC
-    //   await usdc
-    //     .connect(lender1)
-    //     .approve(ccflPool.getAddress(), BigInt(10000e18));
-    //   await ccflPool.connect(lender1).depositUsd(BigInt(10000e18));
-    //   // borrower lend
-    //   await link.connect(borrower1).approve(ccfl.getAddress(), BigInt(1000e18));
-    //   await ccfl
-    //     .connect(borrower1)
-    //     .depositCollateral(BigInt(1000e18), await link.getAddress());
-    // });
+  describe("ETH", function () {
+    it("Should get loan fund", async function () {
+      const {
+        usdc,
+        link,
+        ccflPool,
+        ccfl,
+        owner,
+        borrower1,
+        borrower2,
+        borrower3,
+        lender1,
+        lender2,
+        lender3,
+      } = await loadFixture(deployFixture);
+      // lender deposit USDC
+      await usdc
+        .connect(lender1)
+        .approve(ccflPool.getAddress(), BigInt(10000e18));
+      await ccflPool.connect(lender1).supply(BigInt(10000e18));
+      // borrower lend
+      await link.connect(borrower1).approve(ccfl.getAddress(), BigInt(1000e18));
+      await ccfl
+        .connect(borrower1)
+        .createLoan(
+          BigInt(950e18),
+          await usdc.getAddress(),
+          BigInt(500e18),
+          await link.getAddress(),
+          true,
+          false
+        );
+    });
+
+    it.only("Should get loan fund by ETH", async function () {
+      const {
+        usdc,
+        link,
+        ccflPool,
+        ccfl,
+        owner,
+        borrower1,
+        borrower2,
+        borrower3,
+        lender1,
+        lender2,
+        lender3,
+        mockAggrUSDC,
+        aToken,
+        mockAggr2,
+        wETH9,
+      } = await loadFixture(deployFixture);
+      // lender deposit USDC
+      await usdc
+        .connect(lender1)
+        .approve(ccflPool.getAddress(), BigInt(10000e18));
+      await ccflPool.connect(lender1).supply(BigInt(10000e18));
+      // borrower lend
+      // await link.connect(borrower1).approve(ccfl.getAddress(), BigInt(1000e18));
+      await ccfl
+        .connect(borrower1)
+        .createLoan(
+          BigInt(1000e18),
+          await usdc.getAddress(),
+          BigInt(5e18),
+          await wETH9.getAddress(),
+          true,
+          true,
+          { value: parseUnits("5", 18).toString() }
+        );
+    });
   });
   describe("Liquidation", function () {
     it("Good Health factor", async function () {
@@ -776,90 +845,4 @@ describe("CCFL system", function () {
       await ccfl.liquidate(BigInt(1));
     });
   });
-  // describe("Collateral", function () {
-  //   it("Should remove liquidity", async function () {
-  //     const {
-  //       usdc,
-  //       link,
-  //       ccflPool,
-  //       ccflStake,
-  //       ccfl,
-  //       owner,
-  //       borrower1,
-  //       borrower2,
-  //       borrower3,
-  //       lender1,
-  //       lender2,
-  //       lender3,
-  //       mockAggr,
-  //       aToken,
-  //     } = await loadFixture(deployFixture);
-  //     // lender deposit USDC
-  //     await usdc
-  //       .connect(lender1)
-  //       .approve(ccflPool.getAddress(), BigInt(10000e18));
-  //     await ccflPool.connect(lender1).depositUsdc(BigInt(10000e18));
-  //     // borrower lend
-  //     await link.connect(borrower1).approve(ccfl.getAddress(), BigInt(1000e18));
-  //     await ccfl.connect(borrower1).depositCollateral(BigInt(1000e18), 50);
-  //     expect(await ccfl.aaveStakeAddresses(borrower1)).to.not.equal("");
-  //     // console.log(await ccfl.aaveStakeAddresses(borrower1));
-  //     // return atoken
-  //     await aToken.transfer(
-  //       await ccfl.aaveStakeAddresses(borrower1),
-  //       BigInt(600e18)
-  //     );
-  //     // console.log(
-  //     //   await ccflStake.getBalanceAToken(
-  //     //     await ccfl.aaveStakeAddresses(borrower1)
-  //     //   )
-  //     // );
-  //     await ccfl.connect(borrower1).withdrawLiquidity();
-  //     await link.transfer(borrower1, BigInt(600e18));
-  //     expect(await ccfl.collateral(borrower1)).to.greaterThan(BigInt(600e18));
-  //   });
-
-  //   it("Should withdraw collateral", async function () {
-  //     const {
-  //       usdc,
-  //       link,
-  //       ccflPool,
-  //       ccflStake,
-  //       ccfl,
-  //       owner,
-  //       borrower1,
-  //       borrower2,
-  //       borrower3,
-  //       lender1,
-  //       lender2,
-  //       lender3,
-  //       mockAggr,
-  //       aToken,
-  //     } = await loadFixture(deployFixture);
-  //     // lender deposit USDC
-  //     await usdc
-  //       .connect(lender1)
-  //       .approve(ccflPool.getAddress(), BigInt(10000e18));
-  //     await ccflPool.connect(lender1).depositUsdc(BigInt(10000e18));
-  //     // borrower lend
-  //     await link.connect(borrower1).approve(ccfl.getAddress(), BigInt(1000e18));
-  //     await ccfl.connect(borrower1).depositCollateral(BigInt(1000e18), 50);
-  //     expect(await ccfl.aaveStakeAddresses(borrower1)).to.not.equal("");
-  //     // console.log(await ccfl.aaveStakeAddresses(borrower1));
-  //     // return atoken
-  //     await aToken.transfer(
-  //       await ccfl.aaveStakeAddresses(borrower1),
-  //       BigInt(60e18)
-  //     );
-  //     // console.log(
-  //     //   await ccflStake.getBalanceAToken(
-  //     //     await ccfl.aaveStakeAddresses(borrower1)
-  //     //   )
-  //     // );
-  //     await ccfl.connect(borrower1).withdrawLiquidity();
-  //     await link.transfer(borrower1, BigInt(60e18));
-  //     await ccfl.connect(borrower1).withdrawCollateral(BigInt(60e18));
-  //     expect(await ccfl.collateral(borrower1)).to.lessThan(BigInt(9070e18));
-  //   });
-  // });
 });
