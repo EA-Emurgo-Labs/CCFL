@@ -4,8 +4,7 @@ import {
 } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 import { expect } from "chai";
 import hre from "hardhat";
-import { assert, parseUnits } from "ethers";
-import { bigint } from "hardhat/internal/core/params/argumentTypes";
+import { parseUnits } from "ethers";
 
 describe("CCFL system", function () {
   // We define a fixture to reuse the same setup in every test.
@@ -666,7 +665,7 @@ describe("CCFL system", function () {
         );
     });
 
-    it.only("Should get loan fund by ETH", async function () {
+    it("Should get loan fund by ETH", async function () {
       const {
         usdc,
         link,
@@ -702,6 +701,14 @@ describe("CCFL system", function () {
           true,
           { value: parseUnits("5", 18).toString() }
         );
+
+      await ccfl.addCollateral(
+        BigInt(1),
+        BigInt(2e18),
+        await wETH9.getAddress(),
+        true,
+        { value: parseUnits("2", 18).toString() }
+      );
     });
   });
   describe("Liquidation", function () {
