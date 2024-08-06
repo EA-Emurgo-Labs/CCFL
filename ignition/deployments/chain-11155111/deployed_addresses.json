@@ -1,4 +1,7 @@
 {
   "LockModule#Lock": "0x37441434CB9d43BF8dB97165d2a66f7d61d722e5",
-  "DefaultReserveInterestRateStrategyModule#DefaultReserveInterestRateStrategy": "0x0c216272d22429205B6e82D3E7A3d7f0064A447c"
+  "DefaultReserveInterestRateStrategyModule#DefaultReserveInterestRateStrategy": "0x0c216272d22429205B6e82D3E7A3d7f0064A447c",
+  "ProxyCCFLPoolModule#CCFLPool": "0x85B85Aa3dAcdE3bcc1EDbFf6701aA0541162Abef",
+  "ProxyCCFLPoolModule#TransparentUpgradeableProxy": "0xA116811C722fD6588e230b11fbE49daB0aa6554E",
+  "ProxyCCFLPoolModule#ProxyAdmin": "0x98417112D6Bf61c2236D948259EE707319992847"
 }
