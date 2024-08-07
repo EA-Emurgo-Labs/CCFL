@@ -40,7 +40,7 @@ interface ICCFL {
         IERC20Standard[] memory _collateralTokens,
         AggregatorV3Interface[] memory _collateralAggregators,
         IERC20Standard[] memory _aTokens,
-        IPoolAddressesProvider[] memory _aaveAddressProviders,
+        IPoolAddressesProvider _aaveAddressProvider,
         uint _maxLTV,
         uint _liquidationThreshold,
         ICCFLLoan _ccflLoan

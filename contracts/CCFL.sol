@@ -23,8 +23,7 @@ contract CCFL is ICCFL, Initializable {
     IERC20Standard[] public collateralTokens;
     mapping(IERC20Standard => bool) public ccflActiveCollaterals;
 
-    mapping(IERC20Standard => IPoolAddressesProvider)
-        public aaveAddressProviders;
+    IPoolAddressesProvider public aaveAddressProvider;
     mapping(IERC20Standard => IERC20Standard) public aTokens;
     uint public maxLTV;
     uint public liquidationThreshold;
@@ -84,7 +83,7 @@ contract CCFL is ICCFL, Initializable {
         IERC20Standard[] memory _collateralTokens,
         AggregatorV3Interface[] memory _collateralAggregators,
         IERC20Standard[] memory _aTokens,
-        IPoolAddressesProvider[] memory _aaveAddressProviders,
+        IPoolAddressesProvider _aaveAddressProvider,
         uint _maxLTV,
         uint _liquidationThreshold,
         ICCFLLoan _ccflLoan
@@ -102,9 +101,9 @@ contract CCFL is ICCFL, Initializable {
             IERC20Standard token = collateralTokens[i];
             priceFeeds[token] = _collateralAggregators[i];
             aTokens[token] = _aTokens[i];
-            aaveAddressProviders[token] = _aaveAddressProviders[i];
             ccflActiveCollaterals[token] = true;
         }
+        aaveAddressProvider = _aaveAddressProvider;
         ccflLoan = _ccflLoan;
         maxLTV = _maxLTV;
         liquidationThreshold = _liquidationThreshold;
@@ -129,8 +128,7 @@ contract CCFL is ICCFL, Initializable {
     function setCollaterals(
         IERC20Standard[] memory _collateralTokens,
         AggregatorV3Interface[] memory _collateralAggregators,
-        IERC20Standard[] memory _aTokens,
-        IPoolAddressesProvider[] memory _aaveAddressProviders
+        IERC20Standard[] memory _aTokens
     ) public onlyOwner {
         for (uint i = 0; i < _collateralTokens.length; i++) {
             IERC20Standard token = _collateralTokens[i];
@@ -138,9 +136,14 @@ contract CCFL is ICCFL, Initializable {
                 collateralTokens.push(token);
             priceFeeds[token] = _collateralAggregators[i];
             aTokens[token] = _aTokens[i];
-            aaveAddressProviders[token] = _aaveAddressProviders[i];
             ccflActiveCollaterals[token] = true;
         }
+    }
+
+    function setAaveProvider(
+        IPoolAddressesProvider _aaveAddressProvider
+    ) public onlyOwner {
+        aaveAddressProvider = _aaveAddressProvider;
     }
 
     function setActiveToken(
@@ -271,7 +274,7 @@ contract CCFL is ICCFL, Initializable {
         cloneSC.initialize(
             loan,
             token,
-            aaveAddressProviders[token],
+            aaveAddressProvider,
             aTokens[token],
             maxLTV,
             liquidationThreshold,

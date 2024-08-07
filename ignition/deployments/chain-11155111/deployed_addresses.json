@@ -6,5 +6,6 @@
   "ProxyCCFLPoolModule#ProxyAdmin": "0x98417112D6Bf61c2236D948259EE707319992847",
   "CCFLLoanModule#CCFLLoan": "0xA7b80B1FF8EBDeCf593f2ff3c529102947418C4A",
   "MockAggregatorModule#MockAggregator": "0x4F599A7B3EfcA14E9Cc738F48dB01c99B84F7cE5",
-  "MockAggregatorWBTCModule#MockAggregator": "0x6970849b8CAF4a50B5DF9d3A1E0E39e7400126eF"
+  "MockAggregatorWBTCModule#MockAggregator": "0x6970849b8CAF4a50B5DF9d3A1E0E39e7400126eF",
+  "MockAggregatorETHModule#MockAggregator": "0xCcC31b99FEFfa51741D2C1324B4D2b59c46559bD"
 }

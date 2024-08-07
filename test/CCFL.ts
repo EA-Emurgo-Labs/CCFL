@@ -133,27 +133,6 @@ describe("CCFL system", function () {
     const MockSwapWBTC = await hre.ethers.getContractFactory("MockSwapRouter");
     const mockSwapWBTC = await MockSwapWBTC.deploy();
 
-    const MockAavePoolWBTC = await hre.ethers.getContractFactory(
-      "MockAavePool"
-    );
-    const mockAavePoolWBTC = await MockAavePoolWBTC.deploy();
-
-    const MockPoolAddressesProviderWBTC = await hre.ethers.getContractFactory(
-      "MockPoolAddressesProvider"
-    );
-    const mockPoolAddressesProviderWBTC =
-      await MockPoolAddressesProviderWBTC.deploy(
-        await mockAavePoolWBTC.getAddress()
-      );
-
-    const MockPoolAddressesProviderWETH = await hre.ethers.getContractFactory(
-      "MockPoolAddressesProvider"
-    );
-    const mockPoolAddressesProviderWETH =
-      await MockPoolAddressesProviderWETH.deploy(
-        await mockAavePoolWBTC.getAddress()
-      );
-
     const CCFLLoan = await hre.ethers.getContractFactory("CCFLLoan");
     const ccflLoan = await CCFLLoan.deploy();
 
@@ -167,7 +146,7 @@ describe("CCFL system", function () {
         [await link.getAddress()],
         [await mockAggr2.getAddress()],
         [await aToken.getAddress()],
-        [await mockPoolAddressesProvider.getAddress()],
+        await mockPoolAddressesProvider.getAddress(),
         7000,
         7500,
         await ccflLoan.getAddress(),
@@ -190,15 +169,13 @@ describe("CCFL system", function () {
     await ccfl.setCollaterals(
       [await wBTC.getAddress()],
       [await mockAggrWBTC.getAddress()],
-      [await aWBTC.getAddress()],
-      [await mockPoolAddressesProviderWBTC.getAddress()]
+      [await aWBTC.getAddress()]
     );
 
     await ccfl.setCollaterals(
       [await wETH9.getAddress()],
       [await mockAggrWETH.getAddress()],
-      [await aWETH.getAddress()],
-      [await mockPoolAddressesProviderWETH.getAddress()]
+      [await aWETH.getAddress()]
     );
 
     await ccfl.setActiveToken(await usdt.getAddress(), true, true);
