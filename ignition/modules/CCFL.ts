@@ -11,9 +11,40 @@ const CCFLModule = buildModule("CCFLModule", (m) => {
   let aggrWBTC = "0x6970849b8CAF4a50B5DF9d3A1E0E39e7400126eF";
   let aggrUSDC = "0x4F599A7B3EfcA14E9Cc738F48dB01c99B84F7cE5";
   let PoolAddressesProviderAave = "0x012bAC54348C0E635dCAc9D5FB99f06F24136C9A";
-  const ccfl = m.contract("CCFL", [usdc]);
 
-  return { ccfl };
+  const proxyAdminOwner = m.getAccount(0);
+  console.log(proxyAdminOwner);
+
+  const ccfl = m.contract("CCFL");
+
+  const data = m.encodeFunctionCall(ccfl, "initialize", [
+    [usdc],
+    [aggrUSDC],
+    [ccflPool],
+    [wbtc],
+    [aggrWBTC],
+    [aWBTC],
+    PoolAddressesProviderAave,
+    BigInt(5000),
+    BigInt(7000),
+    ccflLoan,
+  ]);
+
+  const proxy = m.contract("TransparentUpgradeableProxy", [
+    ccfl,
+    proxyAdminOwner,
+    data,
+  ]);
+
+  const proxyAdminAddress = m.readEventArgument(
+    proxy,
+    "AdminChanged",
+    "newAdmin"
+  );
+
+  const proxyAdmin = m.contractAt("ProxyAdmin", proxyAdminAddress);
+
+  return { proxyAdmin, proxy };
 });
 
 export default CCFLModule;
