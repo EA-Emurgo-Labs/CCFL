@@ -1,0 +1,19 @@
+{
+  "MockAggregatorETHModule#MockAggregator": "0x8025377bA919ad0260d7602ecF4880d813FEec8E",
+  "MockAggregatorModule#MockAggregator": "0x7B6D7447bC758BA262Ea084dF7cd6a347f10C7c8",
+  "MockAggregatorWBTCModule#MockAggregator": "0x4acd7e6BeF96ff6E76df85D287D27d130Ab69a7F",
+  "MockConfigModule#ETH": "0x8025377bA919ad0260d7602ecF4880d813FEec8E",
+  "MockConfigModule#USDC": "0x7B6D7447bC758BA262Ea084dF7cd6a347f10C7c8",
+  "MockConfigModule#WBTC": "0x4acd7e6BeF96ff6E76df85D287D27d130Ab69a7F",
+  "DefaultReserveInterestRateStrategyModule#DefaultReserveInterestRateStrategy": "0xEe285c875Ce67Fee622365a01a23B6369c89d84a",
+  "ProxyCCFLPoolModule#CCFLPool": "0x17f49226EDE22B857f5038ddddc3Cd941C63db80",
+  "ProxyCCFLPoolModule#TransparentUpgradeableProxy": "0x6aDA90ab012d0E69b8B5b2054D2d2427c3cdBcbB",
+  "ProxyCCFLPoolModule#ProxyAdmin": "0x78eAf38cF446f461B09A4F83a5539854C81dF940",
+  "CCFLLoanModule#CCFLLoan": "0xf8E01Ef36e999286a6a4E7300e3A5Bf0d02BD478",
+  "MockSwapRouterModule#MockSwapRouter": "0xDbE1483db9a2E6e60d57b2A089368d4c5EF83e83",
+  "CCFLModule#CCFL": "0x6F70080eFf7859bF35366877552f3f66BAe6A45C",
+  "CCFLModule#TransparentUpgradeableProxy": "0x4d3CcFF382e8E1Fb26e39297b6b9ec6b2F535Da1",
+  "CCFLModule#ProxyAdmin": "0x7F2cbEF45048aeC149B2FAB44e891458d947fD9d",
+  "ConfigModule#CCFL": "0x4d3CcFF382e8E1Fb26e39297b6b9ec6b2F535Da1",
+  "ConfigModule#CCFLPool": "0x6aDA90ab012d0E69b8B5b2054D2d2427c3cdBcbB"
+}
