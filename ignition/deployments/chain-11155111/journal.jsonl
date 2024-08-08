@@ -92,3 +92,7 @@
 {"futureId":"ConfigModule#CCFL.setPenalty","result":{"type":"SUCCESS"},"type":"CALL_EXECUTION_STATE_COMPLETE"}
 {"futureId":"ConfigModule#CCFL.setPlatformAddress","hash":"0x7c0e2b39b57ce5ad6e0353885bb5add6a2d4c070c7869f63839fc2722c1134db","networkInteractionId":1,"receipt":{"blockHash":"0xe7d2b2f3ffbe185336e50a52f7de8a4a5b1779e384c63c9b2f1bca06f2822522","blockNumber":6460018,"logs":[],"status":"SUCCESS"},"type":"TRANSACTION_CONFIRM"}
 {"futureId":"ConfigModule#CCFL.setPlatformAddress","result":{"type":"SUCCESS"},"type":"CALL_EXECUTION_STATE_COMPLETE"}
+{"futureId":"ConfigModule#CCFL.setSwapRouter","hash":"0xcd0e637f6f6e2eef9b6c53932dbe993caa172e1a7e32faf1cb8afb971cf1f4b8","networkInteractionId":1,"receipt":{"blockHash":"0x88fa76fef28cb2bd9187ed97b86e4c3b889efdc3e87edf3afda170d108e32a69","blockNumber":6460019,"logs":[],"status":"SUCCESS"},"type":"TRANSACTION_CONFIRM"}
+{"futureId":"ConfigModule#CCFL.setSwapRouter","result":{"type":"SUCCESS"},"type":"CALL_EXECUTION_STATE_COMPLETE"}
+{"futureId":"ConfigModule#CCFLPool.setCCFL","hash":"0x362ec18f138839e032fb316564c33e647e879b7e59f1bf319c850aadb93a6365","networkInteractionId":1,"receipt":{"blockHash":"0xe110628705b0dccf8780fc65241a0df778921dc1b1639cd9b56d1a61f935ad52","blockNumber":6460020,"logs":[],"status":"SUCCESS"},"type":"TRANSACTION_CONFIRM"}
+{"futureId":"ConfigModule#CCFLPool.setCCFL","result":{"type":"SUCCESS"},"type":"CALL_EXECUTION_STATE_COMPLETE"}
