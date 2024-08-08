@@ -4,7 +4,7 @@ import "@openzeppelin/hardhat-upgrades";
 import "solidity-coverage";
 import "hardhat-gas-reporter";
 require("dotenv").config();
-const { API_URL, PRIVATE_KEY } = process.env;
+const { API_URL, PRIVATE_KEY, ETHERSCAN_API_KEY } = process.env;
 
 const config: HardhatUserConfig = {
   solidity: {
@@ -25,7 +25,7 @@ const config: HardhatUserConfig = {
     },
   },
   etherscan: {
-    apiKey: process.env.ETHERSCAN_API_KEY,
+    apiKey: ETHERSCAN_API_KEY,
   },
   gasReporter: {
     enabled: true,
@@ -33,7 +33,7 @@ const config: HardhatUserConfig = {
     outputFile: "gas-report.txt", // optional
     noColors: true, //optional
     coinmarketcap: process.env.COINMARKETCAP_API_KEY, //to fetch gas data
-    gasPriceApi: `https://api.etherscan.io/api?module=proxy&action=eth_gasPrice&apikey=${process.env.ETHERSCAN_API_KEY}`,
+    gasPriceApi: `https://api.etherscan.io/api?module=proxy&action=eth_gasPrice&apikey=${ETHERSCAN_API_KEY}`,
     token: "ETH", // for polygon blockchain(optional).
   },
 };
