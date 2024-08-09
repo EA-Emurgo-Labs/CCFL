@@ -125,6 +125,10 @@ contract CCFL is ICCFL, Initializable {
         }
     }
 
+    function setCCFLLoan(ICCFLLoan _loan) public onlyOwner {
+        ccflLoan = _loan;
+    }
+
     function setCollaterals(
         IERC20Standard[] memory _collateralTokens,
         AggregatorV3Interface[] memory _collateralAggregators,

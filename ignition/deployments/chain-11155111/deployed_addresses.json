@@ -15,5 +15,11 @@
   "CCFLModule#TransparentUpgradeableProxy": "0x4d3CcFF382e8E1Fb26e39297b6b9ec6b2F535Da1",
   "CCFLModule#ProxyAdmin": "0x7F2cbEF45048aeC149B2FAB44e891458d947fD9d",
   "ConfigModule#CCFL": "0x4d3CcFF382e8E1Fb26e39297b6b9ec6b2F535Da1",
-  "ConfigModule#CCFLPool": "0x6aDA90ab012d0E69b8B5b2054D2d2427c3cdBcbB"
+  "ConfigModule#CCFLPool": "0x6aDA90ab012d0E69b8B5b2054D2d2427c3cdBcbB",
+  "CCFLPoolUpgradeModule#ProxyAdmin": "0x78eAf38cF446f461B09A4F83a5539854C81dF940",
+  "CCFLPoolUpgradeModule#TransparentUpgradeableProxy": "0x6aDA90ab012d0E69b8B5b2054D2d2427c3cdBcbB",
+  "CCFLPoolUpgradeModule#CCFL": "0x2bBa389d46a5eBf0798Eb224b8E3D2F7F59F6653",
+  "CCFLUpgradeModule#ProxyAdmin": "0x7F2cbEF45048aeC149B2FAB44e891458d947fD9d",
+  "CCFLUpgradeModule#TransparentUpgradeableProxy": "0x4d3CcFF382e8E1Fb26e39297b6b9ec6b2F535Da1",
+  "CCFLUpgradeModule#CCFL": "0x49B3B273f4AB0610fEc45Ed82956CD662076ccA2"
 }
