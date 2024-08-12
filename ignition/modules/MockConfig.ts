@@ -16,11 +16,11 @@ const MockConfigModule = buildModule("MockConfigModule", (m) => {
     { id: "WBTC" }
   );
 
-  m.call(ETH, "setPrice", [BigInt(4000e18)]);
+  m.call(ETH, "setPrice", [BigInt(4000e8)]);
 
-  m.call(USDC, "setPrice", [BigInt(1.01e18)]);
+  m.call(USDC, "setPrice", [BigInt(1.01e8)]);
 
-  m.call(WBTC, "setPrice", [BigInt(60000e18)]);
+  m.call(WBTC, "setPrice", [BigInt(60000e8)]);
 
   return { ETH, USDC, WBTC };
 });

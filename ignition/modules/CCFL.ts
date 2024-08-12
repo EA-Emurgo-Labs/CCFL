@@ -1,5 +1,5 @@
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
-const CCFLModule = buildModule("CCFLModule", (m) => {
+const ProxyCCFLModule = buildModule("ProxyCCFLModule", (m) => {
   let usdc = "0x94a9D9AC8a22534E3FaCa9F4e7F2E2cf85d5E4C8";
   let wbtc = "0x29f2D40B0605204364af54EC677bD022dA425d03";
   let wETH = "0xC558DBdd856501FCd9aaF1E62eae57A9F0629a3c";
@@ -47,4 +47,4 @@ const CCFLModule = buildModule("CCFLModule", (m) => {
   return { proxyAdmin, proxy };
 });
 
-export default CCFLModule;
+export default ProxyCCFLModule;
