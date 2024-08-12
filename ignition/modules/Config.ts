@@ -8,7 +8,7 @@ const ConfigModule = buildModule("ConfigModule", (m) => {
   );
   const ccfl = m.contractAt(
     "CCFL",
-    "0x2cfFd7F87039bbAC3c42C1739513aa03A3b39654"
+    "0x03aEf0CffcD9EdDE95692bF262B24E4240B19203"
   );
   const mockSwapRouter = "0xDbE1483db9a2E6e60d57b2A089368d4c5EF83e83";
 
@@ -16,7 +16,7 @@ const ConfigModule = buildModule("ConfigModule", (m) => {
 
   m.call(ccfl, "setPlatformAddress", [liquidator, platform]);
 
-  m.call(ccflPool, "setCCFL", ["0x2cfFd7F87039bbAC3c42C1739513aa03A3b39654"]);
+  m.call(ccflPool, "setCCFL", ["0x03aEf0CffcD9EdDE95692bF262B24E4240B19203"]);
 
   m.call(ccfl, "setSwapRouter", [mockSwapRouter]);
 
