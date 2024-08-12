@@ -728,6 +728,19 @@
 			{
 				"inputs": [
 					{
+						"internalType": "contract ICCFLLoan",
+						"name": "_loan",
+						"type": "address"
+					}
+				],
+				"name": "setCCFLLoan",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
 						"internalType": "contract IERC20Standard[]",
 						"name": "_collateralTokens",
 						"type": "address[]"
@@ -955,7 +968,7 @@
 			"bytecodeHash": "ipfs"
 		},
 		"optimizer": {
-			"enabled": true,
+			"enabled": false,
 			"runs": 200
 		},
 		"remappings": []
@@ -1106,11 +1119,11 @@
 			]
 		},
 		"CCFL.sol": {
-			"keccak256": "0x118aa841f3b1755bb8e1a8c3f70905bc28bf5a7017ca777596372cc1f590c606",
+			"keccak256": "0xb4403c8e1006fc0010364977fdc1b76e82ef4c2cbdde491b5bb41281a628759f",
 			"license": "UNLICENSED",
 			"urls": [
-				"bzz-raw://01d28cbe29ce30e13c71cf753b44f28dbc48244cbf5ecde3a8ca41a4ca51f0bc",
-				"dweb:/ipfs/QmaZ7m8FFwP5gq93FG7Q9MVGzgbVvxhZxiyEnXbcS3F3XY"
+				"bzz-raw://a7ad1dddcf5ada111dfd1325acdbe7f1961bbd310d879ed598f733f05cdac3b4",
+				"dweb:/ipfs/QmcWcvwwPSH5GRRgjyLbAwDmVcALCLUy2TfiURMkB4FrLi"
 			]
 		},
 		"DataTypes.sol": {
