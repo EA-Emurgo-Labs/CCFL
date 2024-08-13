@@ -231,7 +231,12 @@ contract CCFLPool is ICCFLPool, Initializable {
         stableCoinAddress.transferFrom(msg.sender, address(this), _amount);
     }
 
-    // getMaxWidthdraw
+    function getMaxWidthdraw() public view returns (uint256) {
+        return
+            WadRayMath.rayToWad(
+                share[msg.sender].rayMul(reserve.liquidityIndex)
+            );
+    }
 
     function withdraw(uint256 _amount) public {
         DataTypes.ReserveCache memory reserveCache = cache();

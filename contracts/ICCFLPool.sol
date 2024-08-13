@@ -53,4 +53,6 @@ interface ICCFLPool {
     ) external;
 
     function getTotalSupply() external view returns (uint256);
+
+    function getMaxWidthdraw() external view returns (uint256);
 }
