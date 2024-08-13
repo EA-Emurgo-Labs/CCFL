@@ -33,6 +33,11 @@ interface ICCFL {
 
     event Withdraw(address borrower, uint amount, uint when);
 
+    function checkExistElement(
+        IERC20Standard[] memory array,
+        IERC20Standard el
+    ) external pure returns (bool);
+
     function initialize(
         IERC20Standard[] memory _ccflPoolStableCoin,
         AggregatorV3Interface[] memory _poolAggregators,
@@ -46,6 +51,38 @@ interface ICCFL {
         ICCFLLoan _ccflLoan
     ) external;
 
+    function setPools(
+        IERC20Standard[] memory _ccflPoolStableCoin,
+        AggregatorV3Interface[] memory _poolAggregators,
+        ICCFLPool[] memory _ccflPools
+    ) external;
+
+    function setCCFLLoan(ICCFLLoan _loan) external;
+
+    function setCollaterals(
+        IERC20Standard[] memory _collateralTokens,
+        AggregatorV3Interface[] memory _collateralAggregators,
+        IERC20Standard[] memory _aTokens
+    ) external;
+
+    function setAaveProvider(
+        IPoolAddressesProvider _aaveAddressProvider
+    ) external;
+
+    function setActiveToken(
+        IERC20Standard _token,
+        bool _isActived,
+        bool _isPoolToken
+    ) external;
+
+    function setThreshold(uint _maxLTV, uint _liquidationThreshold) external;
+
+    function setPenalty(
+        uint _platform,
+        uint _liquidator,
+        uint _lender
+    ) external;
+
     function setSwapRouter(ISwapRouter _swapRouter) external;
 
     // create loan
@@ -57,6 +94,8 @@ interface ICCFL {
         bool _isYieldGenerating,
         bool _isETH
     ) external payable;
+
+    function setWETH(IWETH _iWETH) external;
 
     // withdraw loan
     function withdrawLoan(IERC20Standard _stableCoin, uint _loanId) external;
