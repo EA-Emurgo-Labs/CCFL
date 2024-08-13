@@ -230,9 +230,9 @@ contract CCFL is ICCFL, Initializable {
         uint _amount,
         IERC20Standard _stableCoin,
         uint _amountCollateral,
-        IERC20Standard _collateral,
+        IERC20Standard _collateral, // ETH ->  WETH
         bool _isYieldGenerating,
-        bool _isETH
+        bool _isETH // false
     )
         public
         payable
@@ -401,6 +401,15 @@ contract CCFL is ICCFL, Initializable {
         );
         return loan.getHealthFactor(curentDebt);
     }
+
+    // estimate Repay ( uint _loanId,
+    //    uint _amount,
+    //    IERC20Standard _stableCoin) -> healthfactor
+    // estimate add collateral
+    // uint _loanId,
+    //    uint _amountCollateral,
+    //    IERC20Standard _collateral,
+    //   weth
 
     function getLoanAddress(uint _loanId) public view returns (address) {
         ICCFLLoan loan = loans[_loanId];
