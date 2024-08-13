@@ -143,16 +143,20 @@ contract CCFLLoan is ICCFLLoan, Initializable {
 
     // 5. Liquidation
     // Good > 100, bad < 100
-    function getHealthFactor(uint currentDebt) public view returns (uint) {
-        console.log(currentDebt / 1e18);
+    function getHealthFactor(
+        uint currentDebt,
+        uint addCollateral
+    ) public view returns (uint) {
         uint stableCoinPrice = getLatestPrice(initLoan.stableCoin, true);
         uint totalCollaterals = 0;
 
+        uint collateralAmountNew = collateralAmount + addCollateral;
+
         IERC20Standard token = collateralToken;
-        if (collateralAmount > 0) {
+        if (collateralAmountNew > 0) {
             uint collateralPrice = getLatestPrice(token, false);
             totalCollaterals +=
-                (collateralAmount * collateralPrice * liquidationThreshold) /
+                (collateralAmountNew * collateralPrice * liquidationThreshold) /
                 10000 /
                 (10 ** token.decimals());
         }
@@ -211,7 +215,7 @@ contract CCFLLoan is ICCFLLoan, Initializable {
     }
 
     function liquidate(uint _currentDebt, uint _percent) public onlyOwner {
-        require(getHealthFactor(_currentDebt) < 100, "Can not liquidate");
+        require(getHealthFactor(_currentDebt, 0) < 100, "Can not liquidate");
         // get all collateral from aave
         if (isStakeAave) withdrawLiquidity();
 

@@ -89,7 +89,10 @@ interface ICCFLLoan {
 
     function setCCFL(address _ccfl) external;
 
-    function getHealthFactor(uint _currentDebt) external view returns (uint);
+    function getHealthFactor(
+        uint currentDebt,
+        uint addCollateral
+    ) external view returns (uint);
 
     function updateCollateral(uint _amount) external;
 

@@ -134,4 +134,14 @@ interface ICCFL {
     ) external view returns (uint);
 
     function withdrawAllCollateral(uint _loanId, bool isETH) external;
+
+    function addCollateralHealthFactor(
+        uint _loanId,
+        uint _amountCollateral
+    ) external view returns (uint);
+
+    function repayHealthFactor(
+        uint _loanId,
+        uint _amount
+    ) external view returns (uint);
 }

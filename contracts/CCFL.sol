@@ -35,6 +35,8 @@ contract CCFL is ICCFL, Initializable {
     address public owner;
     IWETH public wETH;
 
+    mapping(address => uint[]) userLoans;
+
     // penalty / 1000
     uint public penaltyPlatform;
     uint public penaltyLiquidator;
@@ -304,6 +306,7 @@ contract CCFL is ICCFL, Initializable {
             );
         }
         loans[loandIds] = cloneSC;
+        userLoans[msg.sender].push(loandIds);
         loandIds++;
     }
 
@@ -399,17 +402,32 @@ contract CCFL is ICCFL, Initializable {
         uint curentDebt = ccflPools[loanInfo.stableCoin].getCurrentLoan(
             _loanId
         );
-        return loan.getHealthFactor(curentDebt);
+        return loan.getHealthFactor(curentDebt, 0);
     }
 
-    // estimate Repay ( uint _loanId,
-    //    uint _amount,
-    //    IERC20Standard _stableCoin) -> healthfactor
-    // estimate add collateral
-    // uint _loanId,
-    //    uint _amountCollateral,
-    //    IERC20Standard _collateral,
-    //   weth
+    function repayHealthFactor(
+        uint _loanId,
+        uint _amount
+    ) public view returns (uint) {
+        ICCFLLoan loan = loans[_loanId];
+        Loan memory loanInfo = loan.getLoanInfo();
+        uint curentDebt = ccflPools[loanInfo.stableCoin].getCurrentLoan(
+            _loanId
+        );
+        return loan.getHealthFactor(curentDebt - _amount, 0);
+    }
+
+    function addCollateralHealthFactor(
+        uint _loanId,
+        uint _amountCollateral
+    ) public view returns (uint) {
+        ICCFLLoan loan = loans[_loanId];
+        Loan memory loanInfo = loan.getLoanInfo();
+        uint curentDebt = ccflPools[loanInfo.stableCoin].getCurrentLoan(
+            _loanId
+        );
+        return loan.getHealthFactor(curentDebt, _amountCollateral);
+    }
 
     function getLoanAddress(uint _loanId) public view returns (address) {
         ICCFLLoan loan = loans[_loanId];
