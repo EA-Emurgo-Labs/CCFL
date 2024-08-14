@@ -9,12 +9,12 @@ const CCFLUpgradeModule = buildModule("CCFLUpgradeModule", (m) => {
 
   const proxy = m.contractAt(
     "TransparentUpgradeableProxy",
-    "0x4d3CcFF382e8E1Fb26e39297b6b9ec6b2F535Da1"
+    "0x01120927A1d734403404d637753585cA2d0bAe69"
   );
 
   const proxyAdmin = m.contractAt(
     "ProxyAdmin",
-    "0x7F2cbEF45048aeC149B2FAB44e891458d947fD9d"
+    "0xea32E8e27579F8b55442d0e4a0F11cd0e0B5ea1c"
   );
 
   m.call(proxyAdmin, "upgradeAndCall", [proxy, ccfl, data]);

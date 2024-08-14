@@ -35,7 +35,7 @@ contract CCFL is ICCFL, Initializable {
     address public owner;
     IWETH public wETH;
 
-    mapping(address => uint[]) userLoans;
+    mapping(address => uint[]) public userLoans;
 
     // penalty / 1000
     uint public penaltyPlatform;
@@ -291,7 +291,6 @@ contract CCFL is ICCFL, Initializable {
             wETH
         );
         cloneSC.setCCFL(address(this));
-        if (_isYieldGenerating == true) cloneSC.supplyLiquidity();
 
         // transfer collateral
         cloneSC.updateCollateral(_amountCollateral);
@@ -305,6 +304,8 @@ contract CCFL is ICCFL, Initializable {
                 _amountCollateral
             );
         }
+
+        if (_isYieldGenerating == true) cloneSC.supplyLiquidity();
         loans[loandIds] = cloneSC;
         userLoans[msg.sender].push(loandIds);
         loandIds++;

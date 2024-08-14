@@ -76,9 +76,11 @@ contract CCFLLoan is ICCFLLoan, Initializable {
     function supplyLiquidity() public onlyOwner {
         IERC20Standard asset = collateralToken;
         uint amount = asset.balanceOf(address(this));
+        require(amount > 0, "dont have assets");
         address onBehalfOf = address(this);
         uint16 referralCode = 0;
         IPool aavePool = IPool(aaveAddressProvider.getPool());
+        asset.approve(address(aavePool), amount);
         aavePool.supply(address(asset), amount, onBehalfOf, referralCode);
         emit LiquiditySupplied(onBehalfOf, address(asset), amount);
         isStakeAave = true;

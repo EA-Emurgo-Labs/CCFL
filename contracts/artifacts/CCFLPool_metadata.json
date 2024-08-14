@@ -267,6 +267,19 @@
 			},
 			{
 				"inputs": [],
+				"name": "getMaxWidthdraw",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
 				"name": "getRemainingPool",
 				"outputs": [
 					{
@@ -668,11 +681,11 @@
 			]
 		},
 		"CCFLPool.sol": {
-			"keccak256": "0xc72dd60b2f91a1280fea4d41a99aa199695db16e44c6d1e48cf34430961e26eb",
+			"keccak256": "0x1f060d07bf622896aa5c07cad037ddf281ddbc91495b6adb7a6a8208385d3e45",
 			"license": "UNLICENSED",
 			"urls": [
-				"bzz-raw://92bd627cd8ed1dce133b391d42f5e8006106716e6418f43d66c21f0bb9217c58",
-				"dweb:/ipfs/QmZQWW5Q88SicuHNiitV1fHZUrEfk3PpG6yG7jB5Srsdm2"
+				"bzz-raw://7338dd3b1799b75c2e0dcb88766e2338c3728fee0ee0fcd069f5e2d1583ba934",
+				"dweb:/ipfs/QmQ43khtsYcSJkVMvbCDF4iAM6pqFk9L6VaLNB2xp9rjNX"
 			]
 		},
 		"DataTypes.sol": {
@@ -684,11 +697,11 @@
 			]
 		},
 		"ICCFLPool.sol": {
-			"keccak256": "0xf6b2078059bbaf15a9f2f721956964738c8dc0c495c4e30fc140099245df8a1e",
+			"keccak256": "0x4600cd85770cfc9aec37a31805b950df187cb4ba5749586e882a226406b95c4f",
 			"license": "UNLICENSED",
 			"urls": [
-				"bzz-raw://7d4ecaf9fe9143b06d5c62fb3b2bfcef448b2354fc5f5f5ee79f1a7edfa98a21",
-				"dweb:/ipfs/QmRSeHTav8dSXA2SH4pWMDm35VkC5pMi15ane5TGduYjSR"
+				"bzz-raw://0c76d019cb961ab868fa5bc5ae9963dd3198da9b57ed2ae594658432602e47ea",
+				"dweb:/ipfs/QmNbEVSzPwqw6HgPhygXPF8pJmN2PLPhyHATqeC3pJc4Cu"
 			]
 		},
 		"IERC20Standard.sol": {

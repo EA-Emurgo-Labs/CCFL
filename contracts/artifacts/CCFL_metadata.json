@@ -171,6 +171,30 @@
 			{
 				"inputs": [
 					{
+						"internalType": "uint256",
+						"name": "_loanId",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "_amountCollateral",
+						"type": "uint256"
+					}
+				],
+				"name": "addCollateralHealthFactor",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
 						"internalType": "contract IERC20Standard",
 						"name": "",
 						"type": "address"
@@ -677,6 +701,30 @@
 						"internalType": "uint256",
 						"name": "_amount",
 						"type": "uint256"
+					}
+				],
+				"name": "repayHealthFactor",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "_loanId",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "_amount",
+						"type": "uint256"
 					},
 					{
 						"internalType": "contract IERC20Standard",
@@ -867,6 +915,30 @@
 				"name": "setWETH",
 				"outputs": [],
 				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"name": "userLoans",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
 				"type": "function"
 			},
 			{
@@ -1119,11 +1191,11 @@
 			]
 		},
 		"CCFL.sol": {
-			"keccak256": "0xb4403c8e1006fc0010364977fdc1b76e82ef4c2cbdde491b5bb41281a628759f",
+			"keccak256": "0x2dac0c67f0a3267d2bf56a56a0a02787bae49c00b971afb3322e491d32d74e8d",
 			"license": "UNLICENSED",
 			"urls": [
-				"bzz-raw://a7ad1dddcf5ada111dfd1325acdbe7f1961bbd310d879ed598f733f05cdac3b4",
-				"dweb:/ipfs/QmcWcvwwPSH5GRRgjyLbAwDmVcALCLUy2TfiURMkB4FrLi"
+				"bzz-raw://c8a9095adcae5848986c7b0e07a8cc7295f9aa610ddfccde1539078d0d3b29bc",
+				"dweb:/ipfs/QmPta6P3HSLSrRoaP7qLw4Sarx13UY6sMqcsJeaUvsxK1T"
 			]
 		},
 		"DataTypes.sol": {
@@ -1135,27 +1207,27 @@
 			]
 		},
 		"ICCFL.sol": {
-			"keccak256": "0xf24c7d52b8d9b2fa95b6872b27b0a6ecc8bca24f008b23a9e27caeedb00274aa",
+			"keccak256": "0x8c1b531197bb8a061c25ee53391d07a803de1cb6153e684732aa433efe4bab34",
 			"license": "UNLICENSED",
 			"urls": [
-				"bzz-raw://dd5de2834b58ea6f4388067567f8cd671cf048dc523ec798d3ce3abc12f1da5d",
-				"dweb:/ipfs/QmYAND8ss5QZ5Ha6W6vu8jScsJQQ5LrdaeBKU1mnsdzCpF"
+				"bzz-raw://05ae47d274196fa8a48446d1a3b54c8a2d9393616e11a2e49f1e3937e1e91c77",
+				"dweb:/ipfs/QmUuSJPgBJdKqJxH62Xvx3Z8CNfgVdsF2otx4LmRjya4qa"
 			]
 		},
 		"ICCFLLoan.sol": {
-			"keccak256": "0xdd039ecdd127cebe3b7f9d22a169a63c908bc6f66b26571ed8f82d0fa5e0a490",
+			"keccak256": "0xb3a864cd5d730faf2f140ff04bc07ef768c424fbc2d814ac58bc0dd3c37a9399",
 			"license": "UNLICENSED",
 			"urls": [
-				"bzz-raw://1bb29a96be2e51168076586b82bc46053fdbe924a5f74d0dbabd0dbf941723ba",
-				"dweb:/ipfs/QmXZmYQYNujN31X3WuyfnYWzzxDiD3LetFAJ9mUARYY93L"
+				"bzz-raw://625e3db654f604da034c3d7e91cad863eb4994691a8a598e81cd6295dfbf43d3",
+				"dweb:/ipfs/QmQG1w34jc9NGYjdqPQVRFGruUiGu3gBqNpPd7wS3Gtfb8"
 			]
 		},
 		"ICCFLPool.sol": {
-			"keccak256": "0xf6b2078059bbaf15a9f2f721956964738c8dc0c495c4e30fc140099245df8a1e",
+			"keccak256": "0x4600cd85770cfc9aec37a31805b950df187cb4ba5749586e882a226406b95c4f",
 			"license": "UNLICENSED",
 			"urls": [
-				"bzz-raw://7d4ecaf9fe9143b06d5c62fb3b2bfcef448b2354fc5f5f5ee79f1a7edfa98a21",
-				"dweb:/ipfs/QmRSeHTav8dSXA2SH4pWMDm35VkC5pMi15ane5TGduYjSR"
+				"bzz-raw://0c76d019cb961ab868fa5bc5ae9963dd3198da9b57ed2ae594658432602e47ea",
+				"dweb:/ipfs/QmNbEVSzPwqw6HgPhygXPF8pJmN2PLPhyHATqeC3pJc4Cu"
 			]
 		},
 		"IERC20Standard.sol": {

@@ -84,7 +84,9 @@ const ProxyCCFLModule = buildModule("ProxyCCFLModule", (m) => {
     { id: "proxyAdminAddressCCFL" }
   );
 
-  const proxyAdminCCFL = m.contractAt("ProxyAdmin", proxyAdminAddressCCFL);
+  const proxyAdminCCFL = m.contractAt("ProxyAdmin", proxyAdminAddressCCFL, {
+    id: "proxyAdminCCFL",
+  });
 
   return { proxyAdminCCFL, proxyCCFL, proxyAdminPool, proxyPool };
 });
