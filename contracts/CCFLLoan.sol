@@ -9,13 +9,17 @@ import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 /// @notice Link/usd
 contract CCFLLoan is ICCFLLoan, Initializable {
     address public owner;
+
     // aave config
     IPoolAddressesProvider public aaveAddressProvider;
     IERC20Standard public aToken;
     bool public isStakeAave;
+
     // uniswap config
     ISwapRouter public swapRouter;
     uint24 public constant feeTier = 3000;
+    IUniswapV3Factory public factory;
+
     // collateral
     uint public liquidationThreshold;
     uint public LTV;
@@ -45,6 +49,14 @@ contract CCFLLoan is ICCFLLoan, Initializable {
         ccfl = _ccfl;
     }
 
+    function setSwapRouter(
+        ISwapRouter _swapRouter,
+        IUniswapV3Factory _factory
+    ) public onlyOwner {
+        swapRouter = _swapRouter;
+        factory = _factory;
+    }
+
     function initialize(
         Loan memory _loan,
         IERC20Standard _collateralToken,
@@ -54,21 +66,18 @@ contract CCFLLoan is ICCFLLoan, Initializable {
         uint _threshold,
         AggregatorV3Interface _priceFeed,
         AggregatorV3Interface _pricePoolFeed,
-        ISwapRouter _swapRouter,
         address _platform,
         IWETH _iWETH
     ) external initializer {
         owner = msg.sender;
         initLoan = _loan;
         collateralToken = _collateralToken;
-        owner = msg.sender;
         aaveAddressProvider = _aaveAddressProvider;
         LTV = _ltv;
         liquidationThreshold = _threshold;
         aToken = _aToken;
         priceFeed = _priceFeed;
         pricePoolFeed = _pricePoolFeed;
-        swapRouter = _swapRouter;
         platform = _platform;
         wETH = _iWETH;
     }
@@ -190,11 +199,19 @@ contract CCFLLoan is ICCFLLoan, Initializable {
             amountInMaximum
         );
 
+        address pool = factory.getPool(
+            address(tokenAddress),
+            address(stableCoin),
+            feeTier
+        );
+
+        uint24 fee = IUniswapV3Pool(pool).fee();
+
         ISwapRouter.ExactOutputSingleParams memory params = ISwapRouter
             .ExactOutputSingleParams({
                 tokenIn: address(tokenAddress),
                 tokenOut: address(stableCoin),
-                fee: feeTier,
+                fee: fee,
                 recipient: msg.sender,
                 deadline: block.timestamp,
                 amountOut: amountOut,

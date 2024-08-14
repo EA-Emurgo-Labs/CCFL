@@ -83,7 +83,10 @@ interface ICCFL {
         uint _lender
     ) external;
 
-    function setSwapRouter(ISwapRouter _swapRouter) external;
+    function setSwapRouter(
+        ISwapRouter _swapRouter,
+        IUniswapV3Factory _factory
+    ) external;
 
     // create loan
     function createLoan(

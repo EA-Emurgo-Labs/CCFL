@@ -30,6 +30,7 @@ contract CCFL is ICCFL, Initializable {
     mapping(IERC20Standard => AggregatorV3Interface) public priceFeeds;
     mapping(IERC20Standard => AggregatorV3Interface) public pricePoolFeeds;
     ISwapRouter swapRouter;
+    IUniswapV3Factory public factory;
     address public liquidator;
     address public platform;
     address public owner;
@@ -190,8 +191,12 @@ contract CCFL is ICCFL, Initializable {
         penaltyPlatform = _platform;
     }
 
-    function setSwapRouter(ISwapRouter _swapRouter) public onlyOwner {
+    function setSwapRouter(
+        ISwapRouter _swapRouter,
+        IUniswapV3Factory _factory
+    ) public onlyOwner {
         swapRouter = _swapRouter;
+        factory = _factory;
     }
 
     function setWETH(IWETH _iWETH) public onlyOwner {
@@ -286,11 +291,11 @@ contract CCFL is ICCFL, Initializable {
             liquidationThreshold,
             priceFeeds[token],
             _pricePoolFeeds,
-            swapRouter,
             platform,
             wETH
         );
         cloneSC.setCCFL(address(this));
+        cloneSC.setSwapRouter(swapRouter, factory);
 
         // transfer collateral
         cloneSC.updateCollateral(_amountCollateral);

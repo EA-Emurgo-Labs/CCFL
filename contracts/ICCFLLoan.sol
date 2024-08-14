@@ -9,6 +9,7 @@ import {IPoolAddressesProvider} from "@aave/core-v3/contracts/interfaces/IPoolAd
 import "@openzeppelin/contracts/proxy/Clones.sol";
 
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
+import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
 import "@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol";
 import "@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol";
 
@@ -80,7 +81,6 @@ interface ICCFLLoan {
         uint _threshold,
         AggregatorV3Interface _priceFeed,
         AggregatorV3Interface _pricePoolFeed,
-        ISwapRouter _swapRouter,
         address _platform,
         IWETH _iWETH
     ) external;
@@ -101,4 +101,9 @@ interface ICCFLLoan {
     function getLoanInfo() external view returns (Loan memory);
 
     function withdrawAllCollateral(address _receiver, bool _isETH) external;
+
+    function setSwapRouter(
+        ISwapRouter _swapRouter,
+        IUniswapV3Factory _factory
+    ) external;
 }
