@@ -488,5 +488,9 @@ contract CCFL is ICCFL, Initializable {
         loans[_loanId].closeLoan();
     }
 
+    function getLoanIds(address borrower) public view returns (uint[] memory) {
+        return userLoans[borrower];
+    }
+
     receive() external payable {}
 }
