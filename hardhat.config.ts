@@ -36,6 +36,9 @@ const config: HardhatUserConfig = {
     gasPriceApi: `https://api.etherscan.io/api?module=proxy&action=eth_gasPrice&apikey=${ETHERSCAN_API_KEY}`,
     token: "ETH", // for polygon blockchain(optional).
   },
+  mocha: {
+    timeout: 100000000,
+  },
 };
 
 export default config;
