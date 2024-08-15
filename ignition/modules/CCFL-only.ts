@@ -12,13 +12,12 @@ const ProxyCCFLModule = buildModule("ProxyCCFLModule", (m) => {
   // "ProxyCCFLModule#ethAggr": "0xB6c04707C7f46E02C7B6546CD26a8b845D448f0a",
   // "ProxyCCFLModule#usdcAggr": "0xeEFaa85D124556d8be8a26e4F44cE090d2e707eD",
   // "ProxyCCFLModule#wbtcAggr": "0x2B1EdE85Ea8105e638429a9B3Ec621d1A7939597",
-  // "ConfigModule#MockSwapRouter": "0xbe100b88D42D8f549E3CE97305b61b5744d54f94"
 
-  const ethAggr = m.contractAt(
-    "MockAggregator",
-    "0xB6c04707C7f46E02C7B6546CD26a8b845D448f0a",
-    { id: "ethAggr" }
-  );
+  // const ethAggr = m.contractAt(
+  //   "MockAggregator",
+  //   "0xB6c04707C7f46E02C7B6546CD26a8b845D448f0a",
+  //   { id: "ethAggr" }
+  // );
   const wbtcAggr = m.contractAt(
     "MockAggregator",
     "0x2B1EdE85Ea8105e638429a9B3Ec621d1A7939597",
@@ -91,7 +90,9 @@ const ProxyCCFLModule = buildModule("ProxyCCFLModule", (m) => {
     { id: "proxyAdminAddressCCFL" }
   );
 
-  const proxyAdminCCFL = m.contractAt("ProxyAdmin", proxyAdminAddressCCFL);
+  const proxyAdminCCFL = m.contractAt("ProxyAdmin", proxyAdminAddressCCFL, {
+    id: "proxyCCFLadmin",
+  });
 
   return { proxyAdminCCFL, proxyCCFL, proxyAdminPool, proxyPool };
 });

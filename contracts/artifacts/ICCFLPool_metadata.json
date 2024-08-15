@@ -114,6 +114,25 @@
 			{
 				"inputs": [
 					{
+						"internalType": "address",
+						"name": "_user",
+						"type": "address"
+					}
+				],
+				"name": "balance",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
 						"internalType": "uint256",
 						"name": "_loanId",
 						"type": "uint256"
@@ -389,11 +408,11 @@
 			]
 		},
 		"ICCFLPool.sol": {
-			"keccak256": "0xf6b2078059bbaf15a9f2f721956964738c8dc0c495c4e30fc140099245df8a1e",
+			"keccak256": "0x50aba1d433e6c7227bd97f4d1ea4ec5f8caa870af4d413c4e883e056f1a25869",
 			"license": "UNLICENSED",
 			"urls": [
-				"bzz-raw://7d4ecaf9fe9143b06d5c62fb3b2bfcef448b2354fc5f5f5ee79f1a7edfa98a21",
-				"dweb:/ipfs/QmRSeHTav8dSXA2SH4pWMDm35VkC5pMi15ane5TGduYjSR"
+				"bzz-raw://df3647347c78b3035f8f69040da98ead536860510b76a98c267f0f10b7769eec",
+				"dweb:/ipfs/QmXypRv8K3DhxLbUqsCrhxqjtoxxjGnDLrvafoQn4kowGh"
 			]
 		},
 		"IERC20Standard.sol": {

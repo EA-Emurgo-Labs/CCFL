@@ -49,6 +49,7 @@
 		},
 		"gasEstimates": null,
 		"methodIdentifiers": {
+			"balance(address)": "e3d670d7",
 			"borrow(uint256,uint256,address)": "d6bda0c0",
 			"getCurrentLoan(uint256)": "a52f38d1",
 			"getCurrentRate()": "f7fb07b0",
@@ -170,6 +171,25 @@
 			],
 			"name": "WithdrawLoan",
 			"type": "event"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "address",
+					"name": "_user",
+					"type": "address"
+				}
+			],
+			"name": "balance",
+			"outputs": [
+				{
+					"internalType": "uint256",
+					"name": "",
+					"type": "uint256"
+				}
+			],
+			"stateMutability": "view",
+			"type": "function"
 		},
 		{
 			"inputs": [
