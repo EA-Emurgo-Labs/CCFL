@@ -6,9 +6,14 @@ const ConfigModule = buildModule("ConfigModule", (m) => {
   const ccflAddr = "0x01120927A1d734403404d637753585cA2d0bAe69";
   const ccflPool = m.contractAt("CCFLPool", ccflPoolAddr);
   const ccfl = m.contractAt("CCFL", ccflAddr);
-  const mockSwapRouter = m.contractAt(
+  const swapRouterV2 = m.contractAt(
     "MockSwapRouter",
-    "0xbe100b88D42D8f549E3CE97305b61b5744d54f94"
+    "0x3bFA4769FB09eefC5a80d6E87c3B9C650f7Ae48E"
+  );
+
+  const factoryV3 = m.contractAt(
+    "MockFactory",
+    "0x0227628f3F023bb0B980b67D528571c95c6DaC1c"
   );
 
   m.call(ccfl, "setPenalty", [BigInt(5), BigInt(10), BigInt(5)]);
@@ -17,7 +22,7 @@ const ConfigModule = buildModule("ConfigModule", (m) => {
 
   m.call(ccflPool, "setCCFL", [ccflAddr]);
 
-  m.call(ccfl, "setSwapRouter", [mockSwapRouter]);
+  m.call(ccfl, "setSwapRouter", [swapRouterV2, factoryV3]);
 
   return { ccflPool, ccfl };
 });

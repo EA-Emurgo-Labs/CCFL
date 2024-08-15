@@ -12,7 +12,7 @@ describe("CCFL contract", function () {
   // We use loadFixture to run this setup once, snapshot that state,
   // and reset Hardhat Network to that snapshot in every test.
 
-  let mockSwap, wETH9, liquidatorAddress, platformAddress;
+  let mockSwap, wETH9, liquidatorAddress, platformAddress, mockUniFactory;
 
   async function deployFixture() {
     // Contracts are deployed using the first signer/account by default
@@ -91,6 +91,14 @@ describe("CCFL contract", function () {
       await mockAavePool.getAddress()
     );
 
+    const MockUniPool = await hre.ethers.getContractFactory("MockPool");
+    const mockUniPool = await MockUniPool.deploy();
+
+    const MockUniFactory = await hre.ethers.getContractFactory("MockFactory");
+    mockUniFactory = await MockUniFactory.deploy();
+
+    mockUniFactory.setPool(mockUniPool);
+
     const CCFLLoan = await hre.ethers.getContractFactory("CCFLLoan");
     const ccflLoan = await CCFLLoan.deploy();
 
@@ -115,7 +123,10 @@ describe("CCFL contract", function () {
 
     await ccfl.setPlatformAddress(liquidator, platform);
     await ccflPool.setCCFL(await ccfl.getAddress());
-    await ccfl.setSwapRouter(await mockSwap.getAddress());
+    await ccfl.setSwapRouter(
+      await mockSwap.getAddress(),
+      await mockUniFactory.getAddress()
+    );
 
     await link.transfer(borrower1, BigInt(10000e18));
     await link.transfer(borrower2, BigInt(20000e18));
@@ -191,7 +202,9 @@ describe("CCFL contract", function () {
         lender3,
       } = await loadFixture(deployFixture);
 
-      await ccfl.connect(owner).setSwapRouter(mockSwap.getAddress());
+      await ccfl
+        .connect(owner)
+        .setSwapRouter(mockSwap.getAddress(), mockUniFactory.getAddress());
     });
 
     it("Should only allow owner to set swap router", async () => {
@@ -212,7 +225,9 @@ describe("CCFL contract", function () {
       } = await loadFixture(deployFixture);
 
       await expect(
-        ccfl.connect(borrower1).setSwapRouter(mockSwap.getAddress())
+        ccfl
+          .connect(borrower1)
+          .setSwapRouter(mockSwap.getAddress(), mockUniFactory.getAddress())
       ).to.be.revertedWith("only the owner");
     });
 

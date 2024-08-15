@@ -130,6 +130,14 @@ describe("CCFL system", function () {
       await mockAavePool.getAddress()
     );
 
+    const MockUniPool = await hre.ethers.getContractFactory("MockPool");
+    const mockUniPool = await MockUniPool.deploy();
+
+    const MockUniFactory = await hre.ethers.getContractFactory("MockFactory");
+    const mockUniFactory = await MockUniFactory.deploy();
+
+    mockUniFactory.setPool(mockUniPool);
+
     const MockSwapWBTC = await hre.ethers.getContractFactory("MockSwapRouter");
     const mockSwapWBTC = await MockSwapWBTC.deploy();
 
@@ -158,7 +166,10 @@ describe("CCFL system", function () {
 
     await ccfl.setPlatformAddress(liquidator, platform);
     await ccflPool.setCCFL(await ccfl.getAddress());
-    await ccfl.setSwapRouter(await mockSwap.getAddress());
+    await ccfl.setSwapRouter(
+      await mockSwap.getAddress(),
+      await mockUniFactory.getAddress()
+    );
 
     await ccfl.setPools(
       [await usdt.getAddress()],
@@ -228,6 +239,7 @@ describe("CCFL system", function () {
         lender2,
         lender3,
       } = await loadFixture(deployFixture);
+
       // lender deposit USDC
       await usdc
         .connect(lender1)
