@@ -105,6 +105,36 @@ async function createLoan() {
   console.log(`Got ${ids}`);
 }
 
+async function getHealthFactor(usdcAmount: any, wbtcAmount: any, loanId: any) {
+  const signer = await ethers.provider.getSigner();
+  console.log("signer", await signer.getAddress());
+
+  const iUsdc = await ethers.getContractAt(
+    "ICCFL",
+    "0x7B7450f910644A4EDe3183B7fCC5313a043f335C",
+    signer
+  );
+
+  const healthFactor = await iUsdc.getHealthFactor(BigInt(loanId));
+  console.log(`Got ${healthFactor}`);
+
+  if (usdcAmount) {
+    const repayHealthFactor = await iUsdc.repayHealthFactor(
+      BigInt(loanId),
+      usdcAmount
+    );
+    console.log(`Got ${repayHealthFactor}`);
+  }
+
+  if (wbtcAmount) {
+    const addCollateralHealthFactor = await iUsdc.addCollateralHealthFactor(
+      BigInt(loanId),
+      wbtcAmount
+    );
+    console.log(`Got ${addCollateralHealthFactor}`);
+  }
+}
+
 describe("CCFL Pool", () => {
   it("approve usdc", async () => {
     const AMOUNT = ethers.parseUnits("300", 6);
@@ -124,7 +154,15 @@ describe("CCFL Pool", () => {
 });
 
 describe("CCFL Pool", () => {
-  it.only("create a loan", async () => {
+  it("create a loan", async () => {
     await createLoan();
+  });
+
+  it.only("check health factor", async () => {
+    await getHealthFactor(
+      ethers.parseUnits("50", 6),
+      ethers.parseUnits("0.0005", 8),
+      BigInt(1)
+    );
   });
 });
