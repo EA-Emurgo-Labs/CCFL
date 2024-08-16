@@ -348,7 +348,9 @@ contract CCFL is ICCFL, Initializable {
     function withdrawLoan(IERC20Standard _stableCoin, uint _loanId) public {
         ICCFLLoan loan = loans[_loanId];
         Loan memory info = loan.getLoanInfo();
+        require(info.borrower == msg.sender, "Not owner loan");
         ccflPools[_stableCoin].withdrawLoan(info.borrower, _loanId);
+        loan.setPaid();
     }
 
     // repay loan
@@ -488,7 +490,7 @@ contract CCFL is ICCFL, Initializable {
             address(ccflPools[loanInfo.stableCoin]),
             fundForLender
         );
-        ccflPools[loanInfo.stableCoin].liquidatePenalty(fundForLender);
+        ccflPools[loanInfo.stableCoin].liquidatePenalty(_loanId, fundForLender);
 
         loans[_loanId].closeLoan();
     }

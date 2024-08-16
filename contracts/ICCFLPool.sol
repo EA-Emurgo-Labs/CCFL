@@ -45,7 +45,7 @@ interface ICCFLPool {
         view
         returns (uint256, uint256, uint256, uint256);
 
-    function liquidatePenalty(uint256 _amount) external;
+    function liquidatePenalty(uint256 _loanId, uint256 _amount) external;
 
     function initialize(
         IERC20Standard _stableCoinAddress,

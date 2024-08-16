@@ -135,7 +135,7 @@ async function getHealthFactor(usdcAmount: any, wbtcAmount: any, loanId: any) {
   }
 }
 
-describe("CCFL Pool", () => {
+describe.skip("CCFL Pool", () => {
   it("approve usdc", async () => {
     const AMOUNT = ethers.parseUnits("300", 6);
     await approveUsdc(AMOUNT);
@@ -153,12 +153,12 @@ describe("CCFL Pool", () => {
   });
 });
 
-describe("CCFL Pool", () => {
+describe.skip("CCFL Pool", () => {
   it("create a loan", async () => {
     await createLoan();
   });
 
-  it.only("check health factor", async () => {
+  it("check health factor", async () => {
     await getHealthFactor(
       ethers.parseUnits("50", 6),
       ethers.parseUnits("0.0005", 8),

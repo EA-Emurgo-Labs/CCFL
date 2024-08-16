@@ -95,6 +95,10 @@ contract CCFLLoan is ICCFLLoan, Initializable {
         isStakeAave = true;
     }
 
+    function setPaid() public onlyOwner {
+        initLoan.isPaid = true;
+    }
+
     function withdrawLiquidity() public onlyOwner {
         uint amount = aToken.balanceOf(address(this));
         IPool aavePool = IPool(aaveAddressProvider.getPool());
@@ -246,6 +250,8 @@ contract CCFLLoan is ICCFLLoan, Initializable {
             initLoan.stableCoin,
             token
         );
+
+        initLoan.isLiquidated = true;
 
         // close this loan
         initLoan.stableCoin.approve(

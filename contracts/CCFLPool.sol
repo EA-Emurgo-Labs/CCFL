@@ -10,6 +10,7 @@ struct Loan {
     bool isClosed;
     bool isLocked;
     address borrower;
+    bool isLiquidated;
 }
 
 /// @title CCFL contract
@@ -297,7 +298,7 @@ contract CCFLPool is ICCFLPool, Initializable {
 
         uint256 amountScaled = rayAmount.rayDiv(reserve.variableBorrowIndex);
 
-        if (debt[_loanId] < amountScaled) {
+        if (debt[_loanId] <= amountScaled) {
             totalDebt -= debt[_loanId];
             uint256 amountPayScaled = debt[_loanId].rayMul(
                 reserve.variableBorrowIndex
@@ -316,6 +317,7 @@ contract CCFLPool is ICCFLPool, Initializable {
                 address(this),
                 amountPayToken
             );
+            loans[_loanId].isClosed = true;
         } else {
             uint256 total = debt[_loanId] - amountScaled;
             totalDebt -= amountScaled;
@@ -329,7 +331,10 @@ contract CCFLPool is ICCFLPool, Initializable {
         }
     }
 
-    function liquidatePenalty(uint256 _amount) public onlyCCFL {
+    function liquidatePenalty(
+        uint256 _loanId,
+        uint256 _amount
+    ) public onlyCCFL {
         DataTypes.ReserveCache memory reserveCache = cache();
 
         updateState(reserveCache);
@@ -347,6 +352,7 @@ contract CCFLPool is ICCFLPool, Initializable {
         reserve.liquidityIndex = newLiquidityIndex.toUint128();
         remainingPool += _amount;
         stableCoinAddress.transferFrom(msg.sender, address(this), _amount);
+        loans[_loanId].isLiquidated = true;
     }
 
     function getCurrentLoan(uint _loanId) public view returns (uint256) {

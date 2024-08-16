@@ -31,10 +31,11 @@ interface AggregatorV3Interface {
 struct Loan {
     uint loanId;
     address borrower;
-    bool isPaid;
     uint amount;
     IERC20Standard stableCoin;
     bool isClosed;
+    bool isLiquidated;
+    bool isPaid;
 }
 
 /// @title CCFL contract
@@ -106,4 +107,6 @@ interface ICCFLLoan {
         ISwapRouter _swapRouter,
         IUniswapV3Factory _factory
     ) external;
+
+    function setPaid() external;
 }
