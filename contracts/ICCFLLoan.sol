@@ -36,6 +36,7 @@ struct Loan {
     bool isClosed;
     bool isLiquidated;
     bool isPaid;
+    bool isFinalty;
 }
 
 /// @title CCFL contract

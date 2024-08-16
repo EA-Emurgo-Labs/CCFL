@@ -8,7 +8,6 @@ struct Loan {
     bool isPaid;
     uint amount;
     bool isClosed;
-    bool isLocked;
     address borrower;
     bool isLiquidated;
 }
@@ -289,6 +288,7 @@ contract CCFLPool is ICCFLPool, Initializable {
     }
 
     function repay(uint _loanId, uint256 _amount) public onlyCCFL {
+        require(loans[_loanId].isClosed == false, "it is closed");
         DataTypes.ReserveCache memory reserveCache = cache();
 
         updateState(reserveCache);
@@ -335,6 +335,7 @@ contract CCFLPool is ICCFLPool, Initializable {
         uint256 _loanId,
         uint256 _amount
     ) public onlyCCFL {
+        require(loans[_loanId].isLiquidated == false, "it is liquidated");
         DataTypes.ReserveCache memory reserveCache = cache();
 
         updateState(reserveCache);

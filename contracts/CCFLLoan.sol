@@ -273,7 +273,10 @@ contract CCFLLoan is ICCFLLoan, Initializable {
         address _receiver,
         bool _isETH
     ) public onlyOwner {
-        require(initLoan.isClosed == true, "Loan is not closed");
+        require(
+            initLoan.isClosed == true && initLoan.isFinalty == false,
+            "Loan is not closed or finalty"
+        );
         if (_isETH) {
             wETH.withdraw(collateralToken.balanceOf(address(this)));
             payable(_receiver).transfer(
@@ -285,6 +288,7 @@ contract CCFLLoan is ICCFLLoan, Initializable {
                 collateralToken.balanceOf(address(this))
             );
         }
+        initLoan.isFinalty = true;
     }
 
     function getLoanInfo() public view returns (Loan memory) {
