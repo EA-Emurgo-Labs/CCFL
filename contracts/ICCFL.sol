@@ -149,4 +149,6 @@ interface ICCFL {
     ) external view returns (uint);
 
     function getLoanIds(address borrower) external view returns (uint[] memory);
+
+    function setEarnSharePercent(uint _earnSharePercent) external;
 }

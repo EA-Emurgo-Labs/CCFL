@@ -162,7 +162,7 @@ describe("CCFL system", function () {
       { initializer: "initialize" }
     );
     await ccfl.setWETH(await wETH9.getAddress());
-    await ccfl.setPenalty(BigInt(5), BigInt(10), BigInt(5));
+    await ccfl.setPenalty(BigInt(500), BigInt(1000), BigInt(500));
 
     await ccfl.setPlatformAddress(liquidator, platform);
     await ccflPool.setCCFL(await ccfl.getAddress());
@@ -192,6 +192,7 @@ describe("CCFL system", function () {
     await ccfl.setActiveToken(await usdt.getAddress(), true, true);
     await ccfl.setActiveToken(await link.getAddress(), true, false);
     await ccfl.setThreshold(7000, 7500);
+    await ccfl.setEarnSharePercent(3000);
 
     await link.transfer(borrower1, BigInt(10000e18));
     await link.transfer(borrower2, BigInt(20000e18));
@@ -843,7 +844,7 @@ describe("CCFL system", function () {
       );
       await link.transfer(borrower1, BigInt(60e18));
       let loanAddr = await ccfl.getLoanAddress(BigInt(1));
-      await usdc.transfer(loanAddr, BigInt(1200e18));
+      await usdc.transfer(loanAddr, BigInt(1210e18));
       await ccfl.liquidate(BigInt(1));
     });
   });

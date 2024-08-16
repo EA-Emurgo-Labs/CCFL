@@ -110,4 +110,6 @@ interface ICCFLLoan {
     ) external;
 
     function setPaid() external;
+
+    function setEarnSharePercent(uint _earnSharePercent) external;
 }

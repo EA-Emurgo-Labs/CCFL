@@ -38,6 +38,8 @@ contract CCFLLoan is ICCFLLoan, Initializable {
     address public platform;
     IWETH public wETH;
 
+    uint public earnSharePercent;
+
     modifier onlyOwner() {
         require(msg.sender == owner, "only the owner");
         _;
@@ -47,6 +49,10 @@ contract CCFLLoan is ICCFLLoan, Initializable {
 
     function setCCFL(address _ccfl) public onlyOwner {
         ccfl = _ccfl;
+    }
+
+    function setEarnSharePercent(uint _earnSharePercent) public onlyOwner {
+        earnSharePercent = _earnSharePercent;
     }
 
     function setSwapRouter(
@@ -107,7 +113,8 @@ contract CCFLLoan is ICCFLLoan, Initializable {
         isStakeAave = false;
         // share 30% for platform;
         uint currentCollateral = collateralToken.balanceOf(address(this));
-        uint earn = ((currentCollateral - collateralAmount) * 30) / 100;
+        uint earn = ((currentCollateral - collateralAmount) *
+            earnSharePercent) / 10000;
         collateralToken.transfer(platform, earn);
     }
 

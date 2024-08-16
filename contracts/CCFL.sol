@@ -38,10 +38,12 @@ contract CCFL is ICCFL, Initializable {
 
     mapping(address => uint[]) public userLoans;
 
-    // penalty / 1000
+    // penalty / 10000
     uint public penaltyPlatform;
     uint public penaltyLiquidator;
     uint public penaltyLender;
+    // earn AAVE /10000
+    uint public earnSharePercent;
 
     modifier onlyOwner() {
         require(msg.sender == owner, "only the owner");
@@ -111,6 +113,10 @@ contract CCFL is ICCFL, Initializable {
         maxLTV = _maxLTV;
         liquidationThreshold = _liquidationThreshold;
         owner = msg.sender;
+    }
+
+    function setEarnSharePercent(uint _earnSharePercent) public onlyOwner {
+        earnSharePercent = _earnSharePercent;
     }
 
     function setPools(
@@ -296,6 +302,7 @@ contract CCFL is ICCFL, Initializable {
         );
         cloneSC.setCCFL(address(this));
         cloneSC.setSwapRouter(swapRouter, factory);
+        cloneSC.setEarnSharePercent(earnSharePercent);
 
         // transfer collateral
         cloneSC.updateCollateral(_amountCollateral);
@@ -457,8 +464,8 @@ contract CCFL is ICCFL, Initializable {
             address(loan),
             address(this),
             (curentDebt *
-                (1000 + penaltyLender + penaltyLiquidator + penaltyPlatform)) /
-                1000
+                (10000 + penaltyLender + penaltyLiquidator + penaltyPlatform)) /
+                10000
         );
         // repay for pool
         loanInfo.stableCoin.approve(
@@ -470,21 +477,21 @@ contract CCFL is ICCFL, Initializable {
 
         loanInfo.stableCoin.transfer(
             platform,
-            (curentDebt * penaltyPlatform) / 1000
+            (curentDebt * penaltyPlatform) / 10000
         );
         loanInfo.stableCoin.transfer(
             liquidator,
-            (curentDebt * penaltyLiquidator) / 1000
+            (curentDebt * penaltyLiquidator) / 10000
         );
         // penalty for pool
         uint fundForLender = (curentDebt *
-            (1000 + penaltyLender + penaltyLiquidator + penaltyPlatform)) /
-            1000 -
+            (10000 + penaltyLender + penaltyLiquidator + penaltyPlatform)) /
+            10000 -
             curentDebt -
             (curentDebt * penaltyPlatform) /
-            1000 -
+            10000 -
             (curentDebt * penaltyLiquidator) /
-            1000;
+            10000;
 
         loanInfo.stableCoin.approve(
             address(ccflPools[loanInfo.stableCoin]),

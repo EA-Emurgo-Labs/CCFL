@@ -127,6 +127,7 @@ describe("CCFL contract", function () {
       await mockSwap.getAddress(),
       await mockUniFactory.getAddress()
     );
+    await ccfl.setEarnSharePercent(3000);
 
     await link.transfer(borrower1, BigInt(10000e18));
     await link.transfer(borrower2, BigInt(20000e18));
