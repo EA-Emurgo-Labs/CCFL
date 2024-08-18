@@ -320,6 +320,19 @@ contract CCFL is ICCFL, Initializable {
         if (_isYieldGenerating == true) cloneSC.supplyLiquidity();
         loans[loandIds] = cloneSC;
         userLoans[msg.sender].push(loandIds);
+
+        emit CreateLoan(
+            msg.sender,
+            _amount,
+            _stableCoin,
+            _amountCollateral,
+            _collateral,
+            _isYieldGenerating,
+            _isETH,
+            loandIds,
+            block.timestamp
+        );
+
         loandIds++;
     }
 
@@ -349,6 +362,15 @@ contract CCFL is ICCFL, Initializable {
                 _amountCollateral
             );
         }
+
+        emit AddCollateral(
+            msg.sender,
+            _loanId,
+            _amountCollateral,
+            _collateral,
+            _isETH,
+            block.timestamp
+        );
     }
 
     // withdraw loan
@@ -358,6 +380,8 @@ contract CCFL is ICCFL, Initializable {
         require(info.borrower == msg.sender, "Not owner loan");
         ccflPools[_stableCoin].withdrawLoan(info.borrower, _loanId);
         loan.setPaid();
+
+        emit WithdrawLoan(msg.sender, _loanId, _stableCoin, block.timestamp);
     }
 
     // repay loan
@@ -376,12 +400,16 @@ contract CCFL is ICCFL, Initializable {
         if (ccflPools[_stableCoin].getCurrentLoan(_loanId) == 0) {
             loans[_loanId].closeLoan();
         }
+
+        emit RepayLoan(msg.sender, _loanId, _amount, _stableCoin, block.timestamp);
     }
 
     function withdrawAllCollateral(uint _loanId, bool isETH) public {
         ICCFLLoan loan = loans[_loanId];
         Loan memory info = loan.getLoanInfo();
         loan.withdrawAllCollateral(info.borrower, isETH);
+
+        emit WithdrawAllCollateral(msg.sender, _loanId, isETH, block.timestamp);
     }
 
     function getLatestPrice(
@@ -500,6 +528,8 @@ contract CCFL is ICCFL, Initializable {
         ccflPools[loanInfo.stableCoin].liquidatePenalty(_loanId, fundForLender);
 
         loans[_loanId].closeLoan();
+
+        emit Liquidate(msg.sender, _loanId, block.timestamp);
     }
 
     function getLoanIds(address borrower) public view returns (uint[] memory) {

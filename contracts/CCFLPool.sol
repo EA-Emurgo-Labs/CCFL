@@ -95,7 +95,6 @@ contract CCFLPool is ICCFLPool, Initializable {
     function withdrawLoan(address _receiver, uint _loanId) public onlyCCFL {
         require(loans[_loanId].isPaid == false, "Loan is paid");
         loans[_loanId].isPaid = true;
-        emit WithdrawLoan(_receiver, loans[_loanId].amount, block.timestamp);
         stableCoinAddress.transfer(_receiver, loans[_loanId].amount);
     }
 
@@ -229,6 +228,8 @@ contract CCFLPool is ICCFLPool, Initializable {
         share[msg.sender] = total;
         remainingPool += _amount;
         stableCoinAddress.transferFrom(msg.sender, address(this), _amount);
+
+        emit AddSupply(msg.sender, stableCoinAddress, _amount, block.timestamp);
     }
 
     function balance(address _user) public view returns (uint256) {
@@ -254,6 +255,8 @@ contract CCFLPool is ICCFLPool, Initializable {
         share[msg.sender] = total;
         remainingPool -= _amount;
         stableCoinAddress.transfer(msg.sender, _amount);
+
+        emit WithdrawSupply(msg.sender, stableCoinAddress, _amount, block.timestamp);
     }
 
     function borrow(
