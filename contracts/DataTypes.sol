@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.0;
+import "./IERC20Standard.sol";
 
 library DataTypes {
     struct ReserveData {
@@ -35,5 +36,16 @@ library DataTypes {
         uint256 liquidityTaken;
         uint256 totalVariableDebt;
         uint256 totalLiquidity;
+    }
+
+    struct Loan {
+        uint loanId;
+        bool isPaid;
+        uint amount;
+        bool isClosed;
+        address borrower;
+        bool isLiquidated;
+        IERC20Standard stableCoin;
+        bool isFinalty;
     }
 }

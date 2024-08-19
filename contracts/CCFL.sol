@@ -273,7 +273,7 @@ contract CCFL is ICCFL, Initializable {
         );
 
         // make loan ins
-        Loan memory loan;
+        DataTypes.Loan memory loan;
         address _borrower = msg.sender;
         loan.borrower = _borrower;
         loan.amount = _amount;
@@ -354,7 +354,7 @@ contract CCFL is ICCFL, Initializable {
     // withdraw loan
     function withdrawLoan(IERC20Standard _stableCoin, uint _loanId) public {
         ICCFLLoan loan = loans[_loanId];
-        Loan memory info = loan.getLoanInfo();
+        DataTypes.Loan memory info = loan.getLoanInfo();
         require(info.borrower == msg.sender, "Not owner loan");
         ccflPools[_stableCoin].withdrawLoan(info.borrower, _loanId);
         loan.setPaid();
@@ -380,7 +380,7 @@ contract CCFL is ICCFL, Initializable {
 
     function withdrawAllCollateral(uint _loanId, bool isETH) public {
         ICCFLLoan loan = loans[_loanId];
-        Loan memory info = loan.getLoanInfo();
+        DataTypes.Loan memory info = loan.getLoanInfo();
         loan.withdrawAllCollateral(info.borrower, isETH);
     }
 
@@ -413,7 +413,7 @@ contract CCFL is ICCFL, Initializable {
 
     function getHealthFactor(uint _loanId) public view returns (uint) {
         ICCFLLoan loan = loans[_loanId];
-        Loan memory loanInfo = loan.getLoanInfo();
+        DataTypes.Loan memory loanInfo = loan.getLoanInfo();
         uint curentDebt = ccflPools[loanInfo.stableCoin].getCurrentLoan(
             _loanId
         );
@@ -425,7 +425,7 @@ contract CCFL is ICCFL, Initializable {
         uint _amount
     ) public view returns (uint) {
         ICCFLLoan loan = loans[_loanId];
-        Loan memory loanInfo = loan.getLoanInfo();
+        DataTypes.Loan memory loanInfo = loan.getLoanInfo();
         uint curentDebt = ccflPools[loanInfo.stableCoin].getCurrentLoan(
             _loanId
         );
@@ -437,7 +437,7 @@ contract CCFL is ICCFL, Initializable {
         uint _amountCollateral
     ) public view returns (uint) {
         ICCFLLoan loan = loans[_loanId];
-        Loan memory loanInfo = loan.getLoanInfo();
+        DataTypes.Loan memory loanInfo = loan.getLoanInfo();
         uint curentDebt = ccflPools[loanInfo.stableCoin].getCurrentLoan(
             _loanId
         );
@@ -451,7 +451,7 @@ contract CCFL is ICCFL, Initializable {
 
     function liquidate(uint _loanId) public {
         ICCFLLoan loan = loans[_loanId];
-        Loan memory loanInfo = loan.getLoanInfo();
+        DataTypes.Loan memory loanInfo = loan.getLoanInfo();
         uint curentDebt = ccflPools[loanInfo.stableCoin].getCurrentLoan(
             _loanId
         );

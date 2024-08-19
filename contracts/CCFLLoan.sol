@@ -27,7 +27,7 @@ contract CCFLLoan is ICCFLLoan, Initializable {
     IERC20Standard public collateralToken;
 
     // default loan
-    Loan public initLoan;
+    DataTypes.Loan public initLoan;
 
     // chainlink
     AggregatorV3Interface public priceFeed;
@@ -64,7 +64,7 @@ contract CCFLLoan is ICCFLLoan, Initializable {
     }
 
     function initialize(
-        Loan memory _loan,
+        DataTypes.Loan memory _loan,
         IERC20Standard _collateralToken,
         IPoolAddressesProvider _aaveAddressProvider,
         IERC20Standard _aToken,
@@ -298,7 +298,7 @@ contract CCFLLoan is ICCFLLoan, Initializable {
         initLoan.isFinalty = true;
     }
 
-    function getLoanInfo() public view returns (Loan memory) {
+    function getLoanInfo() public view returns (DataTypes.Loan memory) {
         return initLoan;
     }
 

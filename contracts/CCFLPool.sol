@@ -2,15 +2,7 @@
 pragma solidity ^0.8.24;
 
 import "./ICCFLPool.sol";
-
-struct Loan {
-    uint loanId;
-    bool isPaid;
-    uint amount;
-    bool isClosed;
-    address borrower;
-    bool isLiquidated;
-}
+import "./DataTypes.sol";
 
 /// @title CCFL contract
 /// @author
@@ -23,7 +15,7 @@ contract CCFLPool is ICCFLPool, Initializable {
     IERC20Standard public stableCoinAddress;
     address[] public lenders;
 
-    mapping(uint => Loan) public loans;
+    mapping(uint => DataTypes.Loan) public loans;
     address public CCFL;
 
     // ray
@@ -276,7 +268,7 @@ contract CCFLPool is ICCFLPool, Initializable {
 
         require(_amount <= remainingPool, "Do not have enough liquidity");
 
-        Loan storage loan = loans[_loanId];
+        DataTypes.Loan storage loan = loans[_loanId];
         debt[_loanId] = total;
         loan.loanId = _loanId;
         loan.amount = _amount;

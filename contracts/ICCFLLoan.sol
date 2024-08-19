@@ -14,6 +14,7 @@ import "@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol";
 import "@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol";
 
 import "@aave/core-v3/contracts/misc/interfaces/IWETH.sol";
+import "./DataTypes.sol";
 
 interface AggregatorV3Interface {
     function latestRoundData()
@@ -26,17 +27,6 @@ interface AggregatorV3Interface {
             uint256 updatedAt,
             uint80 answeredInRound
         );
-}
-
-struct Loan {
-    uint loanId;
-    address borrower;
-    uint amount;
-    IERC20Standard stableCoin;
-    bool isClosed;
-    bool isLiquidated;
-    bool isPaid;
-    bool isFinalty;
 }
 
 /// @title CCFL contract
@@ -75,7 +65,7 @@ interface ICCFLLoan {
         );
 
     function initialize(
-        Loan memory _loan,
+        DataTypes.Loan memory _loan,
         IERC20Standard _collateralToken,
         IPoolAddressesProvider _aaveAddressProvider,
         IERC20Standard _aToken,
@@ -100,7 +90,7 @@ interface ICCFLLoan {
 
     function liquidate(uint _currentDebt, uint _percent) external;
 
-    function getLoanInfo() external view returns (Loan memory);
+    function getLoanInfo() external view returns (DataTypes.Loan memory);
 
     function withdrawAllCollateral(address _receiver, bool _isETH) external;
 
