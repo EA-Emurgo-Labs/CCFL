@@ -162,7 +162,7 @@ describe("CCFL system", function () {
       { initializer: "initialize" }
     );
     await ccfl.setWETH(await wETH9.getAddress());
-    await ccfl.setPenalty(BigInt(500), BigInt(1000), BigInt(500));
+    await ccfl.setPenalty(BigInt(50), BigInt(100), BigInt(50));
 
     await ccfl.setPlatformAddress(liquidator, platform);
     await ccflPool.setCCFL(await ccfl.getAddress());

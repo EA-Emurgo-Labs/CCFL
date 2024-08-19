@@ -94,6 +94,35 @@ const ProxyCCFLModule = buildModule("ProxyCCFLModule", (m) => {
     id: "proxyCCFLadmin",
   });
 
+  const ccflPoolProxyRemap = m.contractAt("CCFLPool", proxyPool, {
+    id: "ccflPoolProxyRemap",
+  });
+  const ccflProxyRemap = m.contractAt("CCFL", proxyCCFL, {
+    id: "ccflproxyRemap",
+  });
+  const swapRouterV2 = m.contractAt(
+    "MockSwapRouter",
+    "0x3bFA4769FB09eefC5a80d6E87c3B9C650f7Ae48E"
+  );
+
+  const factoryV3 = m.contractAt(
+    "MockFactory",
+    "0x0227628f3F023bb0B980b67D528571c95c6DaC1c"
+  );
+
+  m.call(ccflProxyRemap, "setPenalty", [BigInt(50), BigInt(100), BigInt(50)]);
+
+  m.call(ccflProxyRemap, "setPlatformAddress", [
+    proxyAdminOwner,
+    proxyAdminOwner,
+  ]);
+
+  m.call(ccflPoolProxyRemap, "setCCFL", [ccflProxyRemap]);
+
+  m.call(ccflProxyRemap, "setSwapRouter", [swapRouterV2, factoryV3]);
+
+  m.call(ccflProxyRemap, "setEarnSharePercent", [BigInt(3000)]);
+
   return { proxyAdminCCFL, proxyCCFL, proxyAdminPool, proxyPool };
 });
 

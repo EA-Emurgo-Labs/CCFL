@@ -16,13 +16,15 @@ const ConfigModule = buildModule("ConfigModule", (m) => {
     "0x0227628f3F023bb0B980b67D528571c95c6DaC1c"
   );
 
-  m.call(ccfl, "setPenalty", [BigInt(5), BigInt(10), BigInt(5)]);
+  m.call(ccfl, "setPenalty", [BigInt(50), BigInt(100), BigInt(50)]);
 
   m.call(ccfl, "setPlatformAddress", [liquidator, platform]);
 
   m.call(ccflPool, "setCCFL", [ccflAddr]);
 
   m.call(ccfl, "setSwapRouter", [swapRouterV2, factoryV3]);
+
+  m.call(ccfl, "setEarnSharePercent", [BigInt(3000)]);
 
   return { ccflPool, ccfl };
 });
