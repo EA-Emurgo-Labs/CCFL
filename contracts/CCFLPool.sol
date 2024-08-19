@@ -260,7 +260,8 @@ contract CCFLPool is ICCFLPool, Initializable {
     function borrow(
         uint _loanId,
         uint256 _amount,
-        address _borrower
+        address _borrower,
+        bool _isFiat
     ) public onlyCCFL {
         DataTypes.ReserveCache memory reserveCache = cache();
         updateState(reserveCache);
@@ -282,6 +283,7 @@ contract CCFLPool is ICCFLPool, Initializable {
         loan.loanId = _loanId;
         loan.amount = _amount;
         loan.borrower = _borrower;
+        loan.isFiat = _isFiat;
 
         updateInterestRates(0, rayAmount);
         totalLiquidity -= rayAmount.rayDiv(reserveCache.nextLiquidityIndex);

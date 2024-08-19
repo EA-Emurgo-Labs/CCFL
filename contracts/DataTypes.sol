@@ -47,5 +47,6 @@ library DataTypes {
         bool isLiquidated;
         IERC20Standard stableCoin;
         bool isFinalty;
+        bool isFiat;
     }
 }

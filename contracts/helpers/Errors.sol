@@ -24,4 +24,6 @@ library Errors {
     string public constant DO_NOT_HAVE_ENOUGH_LIQUIDITY = "15";
     string public constant IT_IS_CLOSED = "16";
     string public constant IT_IS_LIQUIDATED = "17";
+    string public constant ONLY_THE_OPERATOR = "18";
+    string public constant ONLY_FIAT_LOAN = "19";
 }
