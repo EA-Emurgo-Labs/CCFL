@@ -89,6 +89,15 @@ async function createLoan() {
   console.log(`Got ${ids}`);
 }
 
+async function getCurrentLoan(loandId: any) {
+  const signer = await ethers.provider.getSigner();
+  console.log("signer", await signer.getAddress());
+
+  const iUsdc = await ethers.getContractAt("ICCFLPool", pool, signer);
+  let balance = await iUsdc.getCurrentLoan(loandId);
+  console.log(`Got ${balance}`);
+}
+
 async function getHealthFactor(usdcAmount: any, wbtcAmount: any, loanId: any) {
   const signer = await ethers.provider.getSigner();
   console.log("signer", await signer.getAddress());
@@ -137,6 +146,10 @@ describe.skip("sepolia", () => {
 
     it("create a loan", async () => {
       await createLoan();
+    });
+
+    it.only("get current loan", async () => {
+      getCurrentLoan(BigInt(2));
     });
 
     it("check health factor", async () => {
