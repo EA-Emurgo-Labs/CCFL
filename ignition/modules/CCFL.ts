@@ -92,7 +92,7 @@ const ProxyCCFLModule = buildModule("ProxyCCFLModule", (m) => {
     id: "ccflPoolProxyRemap",
   });
   const ccflProxyRemap = m.contractAt("CCFL", proxyCCFL, {
-    id: "ccflroxyRemap",
+    id: "ccflproxyRemap",
   });
   const swapRouterV2 = m.contractAt(
     "MockSwapRouter",
