@@ -63,12 +63,8 @@ interface ICCFL {
         uint timestamp
     );
 
-    event Liquidate(
-        address indexed liquidator,
-        uint loanId,
-        uint timestamp
-    );
-    
+    event Liquidate(address indexed liquidator, uint loanId, uint timestamp);
+
     function checkExistElement(
         IERC20Standard[] memory array,
         IERC20Standard el
@@ -130,9 +126,8 @@ interface ICCFL {
         IERC20Standard _stableCoin,
         uint _amountCollateral,
         IERC20Standard _collateral,
-        bool _isYieldGenerating,
-        bool _isETH
-    ) external payable;
+        bool _isYieldGenerating
+    ) external;
 
     function setWETH(IWETH _iWETH) external;
 
@@ -187,4 +182,11 @@ interface ICCFL {
     function getLoanIds(address borrower) external view returns (uint[] memory);
 
     function setEarnSharePercent(uint _earnSharePercent) external;
+
+    function createLoanByETH(
+        uint _amount,
+        IERC20Standard _stableCoin,
+        uint _amountETH,
+        bool _isYieldGenerating
+    ) external payable;
 }

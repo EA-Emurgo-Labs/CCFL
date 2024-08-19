@@ -244,22 +244,13 @@ contract CCFL is ICCFL, Initializable {
         uint _amount,
         IERC20Standard _stableCoin,
         uint _amountCollateral,
-        IERC20Standard _collateral, // ETH ->  WETH
-        bool _isYieldGenerating,
-        bool _isETH // false
+        IERC20Standard _collateral,
+        bool _isYieldGenerating
     )
         public
-        payable
         supportedPoolToken(_stableCoin)
         supportedCollateralToken(_collateral)
     {
-        if (_isETH) {
-            require(
-                _amountCollateral <= msg.value,
-                Errors.DO_NOT_HAVE_ENOUGH_DEPOSITED_ETH
-            );
-            wETH.deposit{value: _amountCollateral}();
-        }
         require(
             (_amountCollateral * getLatestPrice(_collateral, false) * maxLTV) /
                 (10 ** _collateral.decimals()) >=
@@ -307,16 +298,11 @@ contract CCFL is ICCFL, Initializable {
 
         // transfer collateral
         cloneSC.updateCollateral(_amountCollateral);
-        // get from user to loan
-        if (_isETH) {
-            _collateral.transfer(address(loanIns), _amountCollateral);
-        } else {
-            _collateral.transferFrom(
-                msg.sender,
-                address(loanIns),
-                _amountCollateral
-            );
-        }
+        _collateral.transferFrom(
+            msg.sender,
+            address(loanIns),
+            _amountCollateral
+        );
 
         if (_isYieldGenerating == true) cloneSC.supplyLiquidity();
         loans[loandIds] = cloneSC;
@@ -329,7 +315,91 @@ contract CCFL is ICCFL, Initializable {
             _amountCollateral,
             _collateral,
             _isYieldGenerating,
-            _isETH,
+            false,
+            loandIds,
+            block.timestamp
+        );
+
+        loandIds++;
+    }
+
+    // create loan by ETH
+    function createLoanByETH(
+        uint _amount,
+        IERC20Standard _stableCoin,
+        uint _amountETH,
+        bool _isYieldGenerating
+    ) public payable supportedPoolToken(_stableCoin) {
+        require(
+            _amountETH <= msg.value,
+            Errors.DO_NOT_HAVE_ENOUGH_DEPOSITED_ETH
+        );
+        wETH.deposit{value: _amountETH}();
+
+        require(
+            (_amountETH *
+                getLatestPrice(IERC20Standard(address(wETH)), false) *
+                maxLTV) /
+                (10 ** IERC20Standard(address(wETH)).decimals()) >=
+                ((_amount * getLatestPrice(_stableCoin, true)) * 10000) /
+                    (10 ** _stableCoin.decimals()),
+            Errors.DO_NOT_HAVE_ENOUGH_COLLATERAL
+        );
+        // check pool reseve
+        require(
+            ccflPools[_stableCoin].getRemainingPool() >= _amount,
+            Errors.DO_NOT_HAVE_ENOUGH_LENDING_FUND
+        );
+
+        // make loan ins
+        DataTypes.Loan memory loan;
+        address _borrower = msg.sender;
+        loan.borrower = _borrower;
+        loan.amount = _amount;
+        loan.loanId = loandIds;
+        loan.isPaid = false;
+        loan.stableCoin = _stableCoin;
+        // borrow loan on pool
+        ccflPools[_stableCoin].borrow(loan.loanId, loan.amount, loan.borrower);
+
+        AggregatorV3Interface _pricePoolFeeds = pricePoolFeeds[_stableCoin];
+        IERC20Standard token = IERC20Standard(address(wETH));
+        // clone a loan SC
+        address loanIns = address(ccflLoan).clone();
+        ICCFLLoan cloneSC = ICCFLLoan(loanIns);
+        cloneSC.initialize(
+            loan,
+            token,
+            aaveAddressProvider,
+            aTokens[token],
+            maxLTV,
+            liquidationThreshold,
+            priceFeeds[token],
+            _pricePoolFeeds,
+            platform,
+            wETH
+        );
+        cloneSC.setCCFL(address(this));
+        cloneSC.setSwapRouter(swapRouter, factory);
+        cloneSC.setEarnSharePercent(earnSharePercent);
+
+        // transfer collateral
+        cloneSC.updateCollateral(_amountETH);
+        // get from user to loan
+        IERC20Standard(address(wETH)).transfer(address(loanIns), _amountETH);
+
+        if (_isYieldGenerating == true) cloneSC.supplyLiquidity();
+        loans[loandIds] = cloneSC;
+        userLoans[msg.sender].push(loandIds);
+
+        emit CreateLoan(
+            msg.sender,
+            _amount,
+            _stableCoin,
+            _amountETH,
+            IERC20Standard(address(wETH)),
+            _isYieldGenerating,
+            true,
             loandIds,
             block.timestamp
         );
