@@ -20,19 +20,55 @@ import "./IERC20Standard.sol";
 /// @author
 /// @notice Link/usd
 interface ICCFL {
-    event LiquiditySupplied(
-        address indexed onBehalfOf,
-        address indexed _token,
-        uint256 indexed _amount
-    );
-    event LiquidityWithdrawn(
-        address indexed to,
-        address indexed _token,
-        uint256 indexed _amount
+    event CreateLoan(
+        address indexed borrower,
+        uint loanAmount,
+        IERC20Standard supply,
+        uint collateralAmount,
+        IERC20Standard collateral,
+        bool isYieldGenerating,
+        bool isETH,
+        uint loanId,
+        uint timestamp
     );
 
-    event Withdraw(address borrower, uint amount, uint when);
+    event AddCollateral(
+        address indexed borrower,
+        uint loanId,
+        uint collateralAmount,
+        IERC20Standard collateral,
+        bool isETH,
+        uint timestamp
+    );
 
+    event WithdrawLoan(
+        address indexed borrower,
+        uint loanId,
+        IERC20Standard supply,
+        uint timestamp
+    );
+
+    event RepayLoan(
+        address indexed borrower,
+        uint loanId,
+        uint amount,
+        IERC20Standard supply,
+        uint timestamp
+    );
+
+    event WithdrawAllCollateral(
+        address indexed borrower,
+        uint loanId,
+        bool isETH,
+        uint timestamp
+    );
+
+    event Liquidate(
+        address indexed liquidator,
+        uint loanId,
+        uint timestamp
+    );
+    
     function checkExistElement(
         IERC20Standard[] memory array,
         IERC20Standard el

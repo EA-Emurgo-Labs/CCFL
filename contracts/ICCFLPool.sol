@@ -17,10 +17,19 @@ import "./IERC20Standard.sol";
 /// @author
 /// @notice usd
 interface ICCFLPool {
-    event Withdraw(address user, uint amount, uint when);
-    event Deposit(address user, uint amount, uint when);
-    event WithdrawLoan(address user, uint amount, uint when);
-    event CloseLoan(uint loanId, uint amount, address borrower, uint when);
+    event AddSupply(
+        address indexed lender,
+        IERC20Standard indexed supply,
+        uint amount,
+        uint timestamp
+    );
+
+    event WithdrawSupply(
+        address indexed lender,
+        IERC20Standard indexed supply,
+        uint amount,
+        uint timestamp
+    );
 
     function withdrawLoan(address _receiver, uint _loanId) external;
 
