@@ -3,6 +3,7 @@ pragma solidity ^0.8.24;
 
 import "./ICCFLPool.sol";
 import "./DataTypes.sol";
+import "./helpers/Errors.sol";
 
 /// @title CCFL contract
 /// @author
@@ -32,12 +33,12 @@ contract CCFLPool is ICCFLPool, Initializable {
     address owner;
 
     modifier onlyCCFL() {
-        require(CCFL == msg.sender, "only the ccfl");
+        require(CCFL == msg.sender, Errors.ONLY_THE_CCFL);
         _;
     }
 
     modifier onlyOwner() {
-        require(owner == msg.sender, "only the owner");
+        require(owner == msg.sender, Errors.ONLY_THE_OWNER);
         _;
     }
 
@@ -85,7 +86,7 @@ contract CCFLPool is ICCFLPool, Initializable {
     // }
 
     function withdrawLoan(address _receiver, uint _loanId) public onlyCCFL {
-        require(loans[_loanId].isPaid == false, "Loan is paid");
+        require(loans[_loanId].isPaid == false, Errors.THE_LOAN_IS_PAID);
         loans[_loanId].isPaid = true;
         stableCoinAddress.transfer(_receiver, loans[_loanId].amount);
     }
@@ -243,12 +244,17 @@ contract CCFLPool is ICCFLPool, Initializable {
         uint256 total = share[msg.sender] - amountScaled;
         totalSupply -= amountScaled;
         totalLiquidity -= amountScaled;
-        require(total >= 0, "Don't have enough fund");
+        require(total >= 0, Errors.DO_NOT_HAVE_ENOUGH_LENDING_FUND);
         share[msg.sender] = total;
         remainingPool -= _amount;
         stableCoinAddress.transfer(msg.sender, _amount);
 
-        emit WithdrawSupply(msg.sender, stableCoinAddress, _amount, block.timestamp);
+        emit WithdrawSupply(
+            msg.sender,
+            stableCoinAddress,
+            _amount,
+            block.timestamp
+        );
     }
 
     function borrow(
@@ -269,7 +275,7 @@ contract CCFLPool is ICCFLPool, Initializable {
         uint256 total = debt[_loanId] + amountScaled;
         totalDebt += amountScaled;
 
-        require(_amount <= remainingPool, "Do not have enough liquidity");
+        require(_amount <= remainingPool, Errors.DO_NOT_HAVE_ENOUGH_LIQUIDITY);
 
         DataTypes.Loan storage loan = loans[_loanId];
         debt[_loanId] = total;
@@ -283,7 +289,7 @@ contract CCFLPool is ICCFLPool, Initializable {
     }
 
     function repay(uint _loanId, uint256 _amount) public onlyCCFL {
-        require(loans[_loanId].isClosed == false, "it is closed");
+        require(loans[_loanId].isClosed == false, Errors.IT_IS_CLOSED);
         DataTypes.ReserveCache memory reserveCache = cache();
 
         updateState(reserveCache);
@@ -330,7 +336,7 @@ contract CCFLPool is ICCFLPool, Initializable {
         uint256 _loanId,
         uint256 _amount
     ) public onlyCCFL {
-        require(loans[_loanId].isLiquidated == false, "it is liquidated");
+        require(loans[_loanId].isLiquidated == false, Errors.IT_IS_LIQUIDATED);
         DataTypes.ReserveCache memory reserveCache = cache();
 
         updateState(reserveCache);

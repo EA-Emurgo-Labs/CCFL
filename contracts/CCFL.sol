@@ -2,6 +2,7 @@
 pragma solidity ^0.8.24;
 import "./ICCFL.sol";
 import "@aave/core-v3/contracts/misc/interfaces/IWETH.sol";
+import "./helpers/Errors.sol";
 
 /// @title CCFL contract
 /// @author
@@ -46,14 +47,14 @@ contract CCFL is ICCFL, Initializable {
     uint public earnSharePercent;
 
     modifier onlyOwner() {
-        require(msg.sender == owner, "only the owner");
+        require(msg.sender == owner, Errors.ONLY_THE_OWNER);
         _;
     }
 
     modifier supportedPoolToken(IERC20Standard _tokenAddress) {
         require(
             ccflActivePoolStableCoins[_tokenAddress] == true,
-            "Pool token is not actived"
+            Errors.POOL_TOKEN_IS_NOT_ACTIVED
         );
         _;
     }
@@ -61,7 +62,7 @@ contract CCFL is ICCFL, Initializable {
     modifier supportedCollateralToken(IERC20Standard _tokenAddress) {
         require(
             ccflActiveCollaterals[_tokenAddress] == true,
-            "Collateral token is not actived"
+            Errors.COLLATERAL_TOKEN_IS_NOT_ACTIVED
         );
         _;
     }
@@ -167,13 +168,13 @@ contract CCFL is ICCFL, Initializable {
         if (_isPoolToken) {
             require(
                 checkExistElement(ccflPoolStableCoins, _token) == true,
-                "Token is not existed"
+                Errors.TOKEN_IS_NOT_EXISTED
             );
             ccflActiveCollaterals[_token] = _isActived;
         } else {
             require(
                 checkExistElement(collateralTokens, _token) == true,
-                "Token is not existed"
+                Errors.TOKEN_IS_NOT_EXISTED
             );
             ccflActivePoolStableCoins[_token] = _isActived;
         }
@@ -255,7 +256,7 @@ contract CCFL is ICCFL, Initializable {
         if (_isETH) {
             require(
                 _amountCollateral <= msg.value,
-                "do not have enough deposited ETH"
+                Errors.DO_NOT_HAVE_ENOUGH_DEPOSITED_ETH
             );
             wETH.deposit{value: _amountCollateral}();
         }
@@ -264,12 +265,12 @@ contract CCFL is ICCFL, Initializable {
                 (10 ** _collateral.decimals()) >=
                 ((_amount * getLatestPrice(_stableCoin, true)) * 10000) /
                     (10 ** _stableCoin.decimals()),
-            "Don't have enough collateral"
+            Errors.DO_NOT_HAVE_ENOUGH_COLLATERAL
         );
         // check pool reseve
         require(
             ccflPools[_stableCoin].getRemainingPool() >= _amount,
-            "Pool don't have enough fund"
+            Errors.DO_NOT_HAVE_ENOUGH_LENDING_FUND
         );
 
         // make loan ins
@@ -345,7 +346,7 @@ contract CCFL is ICCFL, Initializable {
         if (_isETH) {
             require(
                 _amountCollateral <= msg.value,
-                "do not have enough deposited ETH"
+                Errors.DO_NOT_HAVE_ENOUGH_DEPOSITED_ETH
             );
             wETH.deposit{value: _amountCollateral}();
         }
@@ -377,7 +378,7 @@ contract CCFL is ICCFL, Initializable {
     function withdrawLoan(IERC20Standard _stableCoin, uint _loanId) public {
         ICCFLLoan loan = loans[_loanId];
         DataTypes.Loan memory info = loan.getLoanInfo();
-        require(info.borrower == msg.sender, "Not owner loan");
+        require(info.borrower == msg.sender, Errors.IS_NOT_OWNER_LOAN);
         ccflPools[_stableCoin].withdrawLoan(info.borrower, _loanId);
         loan.setPaid();
 
@@ -401,7 +402,13 @@ contract CCFL is ICCFL, Initializable {
             loans[_loanId].closeLoan();
         }
 
-        emit RepayLoan(msg.sender, _loanId, _amount, _stableCoin, block.timestamp);
+        emit RepayLoan(
+            msg.sender,
+            _loanId,
+            _amount,
+            _stableCoin,
+            block.timestamp
+        );
     }
 
     function withdrawAllCollateral(uint _loanId, bool isETH) public {

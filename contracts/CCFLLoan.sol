@@ -3,6 +3,7 @@ pragma solidity ^0.8.24;
 
 import "./ICCFLLoan.sol";
 import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
+import "./helpers/Errors.sol";
 
 /// @title CCFL contract
 /// @author
@@ -41,7 +42,7 @@ contract CCFLLoan is ICCFLLoan, Initializable {
     uint public earnSharePercent;
 
     modifier onlyOwner() {
-        require(msg.sender == owner, "only the owner");
+        require(msg.sender == owner, Errors.ONLY_THE_OWNER);
         _;
     }
 
@@ -91,13 +92,18 @@ contract CCFLLoan is ICCFLLoan, Initializable {
     function supplyLiquidity() public onlyOwner {
         IERC20Standard asset = collateralToken;
         uint amount = asset.balanceOf(address(this));
-        require(amount > 0, "dont have assets");
+        require(amount > 0, Errors.DO_NOT_HAVE_ASSETS);
         address onBehalfOf = address(this);
         uint16 referralCode = 0;
         IPool aavePool = IPool(aaveAddressProvider.getPool());
         asset.approve(address(aavePool), amount);
         aavePool.supply(address(asset), amount, onBehalfOf, referralCode);
-        emit LiquiditySupplied(onBehalfOf, address(asset), amount, block.timestamp);
+        emit LiquiditySupplied(
+            onBehalfOf,
+            address(asset),
+            amount,
+            block.timestamp
+        );
         isStakeAave = true;
     }
 
@@ -109,7 +115,12 @@ contract CCFLLoan is ICCFLLoan, Initializable {
         uint amount = aToken.balanceOf(address(this));
         IPool aavePool = IPool(aaveAddressProvider.getPool());
         aavePool.withdraw(address(aToken), amount, address(this));
-        emit LiquidityWithdrawn(address(this), address(aToken), amount, block.timestamp);
+        emit LiquidityWithdrawn(
+            address(this),
+            address(aToken),
+            amount,
+            block.timestamp
+        );
         isStakeAave = false;
         // share 30% for platform;
         uint currentCollateral = collateralToken.balanceOf(address(this));
@@ -245,7 +256,10 @@ contract CCFLLoan is ICCFLLoan, Initializable {
     }
 
     function liquidate(uint _currentDebt, uint _percent) public onlyOwner {
-        require(getHealthFactor(_currentDebt, 0) < 100, "Can not liquidate");
+        require(
+            getHealthFactor(_currentDebt, 0) < 100,
+            Errors.CAN_NOT_LIQUIDATE
+        );
         // get all collateral from aave
         if (isStakeAave) withdrawLiquidity();
 
@@ -282,7 +296,7 @@ contract CCFLLoan is ICCFLLoan, Initializable {
     ) public onlyOwner {
         require(
             initLoan.isClosed == true && initLoan.isFinalty == false,
-            "Loan is not closed or finalty"
+            Errors.LOAN_IS_NOT_CLOSED_OR_FINALTY
         );
         if (_isETH) {
             wETH.withdraw(collateralToken.balanceOf(address(this)));

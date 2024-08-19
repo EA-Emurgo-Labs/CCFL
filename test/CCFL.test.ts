@@ -229,7 +229,7 @@ describe("CCFL contract", function () {
         ccfl
           .connect(borrower1)
           .setSwapRouter(mockSwap.getAddress(), mockUniFactory.getAddress())
-      ).to.be.revertedWith("only the owner");
+      ).to.be.revertedWith("2");
     });
 
     it("Should set platform address successfully", async () => {
@@ -275,7 +275,7 @@ describe("CCFL contract", function () {
         ccfl
           .connect(borrower1)
           .setPlatformAddress(liquidatorAddress, platformAddress)
-      ).to.be.revertedWith("only the owner");
+      ).to.be.revertedWith("2");
     });
 
     it("Should set wETH successfully", async () => {
@@ -317,7 +317,7 @@ describe("CCFL contract", function () {
 
       await expect(
         ccfl.connect(borrower1).setWETH(wETH9.getAddress())
-      ).to.be.revertedWith("only the owner");
+      ).to.be.revertedWith("2");
     });
   });
 
@@ -434,7 +434,7 @@ describe("CCFL contract", function () {
             false,
             false
           )
-      ).to.be.revertedWith("Don't have enough collateral");
+      ).to.be.revertedWith("7");
     });
 
     it("Should fail to create loan if insufficient fund in pool", async () => {
@@ -471,7 +471,7 @@ describe("CCFL contract", function () {
             false,
             false
           )
-      ).to.be.revertedWith("Pool don't have enough fund");
+      ).to.be.revertedWith("8");
     });
 
     it("Should create loan successfully with collateral is ETH", async () => {
@@ -551,7 +551,7 @@ describe("CCFL contract", function () {
             true,
             { value: BigInt(500e18) }
           )
-      ).to.be.revertedWith("do not have enough deposited ETH");
+      ).to.be.revertedWith("6");
     });
 
     it("Should withdraw loan successfully", async () => {
@@ -637,7 +637,7 @@ describe("CCFL contract", function () {
 
       await expect(
         ccfl.connect(borrower1).withdrawLoan(await usdc.getAddress(), BigInt(1))
-      ).to.be.revertedWith("Loan is paid");
+      ).to.be.revertedWith("14");
     });
 
     it("Should add collateral successfully", async () => {
@@ -787,7 +787,7 @@ describe("CCFL contract", function () {
             true,
             { value: BigInt(100e18) }
           )
-      ).to.be.revertedWith("do not have enough deposited ETH");
+      ).to.be.revertedWith("6");
     });
 
     it("Should repay loan succesfully", async () => {
