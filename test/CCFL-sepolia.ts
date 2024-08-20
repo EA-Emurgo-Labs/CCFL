@@ -74,14 +74,7 @@ async function createLoan() {
 
   const iUsdc = await ethers.getContractAt("ICCFL", ccfl, signer);
 
-  const tx = await iUsdc.createLoan(
-    amountUsdc,
-    usdc,
-    amountWbtc,
-    wbtc,
-    true,
-    false
-  );
+  const tx = await iUsdc.createLoan(amountUsdc, usdc, amountWbtc, wbtc, true);
   await tx.wait(1);
   const ids = await iUsdc.getLoanIds(
     "0x17883e3728E7bB528b542B8AAb354022eD20C149"
@@ -148,7 +141,7 @@ describe.skip("sepolia", () => {
       await createLoan();
     });
 
-    it.only("get current loan", async () => {
+    it("get current loan", async () => {
       getCurrentLoan(BigInt(2));
     });
 

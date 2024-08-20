@@ -127,9 +127,8 @@ interface ICCFL {
         uint _amountCollateral,
         IERC20Standard _collateral,
         bool _isYieldGenerating,
-        bool _isFiat,
-        bool _isETH
-    ) external payable;
+        bool _isFiat
+    ) external;
 
     function setWETH(IWETH _iWETH) external;
 
@@ -189,4 +188,11 @@ interface ICCFL {
         IERC20Standard _stableCoin,
         uint _loanId
     ) external;
+
+    function createLoanByETH(
+        uint _amount,
+        IERC20Standard _stableCoin,
+        uint _amountETH,
+        bool _isYieldGenerating
+    ) external payable;
 }
