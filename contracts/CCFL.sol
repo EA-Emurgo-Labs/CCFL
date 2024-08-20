@@ -350,7 +350,8 @@ contract CCFL is ICCFL, Initializable {
         uint _amount,
         IERC20Standard _stableCoin,
         uint _amountETH,
-        bool _isYieldGenerating
+        bool _isYieldGenerating,
+        bool _isFiat
     ) public payable supportedPoolToken(_stableCoin) {
         require(
             _amountETH <= msg.value,
@@ -381,8 +382,14 @@ contract CCFL is ICCFL, Initializable {
         loan.loanId = loandIds;
         loan.isPaid = false;
         loan.stableCoin = _stableCoin;
+        loan.isFiat = _isFiat;
         // borrow loan on pool
-        ccflPools[_stableCoin].borrow(loan.loanId, loan.amount, loan.borrower);
+        ccflPools[_stableCoin].borrow(
+            loan.loanId,
+            loan.amount,
+            loan.borrower,
+            loan.isFiat
+        );
 
         AggregatorV3Interface _pricePoolFeeds = pricePoolFeeds[_stableCoin];
         IERC20Standard token = IERC20Standard(address(wETH));

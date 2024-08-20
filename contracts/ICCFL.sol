@@ -193,6 +193,7 @@ interface ICCFL {
         uint _amount,
         IERC20Standard _stableCoin,
         uint _amountETH,
-        bool _isYieldGenerating
+        bool _isYieldGenerating,
+        bool _isFiat
     ) external payable;
 }
