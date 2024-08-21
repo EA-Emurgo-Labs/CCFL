@@ -127,7 +127,8 @@ describe("CCFL contract", function () {
       await mockSwap.getAddress(),
       await mockUniFactory.getAddress()
     );
-    await ccfl.setEarnSharePercent(3000);
+    await ccfl.setEarnShare(7000, 2000, 1000);
+    await ccfl.setEnableETHNative(true);
 
     await link.transfer(borrower1, BigInt(10000e18));
     await link.transfer(borrower2, BigInt(20000e18));
@@ -665,12 +666,7 @@ describe("CCFL contract", function () {
 
       await ccfl
         .connect(borrower1)
-        .addCollateral(
-          BigInt(1),
-          BigInt(500e18),
-          await link.getAddress(),
-          false
-        );
+        .addCollateral(BigInt(1), BigInt(500e18), await link.getAddress());
 
       expect(await link.balanceOf(await ccfl.getLoanAddress(1))).to.equal(
         BigInt(1500e18)
@@ -714,13 +710,9 @@ describe("CCFL contract", function () {
 
       await ccfl
         .connect(borrower1)
-        .addCollateral(
-          BigInt(1),
-          BigInt(500e18),
-          await wETH9.getAddress(),
-          true,
-          { value: BigInt(500e18) }
-        );
+        .addCollateralByETH(BigInt(1), BigInt(500e18), {
+          value: BigInt(500e18),
+        });
 
       expect(await wETH9.balanceOf(await ccfl.getLoanAddress(1))).to.equal(
         BigInt(1500e18)
@@ -765,13 +757,9 @@ describe("CCFL contract", function () {
       await expect(
         ccfl
           .connect(borrower1)
-          .addCollateral(
-            BigInt(1),
-            BigInt(500e18),
-            await wETH9.getAddress(),
-            true,
-            { value: BigInt(100e18) }
-          )
+          .addCollateralByETH(BigInt(1), BigInt(500e18), {
+            value: BigInt(100e18),
+          })
       ).to.be.revertedWith("6");
     });
 
@@ -1070,7 +1058,7 @@ describe("CCFL contract", function () {
         mockAggr2,
       } = await loadFixture(deployFixture);
 
-      const minimal = await ccfl.getMinimalCollateral(
+      const minimal = await ccfl.checkMinimalCollateralForLoan(
         BigInt(1000e18),
         await usdc.getAddress(),
         await link.getAddress()

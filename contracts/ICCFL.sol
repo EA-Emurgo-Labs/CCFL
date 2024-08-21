@@ -157,11 +157,12 @@ interface ICCFL {
     function addCollateral(
         uint _loanId,
         uint _amountCollateral,
-        IERC20Standard _collateral,
-        bool _isETH
-    ) external payable;
+        IERC20Standard _collateral
+    ) external;
 
-    function getMinimalCollateral(
+    function addCollateralByETH(uint _loanId, uint _amountETH) external payable;
+
+    function checkMinimalCollateralForLoan(
         uint _amount,
         IERC20Standard _stableCoin,
         IERC20Standard _collateral

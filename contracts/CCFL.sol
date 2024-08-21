@@ -48,6 +48,8 @@ contract CCFL is ICCFL, Initializable {
     uint public earnBorrower;
     uint public earnLender;
 
+    bool isEnableETHNative;
+
     modifier onlyOwner() {
         require(msg.sender == owner, Errors.ONLY_THE_OWNER);
         _;
@@ -66,6 +68,11 @@ contract CCFL is ICCFL, Initializable {
             ccflActiveCollaterals[_tokenAddress] == true,
             Errors.COLLATERAL_TOKEN_IS_NOT_ACTIVED
         );
+        _;
+    }
+
+    modifier onlyETHNative() {
+        require(isEnableETHNative == true, Errors.ETH_NATIVE_DISABLE);
         _;
     }
 
@@ -116,6 +123,10 @@ contract CCFL is ICCFL, Initializable {
         maxLTV = _maxLTV;
         liquidationThreshold = _liquidationThreshold;
         owner = msg.sender;
+    }
+
+    function setEnableETHNative(bool _isActived) public onlyOwner {
+        isEnableETHNative = _isActived;
     }
 
     function setEarnShare(
@@ -235,7 +246,7 @@ contract CCFL is ICCFL, Initializable {
     //     _;
     // }
 
-    function getMinimalCollateral(
+    function checkMinimalCollateralForLoan(
         uint _amount,
         IERC20Standard _stableCoin,
         IERC20Standard _collateral
@@ -247,7 +258,7 @@ contract CCFL is ICCFL, Initializable {
             getLatestPrice(_collateral, false));
     }
 
-    // create loan
+    // create loan by ERC20
     function createLoan(
         uint _amount,
         IERC20Standard _stableCoin,
@@ -337,7 +348,7 @@ contract CCFL is ICCFL, Initializable {
         IERC20Standard _stableCoin,
         uint _amountETH,
         bool _isYieldGenerating
-    ) public payable supportedPoolToken(_stableCoin) {
+    ) public payable supportedPoolToken(_stableCoin) onlyETHNative {
         require(
             _amountETH <= msg.value,
             Errors.DO_NOT_HAVE_ENOUGH_DEPOSITED_ETH
@@ -418,29 +429,14 @@ contract CCFL is ICCFL, Initializable {
     function addCollateral(
         uint _loanId,
         uint _amountCollateral,
-        IERC20Standard _collateral,
-        bool _isETH
-    ) public payable supportedCollateralToken(_collateral) {
-        if (_isETH) {
-            require(
-                _amountCollateral <= msg.value,
-                Errors.DO_NOT_HAVE_ENOUGH_DEPOSITED_ETH
-            );
-            wETH.deposit{value: _amountCollateral}();
-        }
+        IERC20Standard _collateral
+    ) public supportedCollateralToken(_collateral) {
         ICCFLLoan loan = loans[_loanId];
         // transfer collateral
         loan.updateCollateral(_amountCollateral);
         // get from user to loan
-        if (_isETH) {
-            _collateral.transfer(address(loan), _amountCollateral);
-        } else {
-            _collateral.transferFrom(
-                msg.sender,
-                address(loan),
-                _amountCollateral
-            );
-        }
+
+        _collateral.transferFrom(msg.sender, address(loan), _amountCollateral);
 
         if (loan.getIsYeild() == true) {
             loan.supplyLiquidity();
@@ -451,7 +447,38 @@ contract CCFL is ICCFL, Initializable {
             _loanId,
             _amountCollateral,
             _collateral,
-            _isETH,
+            false,
+            block.timestamp
+        );
+    }
+
+    function addCollateralByETH(
+        uint _loanId,
+        uint _amountETH
+    ) public payable onlyETHNative {
+        require(
+            _amountETH <= msg.value,
+            Errors.DO_NOT_HAVE_ENOUGH_DEPOSITED_ETH
+        );
+        wETH.deposit{value: _amountETH}();
+
+        ICCFLLoan loan = loans[_loanId];
+        // transfer collateral
+        loan.updateCollateral(_amountETH);
+        // get from user to loan
+
+        IERC20Standard(address(wETH)).transfer(address(loan), _amountETH);
+
+        if (loan.getIsYeild() == true) {
+            loan.supplyLiquidity();
+        }
+
+        emit AddCollateral(
+            msg.sender,
+            _loanId,
+            _amountETH,
+            IERC20Standard(address(wETH)),
+            true,
             block.timestamp
         );
     }

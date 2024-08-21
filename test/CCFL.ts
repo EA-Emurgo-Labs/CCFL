@@ -192,7 +192,8 @@ describe("CCFL system", function () {
     await ccfl.setActiveToken(await usdt.getAddress(), true, true);
     await ccfl.setActiveToken(await link.getAddress(), true, false);
     await ccfl.setThreshold(7000, 7500);
-    await ccfl.setEarnSharePercent(3000);
+    await ccfl.setEarnShare(7000, 2000, 1000);
+    await ccfl.setEnableETHNative(true);
 
     await link.transfer(borrower1, BigInt(10000e18));
     await link.transfer(borrower2, BigInt(20000e18));
@@ -494,12 +495,7 @@ describe("CCFL system", function () {
 
       await ccfl
         .connect(borrower1)
-        .addCollateral(
-          BigInt(1),
-          BigInt(100e18),
-          await link.getAddress(),
-          false
-        );
+        .addCollateral(BigInt(1), BigInt(100e18), await link.getAddress());
       // borrower return monthly payment
       await usdc.connect(borrower1).approve(ccfl.getAddress(), BigInt(10e18));
       await time.increase(30 * 24 * 3600);
@@ -682,13 +678,9 @@ describe("CCFL system", function () {
           { value: parseUnits("5", 18).toString() }
         );
 
-      await ccfl.addCollateral(
-        BigInt(1),
-        BigInt(2e18),
-        await wETH9.getAddress(),
-        true,
-        { value: parseUnits("2", 18).toString() }
-      );
+      await ccfl.addCollateralByETH(BigInt(1), BigInt(2e18), {
+        value: parseUnits("2", 18).toString(),
+      });
 
       console.log(
         await ccflPool.getTotalSupply(),
