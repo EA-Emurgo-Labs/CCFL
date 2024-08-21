@@ -11,6 +11,7 @@ contract CCFL is ICCFL, Initializable {
     using Clones for address;
 
     mapping(address => mapping(IERC20Standard => uint)) public collaterals;
+    mapping(address => bool) public operators;
 
     uint public loandIds;
     mapping(IERC20Standard => ICCFLPool) public ccflPools;
@@ -52,6 +53,11 @@ contract CCFL is ICCFL, Initializable {
 
     modifier onlyOwner() {
         require(msg.sender == owner, Errors.ONLY_THE_OWNER);
+        _;
+    }
+
+    modifier onlyOperator() {
+        require(operators[msg.sender] == true, Errors.ONLY_THE_OPERATOR);
         _;
     }
 
@@ -125,7 +131,7 @@ contract CCFL is ICCFL, Initializable {
         owner = msg.sender;
     }
 
-    function setEnableETHNative(bool _isActived) public onlyOwner {
+    function setEnableETHNative(bool _isActived) public onlyOperator {
         isEnableETHNative = _isActived;
     }
 
@@ -133,17 +139,26 @@ contract CCFL is ICCFL, Initializable {
         uint _borrower,
         uint _platform,
         uint _lender
-    ) public onlyOwner {
+    ) public onlyOperator {
         earnLender = _lender;
         earnBorrower = _borrower;
         earnPlatform = _platform;
+    }
+
+    function setOperators(
+        address[] memory _addresses,
+        bool[] memory _isActives
+    ) public onlyOwner {
+        for (uint i = 0; i < _addresses.length; i++) {
+            operators[_addresses[i]] = _isActives[i];
+        }
     }
 
     function setPools(
         IERC20Standard[] memory _ccflPoolStableCoin,
         AggregatorV3Interface[] memory _poolAggregators,
         ICCFLPool[] memory _ccflPools
-    ) public onlyOwner {
+    ) public onlyOperator {
         for (uint i = 0; i < _ccflPoolStableCoin.length; i++) {
             IERC20Standard token = _ccflPoolStableCoin[i];
             if (checkExistElement(ccflPoolStableCoins, token) == false)
@@ -154,7 +169,7 @@ contract CCFL is ICCFL, Initializable {
         }
     }
 
-    function setCCFLLoan(ICCFLLoan _loan) public onlyOwner {
+    function setCCFLLoan(ICCFLLoan _loan) public onlyOperator {
         ccflLoan = _loan;
     }
 
@@ -162,7 +177,7 @@ contract CCFL is ICCFL, Initializable {
         IERC20Standard[] memory _collateralTokens,
         AggregatorV3Interface[] memory _collateralAggregators,
         IERC20Standard[] memory _aTokens
-    ) public onlyOwner {
+    ) public onlyOperator {
         for (uint i = 0; i < _collateralTokens.length; i++) {
             IERC20Standard token = _collateralTokens[i];
             if (checkExistElement(collateralTokens, token) == false)
@@ -175,7 +190,7 @@ contract CCFL is ICCFL, Initializable {
 
     function setAaveProvider(
         IPoolAddressesProvider _aaveAddressProvider
-    ) public onlyOwner {
+    ) public onlyOperator {
         aaveAddressProvider = _aaveAddressProvider;
     }
 
@@ -183,7 +198,7 @@ contract CCFL is ICCFL, Initializable {
         IERC20Standard _token,
         bool _isActived,
         bool _isPoolToken
-    ) public onlyOwner {
+    ) public onlyOperator {
         if (_isPoolToken) {
             require(
                 checkExistElement(ccflPoolStableCoins, _token) == true,
@@ -202,7 +217,7 @@ contract CCFL is ICCFL, Initializable {
     function setThreshold(
         uint _maxLTV,
         uint _liquidationThreshold
-    ) public onlyOwner {
+    ) public onlyOperator {
         maxLTV = _maxLTV;
         liquidationThreshold = _liquidationThreshold;
     }
@@ -211,7 +226,7 @@ contract CCFL is ICCFL, Initializable {
         uint _platform,
         uint _liquidator,
         uint _lender
-    ) public onlyOwner {
+    ) public onlyOperator {
         penaltyLender = _lender;
         penaltyLiquidator = _liquidator;
         penaltyPlatform = _platform;
@@ -220,19 +235,19 @@ contract CCFL is ICCFL, Initializable {
     function setSwapRouter(
         ISwapRouter _swapRouter,
         IUniswapV3Factory _factory
-    ) public onlyOwner {
+    ) public onlyOperator {
         swapRouter = _swapRouter;
         factory = _factory;
     }
 
-    function setWETH(IWETH _iWETH) public onlyOwner {
+    function setWETH(IWETH _iWETH) public onlyOperator {
         wETH = _iWETH;
     }
 
     function setPlatformAddress(
         address _liquidator,
         address _platform
-    ) public onlyOwner {
+    ) public onlyOperator {
         liquidator = _liquidator;
         platform = _platform;
     }
@@ -264,7 +279,8 @@ contract CCFL is ICCFL, Initializable {
         IERC20Standard _stableCoin,
         uint _amountCollateral,
         IERC20Standard _collateral,
-        bool _isYieldGenerating
+        bool _isYieldGenerating,
+        bool _isFiat
     )
         public
         supportedPoolToken(_stableCoin)
@@ -291,8 +307,14 @@ contract CCFL is ICCFL, Initializable {
         loan.loanId = loandIds;
         loan.isPaid = false;
         loan.stableCoin = _stableCoin;
+        loan.isFiat = _isFiat;
         // borrow loan on pool
-        ccflPools[_stableCoin].borrow(loan.loanId, loan.amount, loan.borrower);
+        ccflPools[_stableCoin].borrow(
+            loan.loanId,
+            loan.amount,
+            loan.borrower,
+            loan.isFiat
+        );
 
         AggregatorV3Interface _pricePoolFeeds = pricePoolFeeds[_stableCoin];
         IERC20Standard token = _collateral;
@@ -347,7 +369,8 @@ contract CCFL is ICCFL, Initializable {
         uint _amount,
         IERC20Standard _stableCoin,
         uint _amountETH,
-        bool _isYieldGenerating
+        bool _isYieldGenerating,
+        bool _isFiat
     ) public payable supportedPoolToken(_stableCoin) onlyETHNative {
         require(
             _amountETH <= msg.value,
@@ -378,8 +401,14 @@ contract CCFL is ICCFL, Initializable {
         loan.loanId = loandIds;
         loan.isPaid = false;
         loan.stableCoin = _stableCoin;
+        loan.isFiat = _isFiat;
         // borrow loan on pool
-        ccflPools[_stableCoin].borrow(loan.loanId, loan.amount, loan.borrower);
+        ccflPools[_stableCoin].borrow(
+            loan.loanId,
+            loan.amount,
+            loan.borrower,
+            loan.isFiat
+        );
 
         AggregatorV3Interface _pricePoolFeeds = pricePoolFeeds[_stableCoin];
         IERC20Standard token = IERC20Standard(address(wETH));
@@ -487,8 +516,24 @@ contract CCFL is ICCFL, Initializable {
     function withdrawLoan(IERC20Standard _stableCoin, uint _loanId) public {
         ICCFLLoan loan = loans[_loanId];
         DataTypes.Loan memory info = loan.getLoanInfo();
-        require(info.borrower == msg.sender, Errors.IS_NOT_OWNER_LOAN);
+        require(
+            info.borrower == msg.sender && info.isFiat == false,
+            Errors.IS_NOT_OWNER_LOAN
+        );
         ccflPools[_stableCoin].withdrawLoan(info.borrower, _loanId);
+        loan.setPaid();
+
+        emit WithdrawLoan(msg.sender, _loanId, _stableCoin, block.timestamp);
+    }
+
+    function withdrawFiatLoan(
+        IERC20Standard _stableCoin,
+        uint _loanId
+    ) public onlyOperator {
+        ICCFLLoan loan = loans[_loanId];
+        DataTypes.Loan memory info = loan.getLoanInfo();
+        require(info.isFiat == true, Errors.ONLY_FIAT_LOAN);
+        ccflPools[_stableCoin].withdrawLoan(msg.sender, _loanId);
         loan.setPaid();
 
         emit WithdrawLoan(msg.sender, _loanId, _stableCoin, block.timestamp);

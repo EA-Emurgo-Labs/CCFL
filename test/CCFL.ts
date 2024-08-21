@@ -161,6 +161,7 @@ describe("CCFL system", function () {
       ],
       { initializer: "initialize" }
     );
+    await ccfl.setOperators([owner], [true]);
     await ccfl.setWETH(await wETH9.getAddress());
     await ccfl.setPenalty(BigInt(50), BigInt(100), BigInt(50));
 
@@ -268,6 +269,7 @@ describe("CCFL system", function () {
           await usdc.getAddress(),
           BigInt(500e18),
           await link.getAddress(),
+          false,
           false
         );
       // console.log("remain", (await ccflPool.getRemainingPool()) / BigInt(1e18));
@@ -292,6 +294,7 @@ describe("CCFL system", function () {
           await usdc.getAddress(),
           BigInt(300e18),
           await link.getAddress(),
+          false,
           false
         );
 
@@ -303,6 +306,7 @@ describe("CCFL system", function () {
           await usdc.getAddress(),
           BigInt(200e18),
           await link.getAddress(),
+          false,
           false
         );
     });
@@ -347,6 +351,7 @@ describe("CCFL system", function () {
           await usdc.getAddress(),
           BigInt(1000e18),
           await link.getAddress(),
+          false,
           false
         );
       // console.log("remain", (await ccflPool.getRemainingPool()) / BigInt(1e18));
@@ -399,6 +404,7 @@ describe("CCFL system", function () {
           await usdc.getAddress(),
           BigInt(1000e18),
           await link.getAddress(),
+          false,
           false
         );
       await time.increase(180 * 24 * 3600);
@@ -481,6 +487,7 @@ describe("CCFL system", function () {
           await usdc.getAddress(),
           BigInt(900e18),
           await link.getAddress(),
+          false,
           false
         );
 
@@ -547,6 +554,7 @@ describe("CCFL system", function () {
           await usdc.getAddress(),
           BigInt(1000e18),
           await link.getAddress(),
+          false,
           false
         );
       await ccfl
@@ -639,7 +647,8 @@ describe("CCFL system", function () {
           await usdc.getAddress(),
           BigInt(500e18),
           await link.getAddress(),
-          true
+          true,
+          false
         );
     });
 
@@ -675,6 +684,7 @@ describe("CCFL system", function () {
           await usdc.getAddress(),
           BigInt(5e18),
           true,
+          false,
           { value: parseUnits("5", 18).toString() }
         );
 
@@ -718,6 +728,7 @@ describe("CCFL system", function () {
           await usdc.getAddress(),
           BigInt(1000e18),
           await link.getAddress(),
+          false,
           false
         );
       await ccfl
@@ -761,6 +772,7 @@ describe("CCFL system", function () {
           await usdc.getAddress(),
           BigInt(1000e18),
           await link.getAddress(),
+          false,
           false
         );
       await ccfl
@@ -805,6 +817,7 @@ describe("CCFL system", function () {
           await usdc.getAddress(),
           BigInt(1000e18),
           await link.getAddress(),
+          false,
           false
         );
       await ccfl

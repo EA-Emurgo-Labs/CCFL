@@ -39,7 +39,12 @@ interface ICCFLPool {
 
     function getDebtPool() external view returns (uint amount);
 
-    function borrow(uint _loanId, uint256 _amount, address _borrower) external;
+    function borrow(
+        uint _loanId,
+        uint256 _amount,
+        address _borrower,
+        bool _isFiat
+    ) external;
 
     function supply(uint256 _amount) external;
 

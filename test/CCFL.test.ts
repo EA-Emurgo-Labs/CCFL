@@ -119,6 +119,7 @@ describe("CCFL contract", function () {
       ],
       { initializer: "initialize" }
     );
+    await ccfl.setOperators([owner], [true]);
     await ccfl.setWETH(await wETH9.getAddress());
 
     await ccfl.setPlatformAddress(liquidator, platform);
@@ -230,7 +231,7 @@ describe("CCFL contract", function () {
         ccfl
           .connect(borrower1)
           .setSwapRouter(mockSwap.getAddress(), mockUniFactory.getAddress())
-      ).to.be.revertedWith("2");
+      ).to.be.revertedWith("18");
     });
 
     it("Should set platform address successfully", async () => {
@@ -276,7 +277,7 @@ describe("CCFL contract", function () {
         ccfl
           .connect(borrower1)
           .setPlatformAddress(liquidatorAddress, platformAddress)
-      ).to.be.revertedWith("2");
+      ).to.be.revertedWith("18");
     });
 
     it("Should set wETH successfully", async () => {
@@ -318,7 +319,7 @@ describe("CCFL contract", function () {
 
       await expect(
         ccfl.connect(borrower1).setWETH(wETH9.getAddress())
-      ).to.be.revertedWith("2");
+      ).to.be.revertedWith("18");
     });
   });
 
@@ -357,7 +358,8 @@ describe("CCFL contract", function () {
           await usdc.getAddress(),
           BigInt(1000e18),
           await link.getAddress(),
-          true
+          true,
+          false
         );
 
       expect(await ccfl.loandIds()).to.equal(2);
@@ -393,6 +395,7 @@ describe("CCFL contract", function () {
           await usdc.getAddress(),
           BigInt(1000e18),
           await link.getAddress(),
+          false,
           false
         );
 
@@ -430,6 +433,7 @@ describe("CCFL contract", function () {
             await usdc.getAddress(),
             BigInt(500e18),
             await link.getAddress(),
+            false,
             false
           )
       ).to.be.revertedWith("7");
@@ -466,6 +470,7 @@ describe("CCFL contract", function () {
             await usdc.getAddress(),
             BigInt(1000e18),
             await link.getAddress(),
+            false,
             false
           )
       ).to.be.revertedWith("8");
@@ -496,12 +501,14 @@ describe("CCFL contract", function () {
       await wETH9
         .connect(borrower1)
         .approve(ccfl.getAddress(), BigInt(1000e18));
+
       await ccfl
         .connect(borrower1)
         .createLoanByETH(
           BigInt(1000e18),
           await usdc.getAddress(),
           BigInt(1000e18),
+          false,
           false,
           { value: BigInt(1000e18) }
         );
@@ -542,6 +549,7 @@ describe("CCFL contract", function () {
             await usdc.getAddress(),
             BigInt(1000e18),
             false,
+            false,
             { value: BigInt(500e18) }
           )
       ).to.be.revertedWith("6");
@@ -577,6 +585,7 @@ describe("CCFL contract", function () {
           await usdc.getAddress(),
           BigInt(1000e18),
           await link.getAddress(),
+          false,
           false
         );
 
@@ -619,6 +628,7 @@ describe("CCFL contract", function () {
           await usdc.getAddress(),
           BigInt(1000e18),
           await link.getAddress(),
+          false,
           false
         );
 
@@ -661,6 +671,7 @@ describe("CCFL contract", function () {
           await usdc.getAddress(),
           BigInt(1000e18),
           await link.getAddress(),
+          false,
           false
         );
 
@@ -704,6 +715,7 @@ describe("CCFL contract", function () {
           BigInt(1000e18),
           await usdc.getAddress(),
           BigInt(1000e18),
+          false,
           false,
           { value: BigInt(1000e18) }
         );
@@ -751,6 +763,7 @@ describe("CCFL contract", function () {
           await usdc.getAddress(),
           BigInt(1000e18),
           false,
+          false,
           { value: BigInt(1000e18) }
         );
 
@@ -793,6 +806,7 @@ describe("CCFL contract", function () {
           await usdc.getAddress(),
           BigInt(1000e18),
           await link.getAddress(),
+          false,
           false
         );
 
@@ -841,6 +855,7 @@ describe("CCFL contract", function () {
           await usdc.getAddress(),
           BigInt(1000e18),
           await link.getAddress(),
+          false,
           false
         );
 
@@ -889,6 +904,7 @@ describe("CCFL contract", function () {
           await usdc.getAddress(),
           BigInt(1000e18),
           await link.getAddress(),
+          false,
           false
         );
 
@@ -943,6 +959,7 @@ describe("CCFL contract", function () {
           BigInt(1000e18),
           await usdc.getAddress(),
           BigInt(1000e18),
+          false,
           false,
           { value: BigInt(1000e18) }
         );
@@ -1004,6 +1021,7 @@ describe("CCFL contract", function () {
           await usdc.getAddress(),
           BigInt(1000e18),
           await link.getAddress(),
+          false,
           false
         );
 
@@ -1156,6 +1174,7 @@ describe("CCFL contract", function () {
           await usdc.getAddress(),
           BigInt(1000e18),
           await link.getAddress(),
+          false,
           false
         );
 
@@ -1202,6 +1221,7 @@ describe("CCFL contract", function () {
           await usdc.getAddress(),
           BigInt(1000e18),
           await link.getAddress(),
+          false,
           false
         );
 
