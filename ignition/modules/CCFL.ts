@@ -115,7 +115,13 @@ const ProxyCCFLModule = buildModule("ProxyCCFLModule", (m) => {
 
   m.call(ccflProxyRemap, "setSwapRouter", [swapRouterV2, factoryV3]);
 
-  m.call(ccflProxyRemap, "setEarnSharePercent", [BigInt(3000)]);
+  m.call(ccflProxyRemap, "setEarnShare", [
+    BigInt(7000),
+    BigInt(2000),
+    BigInt(1000),
+  ]);
+
+  m.call(ccflProxyRemap, "setEnableETHNative", [true]);
 
   return { proxyAdminCCFL, proxyCCFL, proxyAdminPool, proxyPool };
 });
