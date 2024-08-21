@@ -181,7 +181,11 @@ interface ICCFL {
 
     function getLoanIds(address borrower) external view returns (uint[] memory);
 
-    function setEarnSharePercent(uint _earnSharePercent) external;
+    function setEarnShare(
+        uint _borrower,
+        uint _platform,
+        uint _lender
+    ) external;
 
     function createLoanByETH(
         uint _amount,

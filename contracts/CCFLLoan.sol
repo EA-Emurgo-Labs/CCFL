@@ -39,7 +39,10 @@ contract CCFLLoan is ICCFLLoan, Initializable {
     address public platform;
     IWETH public wETH;
 
-    uint public earnSharePercent;
+    // earn AAVE /10000
+    uint public earnPlatform;
+    uint public earnBorrower;
+    uint public earnLender;
 
     modifier onlyOwner() {
         require(msg.sender == owner, Errors.ONLY_THE_OWNER);
@@ -50,10 +53,6 @@ contract CCFLLoan is ICCFLLoan, Initializable {
 
     function setCCFL(address _ccfl) public onlyOwner {
         ccfl = _ccfl;
-    }
-
-    function setEarnSharePercent(uint _earnSharePercent) public onlyOwner {
-        earnSharePercent = _earnSharePercent;
     }
 
     function setSwapRouter(
@@ -89,6 +88,16 @@ contract CCFLLoan is ICCFLLoan, Initializable {
         wETH = _iWETH;
     }
 
+    function setEarnShare(
+        uint _borrower,
+        uint _platform,
+        uint _lender
+    ) public onlyOwner {
+        earnLender = _lender;
+        earnBorrower = _borrower;
+        earnPlatform = _platform;
+    }
+
     function supplyLiquidity() public onlyOwner {
         IERC20Standard asset = collateralToken;
         uint amount = asset.balanceOf(address(this));
@@ -111,7 +120,7 @@ contract CCFLLoan is ICCFLLoan, Initializable {
         initLoan.isPaid = true;
     }
 
-    function withdrawLiquidity() public onlyOwner {
+    function withdrawLiquidity() public onlyOwner returns (uint256) {
         uint amount = aToken.balanceOf(address(this));
         IPool aavePool = IPool(aaveAddressProvider.getPool());
         aavePool.withdraw(address(aToken), amount, address(this));
@@ -124,9 +133,22 @@ contract CCFLLoan is ICCFLLoan, Initializable {
         isStakeAave = false;
         // share 30% for platform;
         uint currentCollateral = collateralToken.balanceOf(address(this));
-        uint earn = ((currentCollateral - collateralAmount) *
-            earnSharePercent) / 10000;
-        collateralToken.transfer(platform, earn);
+        uint earn = ((currentCollateral - collateralAmount) * (earnBorrower)) /
+            10000;
+        uint outUSD = swapEarnForUSD(
+            (currentCollateral - collateralAmount) - earn,
+            initLoan.stableCoin,
+            collateralToken
+        );
+        initLoan.stableCoin.transfer(
+            platform,
+            (outUSD * (earnPlatform)) / (earnLender + earnPlatform)
+        );
+        initLoan.stableCoin.approve(
+            ccfl,
+            outUSD - (outUSD * (earnPlatform)) / (earnLender + earnPlatform)
+        );
+        return outUSD - (outUSD * (earnPlatform)) / (earnLender + earnPlatform);
     }
 
     function getUserAccountData(
@@ -255,18 +277,59 @@ contract CCFLLoan is ICCFLLoan, Initializable {
         }
     }
 
-    function liquidate(uint _currentDebt, uint _percent) public onlyOwner {
+    function swapEarnForUSD(
+        uint256 amountIn,
+        IERC20Standard stableCoin,
+        IERC20Standard tokenAddress
+    ) internal returns (uint256 amountOut) {
+        // Approve the router to spend the specifed `amountInMaximum` of DAI.
+        // In production, you should choose the maximum amount to spend based on oracles or other data sources to acheive a better swap.
+        TransferHelper.safeApprove(
+            address(tokenAddress),
+            address(swapRouter),
+            amountIn
+        );
+
+        address pool = factory.getPool(
+            address(tokenAddress),
+            address(stableCoin),
+            feeTier
+        );
+
+        uint24 fee = IUniswapV3Pool(pool).fee();
+
+        ISwapRouter.ExactInputSingleParams memory params = ISwapRouter
+            .ExactInputSingleParams({
+                tokenIn: address(tokenAddress),
+                tokenOut: address(stableCoin),
+                fee: fee,
+                recipient: msg.sender,
+                deadline: block.timestamp,
+                amountIn: amountIn,
+                amountOutMinimum: 0,
+                sqrtPriceLimitX96: 0
+            });
+
+        // Executes the swap returning the amountIn needed to spend to receive the desired amountOut.
+        amountOut = swapRouter.exactInputSingle(params);
+    }
+
+    function liquidate(
+        uint _currentDebt,
+        uint _percent
+    ) public onlyOwner returns (uint256) {
         require(
             getHealthFactor(_currentDebt, 0) < 100,
             Errors.CAN_NOT_LIQUIDATE
         );
         // get all collateral from aave
-        if (isStakeAave) withdrawLiquidity();
+        uint256 earnLenderBalance = 0;
+        if (isStakeAave) earnLenderBalance = withdrawLiquidity();
 
         IERC20Standard token = collateralToken;
 
         swapTokenForUSD(
-            (_currentDebt * (1000 + _percent)) / 1000,
+            (_currentDebt * (10000 + _percent)) / 10000,
             collateralToken.balanceOf(address(this)),
             initLoan.stableCoin,
             token
@@ -277,17 +340,20 @@ contract CCFLLoan is ICCFLLoan, Initializable {
         // close this loan
         initLoan.stableCoin.approve(
             ccfl,
-            (_currentDebt * (1000 + _percent)) / 1000
+            (_currentDebt * (10000 + _percent)) / 10000
         );
+
+        return earnLenderBalance;
     }
 
     function updateCollateral(uint amount) external onlyOwner {
         collateralAmount += amount;
     }
 
-    function closeLoan() public onlyOwner {
+    function closeLoan() public onlyOwner returns (uint256) {
         initLoan.isClosed = true;
-        if (isStakeAave) withdrawLiquidity();
+        if (isStakeAave) return withdrawLiquidity();
+        return 0;
     }
 
     function withdrawAllCollateral(
@@ -314,6 +380,16 @@ contract CCFLLoan is ICCFLLoan, Initializable {
 
     function getLoanInfo() public view returns (DataTypes.Loan memory) {
         return initLoan;
+    }
+
+    function getYieldEarned() public view returns (uint) {
+        uint current = aToken.balanceOf(address(this));
+        uint earned = current - collateralAmount;
+        return (earned * earnBorrower) / 10000;
+    }
+
+    function getIsYeild() public view returns (bool) {
+        return isStakeAave;
     }
 
     receive() external payable {}

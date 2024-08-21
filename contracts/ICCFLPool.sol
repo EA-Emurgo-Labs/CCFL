@@ -63,5 +63,7 @@ interface ICCFLPool {
 
     function getTotalSupply() external view returns (uint256);
 
-    function balance(address _user) external view returns (uint256);
+    function balanceOf(address _user) external view returns (uint256);
+
+    function earnStaking(uint256 _amount) external;
 }

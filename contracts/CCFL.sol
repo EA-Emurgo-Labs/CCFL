@@ -44,7 +44,9 @@ contract CCFL is ICCFL, Initializable {
     uint public penaltyLiquidator;
     uint public penaltyLender;
     // earn AAVE /10000
-    uint public earnSharePercent;
+    uint public earnPlatform;
+    uint public earnBorrower;
+    uint public earnLender;
 
     modifier onlyOwner() {
         require(msg.sender == owner, Errors.ONLY_THE_OWNER);
@@ -116,8 +118,14 @@ contract CCFL is ICCFL, Initializable {
         owner = msg.sender;
     }
 
-    function setEarnSharePercent(uint _earnSharePercent) public onlyOwner {
-        earnSharePercent = _earnSharePercent;
+    function setEarnShare(
+        uint _borrower,
+        uint _platform,
+        uint _lender
+    ) public onlyOwner {
+        earnLender = _lender;
+        earnBorrower = _borrower;
+        earnPlatform = _platform;
     }
 
     function setPools(
@@ -294,7 +302,7 @@ contract CCFL is ICCFL, Initializable {
         );
         cloneSC.setCCFL(address(this));
         cloneSC.setSwapRouter(swapRouter, factory);
-        cloneSC.setEarnSharePercent(earnSharePercent);
+        cloneSC.setEarnShare(earnBorrower, earnPlatform, earnLender);
 
         // transfer collateral
         cloneSC.updateCollateral(_amountCollateral);
@@ -381,7 +389,7 @@ contract CCFL is ICCFL, Initializable {
         );
         cloneSC.setCCFL(address(this));
         cloneSC.setSwapRouter(swapRouter, factory);
-        cloneSC.setEarnSharePercent(earnSharePercent);
+        cloneSC.setEarnShare(earnBorrower, earnPlatform, earnLender);
 
         // transfer collateral
         cloneSC.updateCollateral(_amountETH);
@@ -434,6 +442,10 @@ contract CCFL is ICCFL, Initializable {
             );
         }
 
+        if (loan.getIsYeild() == true) {
+            loan.supplyLiquidity();
+        }
+
         emit AddCollateral(
             msg.sender,
             _loanId,
@@ -469,7 +481,8 @@ contract CCFL is ICCFL, Initializable {
         // update collateral balance and get back collateral
         // Todo: if full payment, close loan
         if (ccflPools[_stableCoin].getCurrentLoan(_loanId) == 0) {
-            loans[_loanId].closeLoan();
+            uint256 earnLenderBalance = loans[_loanId].closeLoan();
+            ccflPools[_stableCoin].earnStaking(earnLenderBalance);
         }
 
         emit RepayLoan(
@@ -560,7 +573,7 @@ contract CCFL is ICCFL, Initializable {
         uint curentDebt = ccflPools[loanInfo.stableCoin].getCurrentLoan(
             _loanId
         );
-        loan.liquidate(
+        uint256 earnLenderBalance = loan.liquidate(
             curentDebt,
             penaltyLender + penaltyLiquidator + penaltyPlatform
         );
@@ -603,7 +616,7 @@ contract CCFL is ICCFL, Initializable {
             fundForLender
         );
         ccflPools[loanInfo.stableCoin].liquidatePenalty(_loanId, fundForLender);
-
+        ccflPools[loanInfo.stableCoin].earnStaking(earnLenderBalance);
         loans[_loanId].closeLoan();
 
         emit Liquidate(msg.sender, _loanId, block.timestamp);
