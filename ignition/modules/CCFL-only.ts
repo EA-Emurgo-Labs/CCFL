@@ -13,11 +13,11 @@ const ProxyCCFLModule = buildModule("ProxyCCFLModule", (m) => {
   // "ProxyCCFLModule#usdcAggr": "0xeEFaa85D124556d8be8a26e4F44cE090d2e707eD",
   // "ProxyCCFLModule#wbtcAggr": "0x2B1EdE85Ea8105e638429a9B3Ec621d1A7939597",
 
-  // const ethAggr = m.contractAt(
-  //   "MockAggregator",
-  //   "0xB6c04707C7f46E02C7B6546CD26a8b845D448f0a",
-  //   { id: "ethAggr" }
-  // );
+  const ethAggr = m.contractAt(
+    "MockAggregator",
+    "0xB6c04707C7f46E02C7B6546CD26a8b845D448f0a",
+    { id: "ethAggr" }
+  );
   const wbtcAggr = m.contractAt(
     "MockAggregator",
     "0x2B1EdE85Ea8105e638429a9B3Ec621d1A7939597",
@@ -68,9 +68,9 @@ const ProxyCCFLModule = buildModule("ProxyCCFLModule", (m) => {
     [usdc],
     [usdcAggr],
     [proxyPool],
-    [wbtc],
-    [wbtcAggr],
-    [aWBTC],
+    [wbtc, wETH],
+    [wbtcAggr, ethAggr],
+    [aWBTC, aWETH],
     PoolAddressesProviderAave,
     BigInt(5000),
     BigInt(7000),
@@ -100,6 +100,7 @@ const ProxyCCFLModule = buildModule("ProxyCCFLModule", (m) => {
   const ccflProxyRemap = m.contractAt("CCFL", proxyCCFL, {
     id: "ccflproxyRemap",
   });
+
   const swapRouterV2 = m.contractAt(
     "MockSwapRouter",
     "0x3bFA4769FB09eefC5a80d6E87c3B9C650f7Ae48E"
@@ -126,7 +127,6 @@ const ProxyCCFLModule = buildModule("ProxyCCFLModule", (m) => {
     BigInt(2000),
     BigInt(1000),
   ]);
-
   m.call(ccflProxyRemap, "setEnableETHNative", [true]);
 
   return { proxyAdminCCFL, proxyCCFL, proxyAdminPool, proxyPool };

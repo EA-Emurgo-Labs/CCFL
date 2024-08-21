@@ -1,7 +1,7 @@
 const { ethers } = require("hardhat");
 
-let pool = "0x90FdF269d63990710e17491cb5E34b39a7D77460";
-let ccfl = "0xC4D4F122afb8501BdB795D3A8A4F49585D669f31";
+let pool = "0xeA6c6a0EBf512Ccea5DBBF5c20718f911fa454df";
+let ccfl = "0xD11f9401b80472270FC4d8116e2a7E5eA68fd487";
 
 let usdc = "0x94a9D9AC8a22534E3FaCa9F4e7F2E2cf85d5E4C8";
 let wbtc = "0x29f2D40B0605204364af54EC677bD022dA425d03";
@@ -60,7 +60,7 @@ async function supplyUsdc(AMOUNT: any) {
 
   const tx = await iUsdc.supply(AMOUNT);
   await tx.wait(1);
-  const balance = await iUsdc.balance(
+  const balance = await iUsdc.balanceOF(
     "0x17883e3728E7bB528b542B8AAb354022eD20C149"
   );
   console.log(`Got ${(balance / BigInt(1e6)).toString()} USDC.`);
@@ -74,7 +74,14 @@ async function createLoan() {
 
   const iUsdc = await ethers.getContractAt("ICCFL", ccfl, signer);
 
-  const tx = await iUsdc.createLoan(amountUsdc, usdc, amountWbtc, wbtc, true);
+  const tx = await iUsdc.createLoan(
+    amountUsdc,
+    usdc,
+    amountWbtc,
+    wbtc,
+    true,
+    false
+  );
   await tx.wait(1);
   const ids = await iUsdc.getLoanIds(
     "0x17883e3728E7bB528b542B8AAb354022eD20C149"
@@ -117,7 +124,7 @@ async function getHealthFactor(usdcAmount: any, wbtcAmount: any, loanId: any) {
   }
 }
 
-describe.skip("sepolia", () => {
+describe("sepolia", () => {
   describe("CCFL Pool", () => {
     it("approve usdc", async () => {
       const AMOUNT = ethers.parseUnits("300", 6);
@@ -137,7 +144,7 @@ describe.skip("sepolia", () => {
       await approveWBTC(AMOUNT);
     });
 
-    it("create a loan", async () => {
+    it.only("create a loan", async () => {
       await createLoan();
     });
 

@@ -226,7 +226,9 @@ contract CCFLPool is ICCFLPool, Initializable {
     }
 
     function balanceOf(address _user) public view returns (uint256) {
-        return WadRayMath.rayToWad(share[_user].rayMul(reserve.liquidityIndex));
+        return
+            (share[_user].rayMul(reserve.liquidityIndex)) /
+            (10 ** (27 - stableCoinAddress.decimals()));
     }
 
     function withdraw(uint256 _amount) public {

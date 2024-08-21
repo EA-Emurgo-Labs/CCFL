@@ -129,6 +129,7 @@ contract CCFL is ICCFL, Initializable {
         maxLTV = _maxLTV;
         liquidationThreshold = _liquidationThreshold;
         owner = msg.sender;
+        operators[msg.sender] = true;
     }
 
     function setEnableETHNative(bool _isActived) public onlyOperator {

@@ -54,7 +54,7 @@ const ProxyCCFLModule = buildModule("ProxyCCFLModule", (m) => {
     id: "proxyAdminPool",
   });
 
-  const loan = m.contract("CCFLLoan", []);
+  const loan = m.contract("CCFLLoan");
 
   const ccfl = m.contract("CCFL");
 
@@ -62,9 +62,9 @@ const ProxyCCFLModule = buildModule("ProxyCCFLModule", (m) => {
     [usdc],
     [usdcAggr],
     [proxyPool],
-    [wbtc],
-    [wbtcAggr],
-    [aWBTC],
+    [wbtc, wETH],
+    [wbtcAggr, ethAggr],
+    [aWBTC, aWETH],
     PoolAddressesProviderAave,
     BigInt(5000),
     BigInt(7000),
