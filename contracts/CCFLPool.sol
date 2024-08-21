@@ -225,7 +225,7 @@ contract CCFLPool is ICCFLPool, Initializable {
         emit AddSupply(msg.sender, stableCoinAddress, _amount, block.timestamp);
     }
 
-    function balance(address _user) public view returns (uint256) {
+    function balanceOf(address _user) public view returns (uint256) {
         return WadRayMath.rayToWad(share[_user].rayMul(reserve.liquidityIndex));
     }
 
@@ -339,8 +339,16 @@ contract CCFLPool is ICCFLPool, Initializable {
         uint256 _amount
     ) public onlyCCFL {
         require(loans[_loanId].isLiquidated == false, Errors.IT_IS_LIQUIDATED);
-        DataTypes.ReserveCache memory reserveCache = cache();
+        addReward(_amount, msg.sender);
+        loans[_loanId].isLiquidated = true;
+    }
 
+    function earnStaking(uint256 _amount) public onlyCCFL {
+        addReward(_amount, msg.sender);
+    }
+
+    function addReward(uint256 _amount, address _sender) internal {
+        DataTypes.ReserveCache memory reserveCache = cache();
         updateState(reserveCache);
 
         uint256 rayAmount = (_amount * uint128(WadRayMath.RAY)) /
@@ -355,8 +363,7 @@ contract CCFLPool is ICCFLPool, Initializable {
 
         reserve.liquidityIndex = newLiquidityIndex.toUint128();
         remainingPool += _amount;
-        stableCoinAddress.transferFrom(msg.sender, address(this), _amount);
-        loans[_loanId].isLiquidated = true;
+        stableCoinAddress.transferFrom(_sender, address(this), _amount);
     }
 
     function getCurrentLoan(uint _loanId) public view returns (uint256) {

@@ -158,11 +158,12 @@ interface ICCFL {
     function addCollateral(
         uint _loanId,
         uint _amountCollateral,
-        IERC20Standard _collateral,
-        bool _isETH
-    ) external payable;
+        IERC20Standard _collateral
+    ) external;
 
-    function getMinimalCollateral(
+    function addCollateralByETH(uint _loanId, uint _amountETH) external payable;
+
+    function checkMinimalCollateralForLoan(
         uint _amount,
         IERC20Standard _stableCoin,
         IERC20Standard _collateral
@@ -182,7 +183,11 @@ interface ICCFL {
 
     function getLoanIds(address borrower) external view returns (uint[] memory);
 
-    function setEarnSharePercent(uint _earnSharePercent) external;
+    function setEarnShare(
+        uint _borrower,
+        uint _platform,
+        uint _lender
+    ) external;
 
     function withdrawFiatLoan(
         IERC20Standard _stableCoin,

@@ -48,7 +48,7 @@ interface ICCFLLoan {
 
     function supplyLiquidity() external;
 
-    function withdrawLiquidity() external;
+    function withdrawLiquidity() external returns (uint256);
 
     function getUserAccountData(
         address user
@@ -77,7 +77,7 @@ interface ICCFLLoan {
         IWETH _iWETH
     ) external;
 
-    function closeLoan() external;
+    function closeLoan() external returns (uint256);
 
     function setCCFL(address _ccfl) external;
 
@@ -88,7 +88,10 @@ interface ICCFLLoan {
 
     function updateCollateral(uint _amount) external;
 
-    function liquidate(uint _currentDebt, uint _percent) external;
+    function liquidate(
+        uint _currentDebt,
+        uint _percent
+    ) external returns (uint256);
 
     function getLoanInfo() external view returns (DataTypes.Loan memory);
 
@@ -101,5 +104,13 @@ interface ICCFLLoan {
 
     function setPaid() external;
 
-    function setEarnSharePercent(uint _earnSharePercent) external;
+    function setEarnShare(
+        uint _borrower,
+        uint _platform,
+        uint _lender
+    ) external;
+
+    function getYieldEarned() external view returns (uint);
+
+    function getIsYeild() external view returns (bool);
 }

@@ -26,4 +26,5 @@ library Errors {
     string public constant IT_IS_LIQUIDATED = "17";
     string public constant ONLY_THE_OPERATOR = "18";
     string public constant ONLY_FIAT_LOAN = "19";
+    string public constant ETH_NATIVE_DISABLE = "20";
 }
