@@ -37,6 +37,7 @@ contract CCFL is ICCFL, Initializable {
     address public platform;
     address public owner;
     IWETH public wETH;
+    bool public isPaused;
 
     mapping(address => uint[]) public userLoans;
 
@@ -79,6 +80,11 @@ contract CCFL is ICCFL, Initializable {
 
     modifier onlyETHNative() {
         require(isEnableETHNative == true, Errors.ETH_NATIVE_DISABLE);
+        _;
+    }
+
+    modifier onlyUnpaused() {
+        require(isPaused == false, Errors.SC_IS_PAUSED);
         _;
     }
 
@@ -134,6 +140,10 @@ contract CCFL is ICCFL, Initializable {
 
     function setEnableETHNative(bool _isActived) public onlyOperator {
         isEnableETHNative = _isActived;
+    }
+
+    function setPaused(bool _paused) public onlyOwner {
+        isPaused = _paused;
     }
 
     function setEarnShare(
@@ -286,6 +296,7 @@ contract CCFL is ICCFL, Initializable {
         public
         supportedPoolToken(_stableCoin)
         supportedCollateralToken(_collateral)
+        onlyUnpaused
     {
         require(
             (_amountCollateral * getLatestPrice(_collateral, false) * maxLTV) /
@@ -372,7 +383,13 @@ contract CCFL is ICCFL, Initializable {
         uint _amountETH,
         bool _isYieldGenerating,
         bool _isFiat
-    ) public payable supportedPoolToken(_stableCoin) onlyETHNative {
+    )
+        public
+        payable
+        supportedPoolToken(_stableCoin)
+        onlyETHNative
+        onlyUnpaused
+    {
         require(
             _amountETH <= msg.value,
             Errors.DO_NOT_HAVE_ENOUGH_DEPOSITED_ETH
@@ -460,7 +477,7 @@ contract CCFL is ICCFL, Initializable {
         uint _loanId,
         uint _amountCollateral,
         IERC20Standard _collateral
-    ) public supportedCollateralToken(_collateral) {
+    ) public supportedCollateralToken(_collateral) onlyUnpaused {
         ICCFLLoan loan = loans[_loanId];
         // transfer collateral
         loan.updateCollateral(_amountCollateral);
@@ -485,7 +502,7 @@ contract CCFL is ICCFL, Initializable {
     function addCollateralByETH(
         uint _loanId,
         uint _amountETH
-    ) public payable onlyETHNative {
+    ) public payable onlyETHNative onlyUnpaused {
         require(
             _amountETH <= msg.value,
             Errors.DO_NOT_HAVE_ENOUGH_DEPOSITED_ETH
@@ -530,7 +547,7 @@ contract CCFL is ICCFL, Initializable {
     function withdrawFiatLoan(
         IERC20Standard _stableCoin,
         uint _loanId
-    ) public onlyOperator {
+    ) public onlyOperator onlyUnpaused {
         ICCFLLoan loan = loans[_loanId];
         DataTypes.Loan memory info = loan.getLoanInfo();
         require(info.isFiat == true, Errors.ONLY_FIAT_LOAN);
@@ -545,7 +562,7 @@ contract CCFL is ICCFL, Initializable {
         uint _loanId,
         uint _amount,
         IERC20Standard _stableCoin
-    ) public supportedPoolToken(_stableCoin) {
+    ) public supportedPoolToken(_stableCoin) onlyUnpaused {
         // get back loan
         _stableCoin.transferFrom(msg.sender, address(this), _amount);
         // repay for pool
@@ -567,10 +584,23 @@ contract CCFL is ICCFL, Initializable {
         );
     }
 
-    function withdrawAllCollateral(uint _loanId, bool isETH) public {
+    function withdrawAllCollateral(
+        uint _loanId,
+        bool isETH
+    ) public onlyUnpaused {
         ICCFLLoan loan = loans[_loanId];
         DataTypes.Loan memory info = loan.getLoanInfo();
         loan.withdrawAllCollateral(info.borrower, isETH);
+
+        emit WithdrawAllCollateral(msg.sender, _loanId, isETH, block.timestamp);
+    }
+
+    function withdrawAllCollateralByAdmin(
+        uint _loanId,
+        bool isETH
+    ) public onlyOwner {
+        ICCFLLoan loan = loans[_loanId];
+        loan.withdrawAllCollateral(msg.sender, isETH);
 
         emit WithdrawAllCollateral(msg.sender, _loanId, isETH, block.timestamp);
     }
@@ -640,7 +670,7 @@ contract CCFL is ICCFL, Initializable {
         return address(loan);
     }
 
-    function liquidate(uint _loanId) public {
+    function liquidate(uint _loanId) public onlyUnpaused {
         ICCFLLoan loan = loans[_loanId];
         DataTypes.Loan memory loanInfo = loan.getLoanInfo();
         uint curentDebt = ccflPools[loanInfo.stableCoin].getCurrentLoan(

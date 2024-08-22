@@ -49,4 +49,10 @@ library DataTypes {
         bool isFinalty;
         bool isFiat;
     }
+
+    struct UpdateInterestRatesLocalVars {
+        uint256 nextLiquidityRate;
+        uint256 nextVariableRate;
+        uint256 totalVariableDebt;
+    }
 }

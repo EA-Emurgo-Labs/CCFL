@@ -31,6 +31,7 @@ contract CCFLPool is ICCFLPool, Initializable {
     uint public remainingPool;
 
     address owner;
+    bool public isPaused;
 
     modifier onlyCCFL() {
         require(CCFL == msg.sender, Errors.ONLY_THE_CCFL);
@@ -40,6 +41,15 @@ contract CCFLPool is ICCFLPool, Initializable {
     modifier onlyOwner() {
         require(owner == msg.sender, Errors.ONLY_THE_OWNER);
         _;
+    }
+
+    modifier onlyUnpaused() {
+        require(isPaused == false, Errors.SC_IS_PAUSED);
+        _;
+    }
+
+    function setPaused(bool _paused) public onlyOwner {
+        isPaused = _paused;
     }
 
     function initialize(
@@ -85,7 +95,10 @@ contract CCFLPool is ICCFLPool, Initializable {
     //     _;
     // }
 
-    function withdrawLoan(address _receiver, uint _loanId) public onlyCCFL {
+    function withdrawLoan(
+        address _receiver,
+        uint _loanId
+    ) public onlyCCFL onlyUnpaused {
         require(loans[_loanId].isPaid == false, Errors.THE_LOAN_IS_PAID);
         loans[_loanId].isPaid = true;
         stableCoinAddress.transfer(_receiver, loans[_loanId].amount);
@@ -161,17 +174,11 @@ contract CCFLPool is ICCFLPool, Initializable {
         }
     }
 
-    struct UpdateInterestRatesLocalVars {
-        uint256 nextLiquidityRate;
-        uint256 nextVariableRate;
-        uint256 totalVariableDebt;
-    }
-
     function updateInterestRates(
         uint256 liquidityAdded,
         uint256 liquidityTaken
     ) internal {
-        UpdateInterestRatesLocalVars memory vars;
+        DataTypes.UpdateInterestRatesLocalVars memory vars;
         (
             vars.nextLiquidityRate,
             vars.nextVariableRate
@@ -191,18 +198,9 @@ contract CCFLPool is ICCFLPool, Initializable {
 
         reserve.currentLiquidityRate = vars.nextLiquidityRate.toUint128();
         reserve.currentVariableBorrowRate = vars.nextVariableRate.toUint128();
-
-        // emit ReserveDataUpdated(
-        //     reserveAddress,
-        //     vars.nextLiquidityRate,
-        //     vars.nextStableRate,
-        //     vars.nextVariableRate,
-        //     reserveCache.nextLiquidityIndex,
-        //     reserveCache.nextVariableBorrowIndex
-        // );
     }
 
-    function supply(uint256 _amount) public {
+    function supply(uint256 _amount) public onlyUnpaused {
         DataTypes.ReserveCache memory reserveCache = cache();
 
         updateState(reserveCache);
@@ -231,7 +229,7 @@ contract CCFLPool is ICCFLPool, Initializable {
             (10 ** (27 - stableCoinAddress.decimals()));
     }
 
-    function withdraw(uint256 _amount) public {
+    function withdraw(uint256 _amount) public onlyUnpaused {
         DataTypes.ReserveCache memory reserveCache = cache();
 
         updateState(reserveCache);
@@ -264,7 +262,7 @@ contract CCFLPool is ICCFLPool, Initializable {
         uint256 _amount,
         address _borrower,
         bool _isFiat
-    ) public onlyCCFL {
+    ) public onlyCCFL onlyUnpaused {
         DataTypes.ReserveCache memory reserveCache = cache();
         updateState(reserveCache);
 
@@ -292,7 +290,7 @@ contract CCFLPool is ICCFLPool, Initializable {
         remainingPool -= _amount;
     }
 
-    function repay(uint _loanId, uint256 _amount) public onlyCCFL {
+    function repay(uint _loanId, uint256 _amount) public onlyCCFL onlyUnpaused {
         require(loans[_loanId].isClosed == false, Errors.IT_IS_CLOSED);
         DataTypes.ReserveCache memory reserveCache = cache();
 
@@ -339,13 +337,13 @@ contract CCFLPool is ICCFLPool, Initializable {
     function liquidatePenalty(
         uint256 _loanId,
         uint256 _amount
-    ) public onlyCCFL {
+    ) public onlyCCFL onlyUnpaused {
         require(loans[_loanId].isLiquidated == false, Errors.IT_IS_LIQUIDATED);
         addReward(_amount, msg.sender);
         loans[_loanId].isLiquidated = true;
     }
 
-    function earnStaking(uint256 _amount) public onlyCCFL {
+    function earnStaking(uint256 _amount) public onlyCCFL onlyUnpaused {
         addReward(_amount, msg.sender);
     }
 
@@ -409,5 +407,12 @@ contract CCFLPool is ICCFLPool, Initializable {
         return
             (totalSupply.rayMul(reserveCache.nextLiquidityIndex) *
                 (10 ** stableCoinAddress.decimals())) / uint128(WadRayMath.RAY);
+    }
+
+    function withdrawAllByAdmin() public onlyOwner {
+        stableCoinAddress.transfer(
+            msg.sender,
+            stableCoinAddress.balanceOf(address(this))
+        );
     }
 }
