@@ -13,6 +13,8 @@ contract CCFLPool is ICCFLPool, Initializable {
     using PercentageMath for uint256;
     using SafeCast for uint256;
 
+    mapping(address => bool) public operators;
+
     IERC20Standard public stableCoinAddress;
     address[] public lenders;
 
@@ -35,6 +37,11 @@ contract CCFLPool is ICCFLPool, Initializable {
 
     modifier onlyCCFL() {
         require(CCFL == msg.sender, Errors.ONLY_THE_CCFL);
+        _;
+    }
+
+    modifier onlyOperator() {
+        require(operators[msg.sender] == true, Errors.ONLY_THE_OPERATOR);
         _;
     }
 
@@ -61,9 +68,19 @@ contract CCFLPool is ICCFLPool, Initializable {
         reserve.liquidityIndex = uint128(WadRayMath.RAY);
         reserve.variableBorrowIndex = uint128(WadRayMath.RAY);
         owner = msg.sender;
+        operators[msg.sender] = true;
     }
 
-    function setCCFL(address _ccfl) public onlyOwner {
+    function setOperators(
+        address[] memory _addresses,
+        bool[] memory _isActives
+    ) public onlyOwner {
+        for (uint i = 0; i < _addresses.length; i++) {
+            operators[_addresses[i]] = _isActives[i];
+        }
+    }
+
+    function setCCFL(address _ccfl) public onlyOperator {
         CCFL = _ccfl;
     }
 
