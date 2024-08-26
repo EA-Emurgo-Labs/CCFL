@@ -1,7 +1,7 @@
 const { ethers } = require("hardhat");
 
-let pool = "0xeA6c6a0EBf512Ccea5DBBF5c20718f911fa454df";
-let ccfl = "0xD11f9401b80472270FC4d8116e2a7E5eA68fd487";
+let pool = "0x9a858bf4FB0E7bc4971eCd781C2A9FF981B79Aa9";
+let ccfl = "0xD8F9AC90175d539E25b808c4CDfbc938e0A39cB1";
 
 let usdc = "0x94a9D9AC8a22534E3FaCa9F4e7F2E2cf85d5E4C8";
 let wbtc = "0x29f2D40B0605204364af54EC677bD022dA425d03";
@@ -60,7 +60,7 @@ async function supplyUsdc(AMOUNT: any) {
 
   const tx = await iUsdc.supply(AMOUNT);
   await tx.wait(1);
-  const balance = await iUsdc.balanceOF(
+  const balance = await iUsdc.balanceOf(
     "0x17883e3728E7bB528b542B8AAb354022eD20C149"
   );
   console.log(`Got ${(balance / BigInt(1e6)).toString()} USDC.`);
@@ -127,13 +127,13 @@ async function getHealthFactor(usdcAmount: any, wbtcAmount: any, loanId: any) {
 describe("sepolia", () => {
   describe("CCFL Pool", () => {
     it("approve usdc", async () => {
-      const AMOUNT = ethers.parseUnits("300", 6);
+      const AMOUNT = ethers.parseUnits("600", 6);
       await approveUsdc(AMOUNT);
       await allowanceUsdc();
     });
 
     it("supply", async () => {
-      const AMOUNT = ethers.parseUnits("200", 6);
+      const AMOUNT = ethers.parseUnits("600", 6);
       await supplyUsdc(AMOUNT);
     });
   });
