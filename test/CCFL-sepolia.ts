@@ -25,6 +25,21 @@ async function approveUsdc(AMOUNT: any) {
   console.log(`Got ${(balance / BigInt(1e6)).toString()} USDC.`);
 }
 
+async function approveLoanUsdc(AMOUNT: any) {
+  const signer = await ethers.provider.getSigner();
+  console.log("signer", await signer.getAddress());
+
+  const iUsdc = await ethers.getContractAt("IERC20Standard", usdc, signer);
+  console.log(await iUsdc.getAddress());
+  const tx = await iUsdc.approve(ccfl, AMOUNT);
+  await tx.wait(1);
+  const balance = await iUsdc.allowance(
+    "0x17883e3728E7bB528b542B8AAb354022eD20C149",
+    ccfl
+  );
+  console.log(`Got ${(balance / BigInt(1e6)).toString()} USDC.`);
+}
+
 async function approveWBTC(AMOUNT: any) {
   const signer = await ethers.provider.getSigner();
   console.log("signer", await signer.getAddress());
@@ -66,6 +81,20 @@ async function supplyUsdc(AMOUNT: any) {
   console.log(`Got ${(balance / BigInt(1e6)).toString()} USDC.`);
 }
 
+async function repay(AMOUNT: any) {
+  const signer = await ethers.provider.getSigner();
+  console.log("signer", await signer.getAddress());
+  const loanId = BigInt(1);
+
+  const iUsdc = await ethers.getContractAt("ICCFL", ccfl, signer);
+
+  const tx = await iUsdc.repayLoan(loanId, AMOUNT, usdc);
+  await tx.wait(1);
+  const iUsdc2 = await ethers.getContractAt("ICCFLPool", pool, signer);
+  let balance = await iUsdc2.getCurrentLoan(loanId);
+  console.log(`Got ${balance}`);
+}
+
 async function createLoan() {
   const amountUsdc = ethers.parseUnits("100", 6);
   const amountWbtc = ethers.parseUnits("0.01", 8);
@@ -89,12 +118,12 @@ async function createLoan() {
   console.log(`Got ${ids}`);
 }
 
-async function getCurrentLoan(loandId: any) {
+async function getCurrentLoan(loanId: any) {
   const signer = await ethers.provider.getSigner();
   console.log("signer", await signer.getAddress());
 
   const iUsdc = await ethers.getContractAt("ICCFLPool", pool, signer);
-  let balance = await iUsdc.getCurrentLoan(loandId);
+  let balance = await iUsdc.getCurrentLoan(loanId);
   console.log(`Got ${balance}`);
 }
 
@@ -144,12 +173,21 @@ describe("sepolia", () => {
       await approveWBTC(AMOUNT);
     });
 
-    it.only("create a loan", async () => {
+    it("create a loan", async () => {
       await createLoan();
     });
 
-    it("get current loan", async () => {
-      getCurrentLoan(BigInt(2));
+    it.only("get current loan", async () => {
+      getCurrentLoan(BigInt(1));
+    });
+
+    it("approve usdc", async () => {
+      const AMOUNT = ethers.parseUnits("100", 6);
+      await approveLoanUsdc(AMOUNT);
+    });
+
+    it("repay loan", async () => {
+      repay(ethers.parseUnits("10", 6));
     });
 
     it("check health factor", async () => {
