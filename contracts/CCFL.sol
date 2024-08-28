@@ -363,14 +363,12 @@ contract CCFL is ICCFL, Initializable {
 
         emit CreateLoan(
             msg.sender,
-            _amount,
-            _stableCoin,
+            address(loans[loandIds]),
+            loan,
             _amountCollateral,
             _collateral,
             _isYieldGenerating,
-            false,
-            loandIds,
-            block.timestamp
+            false            
         );
 
         loandIds++;
@@ -460,14 +458,12 @@ contract CCFL is ICCFL, Initializable {
 
         emit CreateLoan(
             msg.sender,
-            _amount,
-            _stableCoin,
+            address(loans[loandIds]),
+            loan,
             _amountETH,
             IERC20Standard(address(wETH)),
             _isYieldGenerating,
-            true,
-            loandIds,
-            block.timestamp
+            true
         );
 
         loandIds++;
@@ -479,6 +475,9 @@ contract CCFL is ICCFL, Initializable {
         IERC20Standard _collateral
     ) public supportedCollateralToken(_collateral) onlyUnpaused {
         ICCFLLoan loan = loans[_loanId];
+
+        DataTypes.Loan memory info = loan.getLoanInfo();
+
         // transfer collateral
         loan.updateCollateral(_amountCollateral);
         // get from user to loan
@@ -491,11 +490,10 @@ contract CCFL is ICCFL, Initializable {
 
         emit AddCollateral(
             msg.sender,
-            _loanId,
+            info,
             _amountCollateral,
             _collateral,
-            false,
-            block.timestamp
+            false
         );
     }
 
@@ -510,6 +508,9 @@ contract CCFL is ICCFL, Initializable {
         wETH.deposit{value: _amountETH}();
 
         ICCFLLoan loan = loans[_loanId];
+
+        DataTypes.Loan memory info = loan.getLoanInfo();
+
         // transfer collateral
         loan.updateCollateral(_amountETH);
         // get from user to loan
@@ -522,11 +523,10 @@ contract CCFL is ICCFL, Initializable {
 
         emit AddCollateral(
             msg.sender,
-            _loanId,
+            info,
             _amountETH,
             IERC20Standard(address(wETH)),
-            true,
-            block.timestamp
+            true
         );
     }
 
@@ -541,7 +541,7 @@ contract CCFL is ICCFL, Initializable {
         ccflPools[_stableCoin].withdrawLoan(info.borrower, _loanId);
         loan.setPaid();
 
-        emit WithdrawLoan(msg.sender, _loanId, _stableCoin, block.timestamp);
+        emit WithdrawLoan(msg.sender, info);
     }
 
     function withdrawFiatLoan(
@@ -554,7 +554,7 @@ contract CCFL is ICCFL, Initializable {
         ccflPools[_stableCoin].withdrawLoan(msg.sender, _loanId);
         loan.setPaid();
 
-        emit WithdrawLoan(msg.sender, _loanId, _stableCoin, block.timestamp);
+        emit WithdrawLoan(msg.sender, info);
     }
 
     // repay loan
@@ -563,6 +563,9 @@ contract CCFL is ICCFL, Initializable {
         uint _amount,
         IERC20Standard _stableCoin
     ) public supportedPoolToken(_stableCoin) onlyUnpaused {
+        ICCFLLoan loan = loans[_loanId];
+        DataTypes.Loan memory info = loan.getLoanInfo();
+
         // get back loan
         _stableCoin.transferFrom(msg.sender, address(this), _amount);
         // repay for pool
@@ -570,17 +573,17 @@ contract CCFL is ICCFL, Initializable {
         ccflPools[_stableCoin].repay(_loanId, _amount);
         // update collateral balance and get back collateral
         // Todo: if full payment, close loan
-        if (ccflPools[_stableCoin].getCurrentLoan(_loanId) == 0) {
+        uint _debtRemain = ccflPools[_stableCoin].getCurrentLoan(_loanId);
+        if (_debtRemain == 0) {
             uint256 earnLenderBalance = loans[_loanId].closeLoan();
             ccflPools[_stableCoin].earnStaking(earnLenderBalance);
         }
 
         emit RepayLoan(
             msg.sender,
-            _loanId,
+            info,
             _amount,
-            _stableCoin,
-            block.timestamp
+            _debtRemain
         );
     }
 
@@ -592,7 +595,13 @@ contract CCFL is ICCFL, Initializable {
         DataTypes.Loan memory info = loan.getLoanInfo();
         loan.withdrawAllCollateral(info.borrower, isETH);
 
-        emit WithdrawAllCollateral(msg.sender, _loanId, isETH, block.timestamp);
+        emit WithdrawAllCollateral(
+            msg.sender,
+            info,
+            loan.getCollateralAmount(),
+            loan.getCollateralToken(),
+            isETH
+        );
     }
 
     function withdrawAllCollateralByAdmin(
@@ -600,9 +609,16 @@ contract CCFL is ICCFL, Initializable {
         bool isETH
     ) public onlyOwner {
         ICCFLLoan loan = loans[_loanId];
+        DataTypes.Loan memory info = loan.getLoanInfo();
         loan.withdrawAllCollateral(msg.sender, isETH);
 
-        emit WithdrawAllCollateral(msg.sender, _loanId, isETH, block.timestamp);
+        emit WithdrawAllCollateralByAdmin(
+            msg.sender,
+            info,
+            loan.getCollateralAmount(),
+            loan.getCollateralToken(),
+            isETH
+        );
     }
 
     function getLatestPrice(
@@ -722,7 +738,13 @@ contract CCFL is ICCFL, Initializable {
         ccflPools[loanInfo.stableCoin].earnStaking(earnLenderBalance);
         loans[_loanId].closeLoan();
 
-        emit Liquidate(msg.sender, _loanId, block.timestamp);
+        emit Liquidate(
+            msg.sender,
+            loanInfo.borrower,
+            loanInfo,
+            loan.getCollateralAmount(),
+            loan.getCollateralToken()
+        );
     }
 
     function getLoanIds(address borrower) public view returns (uint[] memory) {

@@ -111,4 +111,8 @@ interface ICCFLLoan {
     function getYieldEarned() external view returns (uint);
 
     function getIsYeild() external view returns (bool);
+
+    function getCollateralAmount() external view returns(uint);
+
+    function getCollateralToken() external view returns(IERC20Standard);
 }

@@ -390,5 +390,13 @@ contract CCFLLoan is ICCFLLoan, Initializable {
         return isStakeAave;
     }
 
+    function getCollateralAmount() public view returns (uint) {
+        return collateralAmount;
+    }
+
+    function getCollateralToken() public view returns (IERC20Standard) {
+        return collateralToken;
+    }
+
     receive() external payable {}
 }
