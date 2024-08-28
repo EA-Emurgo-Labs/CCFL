@@ -110,8 +110,7 @@ contract CCFLLoan is ICCFLLoan, Initializable {
         emit LiquiditySupplied(
             onBehalfOf,
             address(asset),
-            amount,
-            block.timestamp
+            amount
         );
         isStakeAave = true;
     }
@@ -127,8 +126,7 @@ contract CCFLLoan is ICCFLLoan, Initializable {
         emit LiquidityWithdrawn(
             address(this),
             address(aToken),
-            amount,
-            block.timestamp
+            amount
         );
         isStakeAave = false;
         // share 30% for platform;

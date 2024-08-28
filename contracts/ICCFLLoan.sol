@@ -36,14 +36,12 @@ interface ICCFLLoan {
     event LiquiditySupplied(
         address indexed onBehalfOf,
         address indexed _token,
-        uint _amount,
-        uint timestamp
+        uint _amount
     );
     event LiquidityWithdrawn(
         address indexed to,
         address indexed _token,
-        uint _amount,
-        uint timestamp
+        uint _amount
     );
 
     function supplyLiquidity() external;
