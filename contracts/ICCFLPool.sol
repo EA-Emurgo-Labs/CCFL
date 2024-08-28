@@ -20,15 +20,23 @@ interface ICCFLPool {
     event AddSupply(
         address indexed lender,
         address indexed poolAddress,
-        IERC20Standard indexed supply,
-        uint amount
+        IERC20Standard indexed stableCoin,
+        uint amount,
+        uint lenderShare,
+        uint totalSupply,
+        uint totalLiquidity,
+        uint remainingPool
     );
 
     event WithdrawSupply(
         address indexed lender,
         address indexed poolAddress,
-        IERC20Standard indexed supply,
-        uint amount
+        IERC20Standard indexed stableCoin,
+        uint amount,
+        uint lenderShare,
+        uint totalSupply,
+        uint totalLiquidity,
+        uint remainingPool
     );
 
     function withdrawLoan(address _receiver, uint _loanId) external;

@@ -237,7 +237,16 @@ contract CCFLPool is ICCFLPool, Initializable {
         remainingPool += _amount;
         stableCoinAddress.transferFrom(msg.sender, address(this), _amount);
 
-        emit AddSupply(msg.sender, address(this), stableCoinAddress, _amount);
+        emit AddSupply(
+            msg.sender,
+            address(this),
+            stableCoinAddress,
+            _amount,
+            share[msg.sender],
+            totalSupply,
+            totalLiquidity,
+            remainingPool
+        );
     }
 
     function balanceOf(address _user) public view returns (uint256) {
@@ -270,7 +279,11 @@ contract CCFLPool is ICCFLPool, Initializable {
             msg.sender,
             address(this),
             stableCoinAddress,
-            _amount
+            _amount,
+            share[msg.sender],
+            totalSupply,
+            totalLiquidity,
+            remainingPool
         );
     }
 
