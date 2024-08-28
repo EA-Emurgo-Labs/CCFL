@@ -563,22 +563,27 @@ contract CCFL is ICCFL, Initializable {
         uint _amount,
         IERC20Standard _stableCoin
     ) public supportedPoolToken(_stableCoin) onlyUnpaused {
+        uint256 payAmount = _amount;
+        if (_amount > ccflPools[_stableCoin].getCurrentLoan(_loanId)) {
+            payAmount = ccflPools[_stableCoin].getCurrentLoan(_loanId);
+        }
         // get back loan
-        _stableCoin.transferFrom(msg.sender, address(this), _amount);
+        _stableCoin.transferFrom(msg.sender, address(this), payAmount);
         // repay for pool
-        _stableCoin.approve(address(ccflPools[_stableCoin]), _amount);
-        ccflPools[_stableCoin].repay(_loanId, _amount);
+        _stableCoin.approve(address(ccflPools[_stableCoin]), payAmount);
+        ccflPools[_stableCoin].repay(_loanId, payAmount);
         // update collateral balance and get back collateral
         // Todo: if full payment, close loan
         if (ccflPools[_stableCoin].getCurrentLoan(_loanId) == 0) {
-            uint256 earnLenderBalance = loans[_loanId].closeLoan();
+            ICCFLLoan loan = loans[_loanId];
+            uint256 earnLenderBalance = loan.closeLoan();
             ccflPools[_stableCoin].earnStaking(earnLenderBalance);
         }
 
         emit RepayLoan(
             msg.sender,
             _loanId,
-            _amount,
+            payAmount,
             _stableCoin,
             block.timestamp
         );

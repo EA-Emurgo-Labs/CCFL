@@ -84,11 +84,12 @@ async function supplyUsdc(AMOUNT: any) {
 async function repay(AMOUNT: any) {
   const signer = await ethers.provider.getSigner();
   console.log("signer", await signer.getAddress());
-  const loanId = BigInt(1);
+  const loanId = BigInt(2);
 
   const iUsdc = await ethers.getContractAt("ICCFL", ccfl, signer);
 
   const tx = await iUsdc.repayLoan(loanId, AMOUNT, usdc);
+  console.log(tx);
   await tx.wait(1);
   const iUsdc2 = await ethers.getContractAt("ICCFLPool", pool, signer);
   let balance = await iUsdc2.getCurrentLoan(loanId);
@@ -153,7 +154,7 @@ async function getHealthFactor(usdcAmount: any, wbtcAmount: any, loanId: any) {
   }
 }
 
-describe("sepolia", () => {
+describe.skip("sepolia", () => {
   describe("CCFL Pool", () => {
     it("approve usdc", async () => {
       const AMOUNT = ethers.parseUnits("600", 6);
@@ -177,7 +178,7 @@ describe("sepolia", () => {
       await createLoan();
     });
 
-    it.only("get current loan", async () => {
+    it("get current loan", async () => {
       getCurrentLoan(BigInt(1));
     });
 
@@ -187,7 +188,7 @@ describe("sepolia", () => {
     });
 
     it("repay loan", async () => {
-      repay(ethers.parseUnits("10", 6));
+      repay(ethers.parseUnits("100", 6));
     });
 
     it("check health factor", async () => {

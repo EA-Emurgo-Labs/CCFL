@@ -133,22 +133,28 @@ contract CCFLLoan is ICCFLLoan, Initializable {
         isStakeAave = false;
         // share 30% for platform;
         uint currentCollateral = collateralToken.balanceOf(address(this));
-        uint earn = ((currentCollateral - collateralAmount) * (earnBorrower)) /
-            10000;
-        uint outUSD = swapEarnForUSD(
-            (currentCollateral - collateralAmount) - earn,
-            initLoan.stableCoin,
-            collateralToken
-        );
-        initLoan.stableCoin.transfer(
-            platform,
-            (outUSD * (earnPlatform)) / (earnLender + earnPlatform)
-        );
-        initLoan.stableCoin.approve(
-            ccfl,
-            outUSD - (outUSD * (earnPlatform)) / (earnLender + earnPlatform)
-        );
-        return outUSD - (outUSD * (earnPlatform)) / (earnLender + earnPlatform);
+        if (currentCollateral - collateralAmount > 10) {
+            uint earn = ((currentCollateral - collateralAmount) *
+                (earnBorrower)) / 10000;
+            uint outUSD = swapEarnForUSD(
+                (currentCollateral - collateralAmount) - earn,
+                initLoan.stableCoin,
+                collateralToken
+            );
+            initLoan.stableCoin.transfer(
+                platform,
+                (outUSD * (earnPlatform)) / (earnLender + earnPlatform)
+            );
+            initLoan.stableCoin.approve(
+                ccfl,
+                outUSD - (outUSD * (earnPlatform)) / (earnLender + earnPlatform)
+            );
+            return
+                outUSD -
+                (outUSD * (earnPlatform)) /
+                (earnLender + earnPlatform);
+        }
+        return 0;
     }
 
     function getUserAccountData(

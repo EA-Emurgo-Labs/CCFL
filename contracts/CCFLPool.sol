@@ -326,17 +326,12 @@ contract CCFLPool is ICCFLPool, Initializable {
             uint256 amountPayToken = (amountPayScaled *
                 (10 ** stableCoinAddress.decimals())) / uint128(WadRayMath.RAY);
             debt[_loanId] = 0;
-
-            updateInterestRates(debt[_loanId], 0);
+            updateInterestRates(amountPayScaled, 0);
             totalLiquidity += debt[_loanId].rayDiv(
                 reserveCache.nextLiquidityIndex
             );
             remainingPool += amountPayToken;
-            stableCoinAddress.transferFrom(
-                msg.sender,
-                address(this),
-                amountPayToken
-            );
+            stableCoinAddress.transferFrom(CCFL, address(this), amountPayToken);
             loans[_loanId].isClosed = true;
         } else {
             uint256 total = debt[_loanId] - amountScaled;
@@ -347,7 +342,7 @@ contract CCFLPool is ICCFLPool, Initializable {
             updateInterestRates(rayAmount, 0);
             totalLiquidity += rayAmount.rayDiv(reserveCache.nextLiquidityIndex);
             remainingPool += _amount;
-            stableCoinAddress.transferFrom(msg.sender, address(this), _amount);
+            stableCoinAddress.transferFrom(CCFL, address(this), _amount);
         }
     }
 
@@ -365,22 +360,24 @@ contract CCFLPool is ICCFLPool, Initializable {
     }
 
     function addReward(uint256 _amount, address _sender) internal {
-        DataTypes.ReserveCache memory reserveCache = cache();
-        updateState(reserveCache);
+        if (_amount > 0) {
+            DataTypes.ReserveCache memory reserveCache = cache();
+            updateState(reserveCache);
 
-        uint256 rayAmount = (_amount * uint128(WadRayMath.RAY)) /
-            (10 ** stableCoinAddress.decimals());
+            uint256 rayAmount = (_amount * uint128(WadRayMath.RAY)) /
+                (10 ** stableCoinAddress.decimals());
 
-        uint256 totalLiquidityScale = totalLiquidity.rayMul(
-            reserveCache.nextLiquidityIndex
-        );
-        uint256 newLiquidityIndex = (totalLiquidityScale + rayAmount)
-            .rayMul(reserveCache.nextLiquidityIndex)
-            .rayDiv(totalLiquidityScale);
+            uint256 totalLiquidityScale = totalLiquidity.rayMul(
+                reserveCache.nextLiquidityIndex
+            );
+            uint256 newLiquidityIndex = (totalLiquidityScale + rayAmount)
+                .rayMul(reserveCache.nextLiquidityIndex)
+                .rayDiv(totalLiquidityScale);
 
-        reserve.liquidityIndex = newLiquidityIndex.toUint128();
-        remainingPool += _amount;
-        stableCoinAddress.transferFrom(_sender, address(this), _amount);
+            reserve.liquidityIndex = newLiquidityIndex.toUint128();
+            remainingPool += _amount;
+            stableCoinAddress.transferFrom(_sender, address(this), _amount);
+        }
     }
 
     function getCurrentLoan(uint _loanId) public view returns (uint256) {
