@@ -1,7 +1,7 @@
 const { ethers } = require("hardhat");
 
-let pool = "0x9a858bf4FB0E7bc4971eCd781C2A9FF981B79Aa9";
-let ccfl = "0xD8F9AC90175d539E25b808c4CDfbc938e0A39cB1";
+let pool = "0x3f4257d1E7dC2FDD98a1375f9c92eaBE9E04A5Dd";
+let ccfl = "0xc68BDD676FDbeac643baC74bfb08e8254841cF41";
 
 let usdc = "0x94a9D9AC8a22534E3FaCa9F4e7F2E2cf85d5E4C8";
 let wbtc = "0x29f2D40B0605204364af54EC677bD022dA425d03";
@@ -81,10 +81,9 @@ async function supplyUsdc(AMOUNT: any) {
   console.log(`Got ${(balance / BigInt(1e6)).toString()} USDC.`);
 }
 
-async function repay(AMOUNT: any) {
+async function repay(loanId: any, AMOUNT: any) {
   const signer = await ethers.provider.getSigner();
   console.log("signer", await signer.getAddress());
-  const loanId = BigInt(2);
 
   const iUsdc = await ethers.getContractAt("ICCFL", ccfl, signer);
 
@@ -97,7 +96,7 @@ async function repay(AMOUNT: any) {
 }
 
 async function createLoan() {
-  const amountUsdc = ethers.parseUnits("100", 6);
+  const amountUsdc = ethers.parseUnits("10", 6);
   const amountWbtc = ethers.parseUnits("0.01", 8);
   const signer = await ethers.provider.getSigner();
   console.log("signer", await signer.getAddress());
@@ -154,7 +153,7 @@ async function getHealthFactor(usdcAmount: any, wbtcAmount: any, loanId: any) {
   }
 }
 
-describe.skip("sepolia", () => {
+describe("sepolia", () => {
   describe("CCFL Pool", () => {
     it("approve usdc", async () => {
       const AMOUNT = ethers.parseUnits("600", 6);
@@ -183,12 +182,12 @@ describe.skip("sepolia", () => {
     });
 
     it("approve usdc", async () => {
-      const AMOUNT = ethers.parseUnits("100", 6);
+      const AMOUNT = ethers.parseUnits("200", 6);
       await approveLoanUsdc(AMOUNT);
     });
 
-    it("repay loan", async () => {
-      repay(ethers.parseUnits("100", 6));
+    it.only("repay loan", async () => {
+      repay(BigInt(9), ethers.parseUnits("200", 6));
     });
 
     it("check health factor", async () => {

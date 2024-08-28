@@ -122,18 +122,21 @@ contract CCFLLoan is ICCFLLoan, Initializable {
 
     function withdrawLiquidity() public onlyOwner returns (uint256) {
         uint amount = aToken.balanceOf(address(this));
-        IPool aavePool = IPool(aaveAddressProvider.getPool());
-        aavePool.withdraw(address(aToken), amount, address(this));
-        emit LiquidityWithdrawn(
-            address(this),
-            address(aToken),
-            amount,
-            block.timestamp
-        );
+        if (amount > 0) {
+            IPool aavePool = IPool(aaveAddressProvider.getPool());
+            aToken.approve(address(aavePool), amount);
+            aavePool.withdraw(address(aToken), amount, address(this));
+            emit LiquidityWithdrawn(
+                address(this),
+                address(aToken),
+                amount,
+                block.timestamp
+            );
+        }
         isStakeAave = false;
         // share 30% for platform;
         uint currentCollateral = collateralToken.balanceOf(address(this));
-        if (currentCollateral - collateralAmount > 10) {
+        if (currentCollateral - collateralAmount > 0) {
             uint earn = ((currentCollateral - collateralAmount) *
                 (earnBorrower)) / 10000;
             uint outUSD = swapEarnForUSD(
@@ -356,7 +359,7 @@ contract CCFLLoan is ICCFLLoan, Initializable {
         collateralAmount += amount;
     }
 
-    function closeLoan() public onlyOwner returns (uint256) {
+    function closeLoan() public returns (uint256) {
         initLoan.isClosed = true;
         if (isStakeAave) return withdrawLiquidity();
         return 0;

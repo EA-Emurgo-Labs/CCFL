@@ -16,7 +16,7 @@ contract CCFL is ICCFL, Initializable {
     uint public loandIds;
     mapping(IERC20Standard => ICCFLPool) public ccflPools;
     IERC20Standard[] public ccflPoolStableCoins;
-    ICCFLLoan ccflLoan;
+    ICCFLLoan public ccflLoan;
     mapping(uint => ICCFLLoan) loans;
 
     mapping(IERC20Standard => bool) public ccflActivePoolStableCoins;
@@ -575,9 +575,9 @@ contract CCFL is ICCFL, Initializable {
         // update collateral balance and get back collateral
         // Todo: if full payment, close loan
         if (ccflPools[_stableCoin].getCurrentLoan(_loanId) == 0) {
-            ICCFLLoan loan = loans[_loanId];
-            uint256 earnLenderBalance = loan.closeLoan();
-            ccflPools[_stableCoin].earnStaking(earnLenderBalance);
+            uint256 earnLenderBalance = loans[_loanId].closeLoan();
+            if (earnLenderBalance > 0)
+                ccflPools[_stableCoin].earnStaking(earnLenderBalance);
         }
 
         emit RepayLoan(
