@@ -36,14 +36,12 @@ interface ICCFLLoan {
     event LiquiditySupplied(
         address indexed onBehalfOf,
         address indexed _token,
-        uint _amount,
-        uint timestamp
+        uint _amount
     );
     event LiquidityWithdrawn(
         address indexed to,
         address indexed _token,
-        uint _amount,
-        uint timestamp
+        uint _amount
     );
 
     function supplyLiquidity() external;
@@ -113,4 +111,8 @@ interface ICCFLLoan {
     function getYieldEarned() external view returns (uint);
 
     function getIsYeild() external view returns (bool);
+
+    function getCollateralAmount() external view returns(uint);
+
+    function getCollateralToken() external view returns(IERC20Standard);
 }

@@ -22,48 +22,57 @@ import "./IERC20Standard.sol";
 interface ICCFL {
     event CreateLoan(
         address indexed borrower,
-        uint loanAmount,
-        IERC20Standard supply,
+        address loanAddress,
+        DataTypes.Loan loanInfo,
         uint collateralAmount,
         IERC20Standard collateral,
         bool isYieldGenerating,
-        bool isETH,
-        uint loanId,
-        uint timestamp
-    );
-
-    event AddCollateral(
-        address indexed borrower,
-        uint loanId,
-        uint collateralAmount,
-        IERC20Standard collateral,
-        bool isETH,
-        uint timestamp
+        bool isETH
     );
 
     event WithdrawLoan(
         address indexed borrower,
-        uint loanId,
-        IERC20Standard supply,
-        uint timestamp
+        DataTypes.Loan loanInfo
+    );
+
+    event AddCollateral(
+        address indexed borrower,
+        DataTypes.Loan loanInfo,
+        uint collateralAmount,
+        IERC20Standard collateral,
+        bool isETH
     );
 
     event RepayLoan(
         address indexed borrower,
-        uint loanId,
-        uint amount,
-        IERC20Standard supply,
-        uint timestamp
+        DataTypes.Loan loanInfo,
+        uint repayAmount,
+        uint debtRemain
     );
 
     event WithdrawAllCollateral(
         address indexed borrower,
-        uint loanId,
-        bool isETH,
-        uint timestamp
+        DataTypes.Loan loanInfo,
+        uint collateralAmount,
+        IERC20Standard collateral,
+        bool isETH
     );
 
-    event Liquidate(address indexed liquidator, uint loanId, uint timestamp);
+    event WithdrawAllCollateralByAdmin(
+        address indexed admin,
+        DataTypes.Loan loanInfo,
+        uint collateralAmount,
+        IERC20Standard collateral,
+        bool isETH
+    );
+
+    event Liquidate(
+        address indexed liquidator,
+        address indexed borrower,
+        DataTypes.Loan loanInfo,
+        uint collateralAmount,
+        IERC20Standard collateral
+    );
 
     function checkExistElement(
         IERC20Standard[] memory array,

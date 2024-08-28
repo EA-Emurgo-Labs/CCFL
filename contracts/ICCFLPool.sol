@@ -19,16 +19,24 @@ import "./IERC20Standard.sol";
 interface ICCFLPool {
     event AddSupply(
         address indexed lender,
-        IERC20Standard indexed supply,
+        address indexed poolAddress,
+        IERC20Standard indexed stableCoin,
         uint amount,
-        uint timestamp
+        uint lenderShare,
+        uint totalSupply,
+        uint totalLiquidity,
+        uint remainingPool
     );
 
     event WithdrawSupply(
         address indexed lender,
-        IERC20Standard indexed supply,
+        address indexed poolAddress,
+        IERC20Standard indexed stableCoin,
         uint amount,
-        uint timestamp
+        uint lenderShare,
+        uint totalSupply,
+        uint totalLiquidity,
+        uint remainingPool
     );
 
     function withdrawLoan(address _receiver, uint _loanId) external;

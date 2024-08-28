@@ -107,12 +107,7 @@ contract CCFLLoan is ICCFLLoan, Initializable {
         IPool aavePool = IPool(aaveAddressProvider.getPool());
         asset.approve(address(aavePool), amount);
         aavePool.supply(address(asset), amount, onBehalfOf, referralCode);
-        emit LiquiditySupplied(
-            onBehalfOf,
-            address(asset),
-            amount,
-            block.timestamp
-        );
+        emit LiquiditySupplied(onBehalfOf, address(asset), amount);
         isStakeAave = true;
     }
 
@@ -126,13 +121,9 @@ contract CCFLLoan is ICCFLLoan, Initializable {
             IPool aavePool = IPool(aaveAddressProvider.getPool());
             aToken.approve(address(aavePool), amount);
             aavePool.withdraw(address(aToken), amount, address(this));
-            emit LiquidityWithdrawn(
-                address(this),
-                address(aToken),
-                amount,
-                block.timestamp
-            );
+            emit LiquidityWithdrawn(address(this), address(aToken), amount);
         }
+
         isStakeAave = false;
         // share 30% for platform;
         uint currentCollateral = collateralToken.balanceOf(address(this));
@@ -399,6 +390,14 @@ contract CCFLLoan is ICCFLLoan, Initializable {
 
     function getIsYeild() public view returns (bool) {
         return isStakeAave;
+    }
+
+    function getCollateralAmount() public view returns (uint) {
+        return collateralAmount;
+    }
+
+    function getCollateralToken() public view returns (IERC20Standard) {
+        return collateralToken;
     }
 
     receive() external payable {}
