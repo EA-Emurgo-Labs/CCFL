@@ -49,9 +49,15 @@
 						"type": "address"
 					},
 					{
-						"indexed": true,
+						"indexed": false,
 						"internalType": "uint256",
 						"name": "_amount",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "timestamp",
 						"type": "uint256"
 					}
 				],
@@ -74,32 +80,19 @@
 						"type": "address"
 					},
 					{
-						"indexed": true,
-						"internalType": "uint256",
-						"name": "_amount",
-						"type": "uint256"
-					}
-				],
-				"name": "LiquidityWithdrawn",
-				"type": "event"
-			},
-			{
-				"anonymous": false,
-				"inputs": [
-					{
 						"indexed": false,
 						"internalType": "uint256",
-						"name": "amount",
+						"name": "_amount",
 						"type": "uint256"
 					},
 					{
 						"indexed": false,
 						"internalType": "uint256",
-						"name": "when",
+						"name": "timestamp",
 						"type": "uint256"
 					}
 				],
-				"name": "Withdrawal",
+				"name": "LiquidityWithdrawn",
 				"type": "event"
 			},
 			{
@@ -157,7 +150,13 @@
 			{
 				"inputs": [],
 				"name": "closeLoan",
-				"outputs": [],
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
 				"stateMutability": "nonpayable",
 				"type": "function"
 			},
@@ -180,6 +179,58 @@
 				"outputs": [
 					{
 						"internalType": "contract IERC20Standard",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "earnBorrower",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "earnLender",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "earnPlatform",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "factory",
+				"outputs": [
+					{
+						"internalType": "contract IUniswapV3Factory",
 						"name": "",
 						"type": "address"
 					}
@@ -225,6 +276,19 @@
 				"type": "function"
 			},
 			{
+				"inputs": [],
+				"name": "getIsYeild",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
 				"inputs": [
 					{
 						"internalType": "contract IERC20Standard",
@@ -260,11 +324,6 @@
 								"type": "uint256"
 							},
 							{
-								"internalType": "address",
-								"name": "borrower",
-								"type": "address"
-							},
-							{
 								"internalType": "bool",
 								"name": "isPaid",
 								"type": "bool"
@@ -275,17 +334,37 @@
 								"type": "uint256"
 							},
 							{
+								"internalType": "bool",
+								"name": "isClosed",
+								"type": "bool"
+							},
+							{
+								"internalType": "address",
+								"name": "borrower",
+								"type": "address"
+							},
+							{
+								"internalType": "bool",
+								"name": "isLiquidated",
+								"type": "bool"
+							},
+							{
 								"internalType": "contract IERC20Standard",
 								"name": "stableCoin",
 								"type": "address"
 							},
 							{
 								"internalType": "bool",
-								"name": "isClosed",
+								"name": "isFinalty",
+								"type": "bool"
+							},
+							{
+								"internalType": "bool",
+								"name": "isFiat",
 								"type": "bool"
 							}
 						],
-						"internalType": "struct Loan",
+						"internalType": "struct DataTypes.Loan",
 						"name": "",
 						"type": "tuple"
 					}
@@ -339,17 +418,25 @@
 			},
 			{
 				"inputs": [],
+				"name": "getYieldEarned",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
 				"name": "initLoan",
 				"outputs": [
 					{
 						"internalType": "uint256",
 						"name": "loanId",
 						"type": "uint256"
-					},
-					{
-						"internalType": "address",
-						"name": "borrower",
-						"type": "address"
 					},
 					{
 						"internalType": "bool",
@@ -362,13 +449,33 @@
 						"type": "uint256"
 					},
 					{
+						"internalType": "bool",
+						"name": "isClosed",
+						"type": "bool"
+					},
+					{
+						"internalType": "address",
+						"name": "borrower",
+						"type": "address"
+					},
+					{
+						"internalType": "bool",
+						"name": "isLiquidated",
+						"type": "bool"
+					},
+					{
 						"internalType": "contract IERC20Standard",
 						"name": "stableCoin",
 						"type": "address"
 					},
 					{
 						"internalType": "bool",
-						"name": "isClosed",
+						"name": "isFinalty",
+						"type": "bool"
+					},
+					{
+						"internalType": "bool",
+						"name": "isFiat",
 						"type": "bool"
 					}
 				],
@@ -385,11 +492,6 @@
 								"type": "uint256"
 							},
 							{
-								"internalType": "address",
-								"name": "borrower",
-								"type": "address"
-							},
-							{
 								"internalType": "bool",
 								"name": "isPaid",
 								"type": "bool"
@@ -400,17 +502,37 @@
 								"type": "uint256"
 							},
 							{
+								"internalType": "bool",
+								"name": "isClosed",
+								"type": "bool"
+							},
+							{
+								"internalType": "address",
+								"name": "borrower",
+								"type": "address"
+							},
+							{
+								"internalType": "bool",
+								"name": "isLiquidated",
+								"type": "bool"
+							},
+							{
 								"internalType": "contract IERC20Standard",
 								"name": "stableCoin",
 								"type": "address"
 							},
 							{
 								"internalType": "bool",
-								"name": "isClosed",
+								"name": "isFinalty",
+								"type": "bool"
+							},
+							{
+								"internalType": "bool",
+								"name": "isFiat",
 								"type": "bool"
 							}
 						],
-						"internalType": "struct Loan",
+						"internalType": "struct DataTypes.Loan",
 						"name": "_loan",
 						"type": "tuple"
 					},
@@ -447,11 +569,6 @@
 					{
 						"internalType": "contract AggregatorV3Interface",
 						"name": "_pricePoolFeed",
-						"type": "address"
-					},
-					{
-						"internalType": "contract ISwapRouter",
-						"name": "_swapRouter",
 						"type": "address"
 					},
 					{
@@ -497,7 +614,13 @@
 					}
 				],
 				"name": "liquidate",
-				"outputs": [],
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
 				"stateMutability": "nonpayable",
 				"type": "function"
 			},
@@ -580,6 +703,54 @@
 				"type": "function"
 			},
 			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "_borrower",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "_platform",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "_lender",
+						"type": "uint256"
+					}
+				],
+				"name": "setEarnShare",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "setPaid",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "contract ISwapRouter",
+						"name": "_swapRouter",
+						"type": "address"
+					},
+					{
+						"internalType": "contract IUniswapV3Factory",
+						"name": "_factory",
+						"type": "address"
+					}
+				],
+				"name": "setSwapRouter",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
 				"inputs": [],
 				"name": "supplyLiquidity",
 				"outputs": [],
@@ -646,7 +817,13 @@
 			{
 				"inputs": [],
 				"name": "withdrawLiquidity",
-				"outputs": [],
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
 				"stateMutability": "nonpayable",
 				"type": "function"
 			},
@@ -757,6 +934,14 @@
 				"dweb:/ipfs/Qmau6x4Ns9XdyynRCNNp3RhLqijJjFm7z5fyZazfYFGYdq"
 			]
 		},
+		"@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol": {
+			"keccak256": "0xcc3d0c93fc9ac0febbe09f941b465b57f750bcf3b48432da0b97dc289cfdc489",
+			"license": "GPL-2.0-or-later",
+			"urls": [
+				"bzz-raw://b9379ad954680c44a0bc523b314ae4c4da735f9fe1d02aa56ea5bdba6f1136f2",
+				"dweb:/ipfs/QmZXdgQNXKAckrXWz9R3mc47F1fvDvr28a2ewJrwNAw71B"
+			]
+		},
 		"@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol": {
 			"keccak256": "0xfe6113d518466cd6652c85b111e01f33eb62157f49ae5ed7d5a3947a2044adb1",
 			"license": "GPL-2.0-or-later",
@@ -838,19 +1023,27 @@
 			]
 		},
 		"CCFLLoan.sol": {
-			"keccak256": "0xc674efd0566ea11cbd4179cf9150e5878de9e26d39dbdbf4f5260a14c851bffb",
+			"keccak256": "0xb2cad5080f4f30bad57d04ff03c7fdf1331bba4ce8a99e736b0aca7645a6651d",
 			"license": "UNLICENSED",
 			"urls": [
-				"bzz-raw://41beb68dc370432c1a1495625352da0e23b6bc117ed590461485ebf170c005bd",
-				"dweb:/ipfs/QmTpmyyNbvZKEx8bGfzXfzoAYczTKnJgHJiBYNG2ym7xRh"
+				"bzz-raw://dedd6caab3077dd57a5f518589e05f4f78e7803137c8dd90c32da567c35ac36e",
+				"dweb:/ipfs/QmPJRFttBupEHeG3WUeFXc7TCiTWijRi8KEQF1qDVvgeBy"
+			]
+		},
+		"DataTypes.sol": {
+			"keccak256": "0xadf06b0957ff63350fdf59597d6fbaf8331c595960a88e1bc8f1d3cb9ec7b505",
+			"license": "BUSL-1.1",
+			"urls": [
+				"bzz-raw://c740360c1d539d9c73b314d09e7b593647bde496e96c327ac4e99a42aa867cf1",
+				"dweb:/ipfs/QmYxS2ZRpJkN5r2pj7c9FvSeq8uJXfRk3iQexwQzRHfSap"
 			]
 		},
 		"ICCFLLoan.sol": {
-			"keccak256": "0xb3a864cd5d730faf2f140ff04bc07ef768c424fbc2d814ac58bc0dd3c37a9399",
+			"keccak256": "0xf6fd968da1a8827dfae7042a8c6e2b0922c9826af1550b55d8ddc62a572362a4",
 			"license": "UNLICENSED",
 			"urls": [
-				"bzz-raw://625e3db654f604da034c3d7e91cad863eb4994691a8a598e81cd6295dfbf43d3",
-				"dweb:/ipfs/QmQG1w34jc9NGYjdqPQVRFGruUiGu3gBqNpPd7wS3Gtfb8"
+				"bzz-raw://b665f83dc6e9fd3883ea14e729c2ced79a38ff77bb155360c5ccb240d1e96e11",
+				"dweb:/ipfs/QmdoYBSNfFeDLKq7DQWEjLZ3ZMBYw7fvcGbXnroLbbuMju"
 			]
 		},
 		"IERC20Standard.sol": {
@@ -867,6 +1060,14 @@
 			"urls": [
 				"bzz-raw://49355f780520494d1d5a0f01858385e51bb5280ce0ecfb960f16995065dca395",
 				"dweb:/ipfs/QmSwJ6C5QLz6xKeQZS8wbwjU1KxRFTYfwbGmtzisd5sRW4"
+			]
+		},
+		"helpers/Errors.sol": {
+			"keccak256": "0x0fdd562f068dbcf081dc0f2d1ebafd8473ae6f89a73fa8af0d79f799d11d757e",
+			"license": "BUSL-1.1",
+			"urls": [
+				"bzz-raw://fb02e42f6e4f26455273c9595316ee0b74f79793457d2f895d053ee2a716f4ac",
+				"dweb:/ipfs/QmUs6kULijV6cBZxLzjQNe2h6GrxAvGPfpBnymddX2Lise"
 			]
 		}
 	},

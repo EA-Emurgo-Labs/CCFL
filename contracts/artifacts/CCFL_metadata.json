@@ -24,6 +24,110 @@
 				"anonymous": false,
 				"inputs": [
 					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "borrower",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "loanId",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "collateralAmount",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "contract IERC20Standard",
+						"name": "collateral",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "bool",
+						"name": "isETH",
+						"type": "bool"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "timestamp",
+						"type": "uint256"
+					}
+				],
+				"name": "AddCollateral",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "borrower",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "loanAmount",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "contract IERC20Standard",
+						"name": "supply",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "collateralAmount",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "contract IERC20Standard",
+						"name": "collateral",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "bool",
+						"name": "isYieldGenerating",
+						"type": "bool"
+					},
+					{
+						"indexed": false,
+						"internalType": "bool",
+						"name": "isETH",
+						"type": "bool"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "loanId",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "timestamp",
+						"type": "uint256"
+					}
+				],
+				"name": "CreateLoan",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
 						"indexed": false,
 						"internalType": "uint64",
 						"name": "version",
@@ -39,58 +143,39 @@
 					{
 						"indexed": true,
 						"internalType": "address",
-						"name": "onBehalfOf",
+						"name": "liquidator",
 						"type": "address"
 					},
-					{
-						"indexed": true,
-						"internalType": "address",
-						"name": "_token",
-						"type": "address"
-					},
-					{
-						"indexed": true,
-						"internalType": "uint256",
-						"name": "_amount",
-						"type": "uint256"
-					}
-				],
-				"name": "LiquiditySupplied",
-				"type": "event"
-			},
-			{
-				"anonymous": false,
-				"inputs": [
-					{
-						"indexed": true,
-						"internalType": "address",
-						"name": "to",
-						"type": "address"
-					},
-					{
-						"indexed": true,
-						"internalType": "address",
-						"name": "_token",
-						"type": "address"
-					},
-					{
-						"indexed": true,
-						"internalType": "uint256",
-						"name": "_amount",
-						"type": "uint256"
-					}
-				],
-				"name": "LiquidityWithdrawn",
-				"type": "event"
-			},
-			{
-				"anonymous": false,
-				"inputs": [
 					{
 						"indexed": false,
+						"internalType": "uint256",
+						"name": "loanId",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "timestamp",
+						"type": "uint256"
+					}
+				],
+				"name": "Liquidate",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
 						"internalType": "address",
 						"name": "borrower",
 						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "loanId",
+						"type": "uint256"
 					},
 					{
 						"indexed": false,
@@ -100,12 +185,80 @@
 					},
 					{
 						"indexed": false,
+						"internalType": "contract IERC20Standard",
+						"name": "supply",
+						"type": "address"
+					},
+					{
+						"indexed": false,
 						"internalType": "uint256",
-						"name": "when",
+						"name": "timestamp",
 						"type": "uint256"
 					}
 				],
-				"name": "Withdraw",
+				"name": "RepayLoan",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "borrower",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "loanId",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "bool",
+						"name": "isETH",
+						"type": "bool"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "timestamp",
+						"type": "uint256"
+					}
+				],
+				"name": "WithdrawAllCollateral",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "borrower",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "loanId",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "contract IERC20Standard",
+						"name": "supply",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "timestamp",
+						"type": "uint256"
+					}
+				],
+				"name": "WithdrawLoan",
 				"type": "event"
 			},
 			{
@@ -156,14 +309,27 @@
 						"internalType": "contract IERC20Standard",
 						"name": "_collateral",
 						"type": "address"
-					},
-					{
-						"internalType": "bool",
-						"name": "_isETH",
-						"type": "bool"
 					}
 				],
 				"name": "addCollateral",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "_loanId",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "_amountETH",
+						"type": "uint256"
+					}
+				],
+				"name": "addCollateralByETH",
 				"outputs": [],
 				"stateMutability": "payable",
 				"type": "function"
@@ -231,6 +397,19 @@
 				"type": "function"
 			},
 			{
+				"inputs": [],
+				"name": "ccflLoan",
+				"outputs": [
+					{
+						"internalType": "contract ICCFLLoan",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
 				"inputs": [
 					{
 						"internalType": "uint256",
@@ -290,6 +469,35 @@
 					}
 				],
 				"stateMutability": "pure",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "_amount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "contract IERC20Standard",
+						"name": "_stableCoin",
+						"type": "address"
+					},
+					{
+						"internalType": "contract IERC20Standard",
+						"name": "_collateral",
+						"type": "address"
+					}
+				],
+				"name": "checkMinimalCollateralForLoan",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
 				"type": "function"
 			},
 			{
@@ -364,13 +572,98 @@
 					},
 					{
 						"internalType": "bool",
-						"name": "_isETH",
+						"name": "_isFiat",
 						"type": "bool"
 					}
 				],
 				"name": "createLoan",
 				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "_amount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "contract IERC20Standard",
+						"name": "_stableCoin",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "_amountETH",
+						"type": "uint256"
+					},
+					{
+						"internalType": "bool",
+						"name": "_isYieldGenerating",
+						"type": "bool"
+					},
+					{
+						"internalType": "bool",
+						"name": "_isFiat",
+						"type": "bool"
+					}
+				],
+				"name": "createLoanByETH",
+				"outputs": [],
 				"stateMutability": "payable",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "earnBorrower",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "earnLender",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "earnPlatform",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "factory",
+				"outputs": [
+					{
+						"internalType": "contract IUniswapV3Factory",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
 				"type": "function"
 			},
 			{
@@ -438,27 +731,17 @@
 			{
 				"inputs": [
 					{
-						"internalType": "uint256",
-						"name": "_amount",
-						"type": "uint256"
-					},
-					{
-						"internalType": "contract IERC20Standard",
-						"name": "_stableCoin",
-						"type": "address"
-					},
-					{
-						"internalType": "contract IERC20Standard",
-						"name": "_collateral",
+						"internalType": "address",
+						"name": "borrower",
 						"type": "address"
 					}
 				],
-				"name": "getMinimalCollateral",
+				"name": "getLoanIds",
 				"outputs": [
 					{
-						"internalType": "uint256",
+						"internalType": "uint256[]",
 						"name": "",
-						"type": "uint256"
+						"type": "uint256[]"
 					}
 				],
 				"stateMutability": "view",
@@ -523,6 +806,19 @@
 				"type": "function"
 			},
 			{
+				"inputs": [],
+				"name": "isPaused",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
 				"inputs": [
 					{
 						"internalType": "uint256",
@@ -582,6 +878,25 @@
 						"internalType": "uint256",
 						"name": "",
 						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"name": "operators",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
 					}
 				],
 				"stateMutability": "view",
@@ -813,6 +1128,73 @@
 				"inputs": [
 					{
 						"internalType": "uint256",
+						"name": "_borrower",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "_platform",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "_lender",
+						"type": "uint256"
+					}
+				],
+				"name": "setEarnShare",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bool",
+						"name": "_isActived",
+						"type": "bool"
+					}
+				],
+				"name": "setEnableETHNative",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address[]",
+						"name": "_addresses",
+						"type": "address[]"
+					},
+					{
+						"internalType": "bool[]",
+						"name": "_isActives",
+						"type": "bool[]"
+					}
+				],
+				"name": "setOperators",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bool",
+						"name": "_paused",
+						"type": "bool"
+					}
+				],
+				"name": "setPaused",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
 						"name": "_platform",
 						"type": "uint256"
 					},
@@ -878,6 +1260,11 @@
 					{
 						"internalType": "contract ISwapRouter",
 						"name": "_swapRouter",
+						"type": "address"
+					},
+					{
+						"internalType": "contract IUniswapV3Factory",
+						"name": "_factory",
 						"type": "address"
 					}
 				],
@@ -968,6 +1355,42 @@
 					}
 				],
 				"name": "withdrawAllCollateral",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "_loanId",
+						"type": "uint256"
+					},
+					{
+						"internalType": "bool",
+						"name": "isETH",
+						"type": "bool"
+					}
+				],
+				"name": "withdrawAllCollateralByAdmin",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "contract IERC20Standard",
+						"name": "_stableCoin",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "_loanId",
+						"type": "uint256"
+					}
+				],
+				"name": "withdrawFiatLoan",
 				"outputs": [],
 				"stateMutability": "nonpayable",
 				"type": "function"
@@ -1110,6 +1533,14 @@
 				"dweb:/ipfs/QmWqVz6UAVqmnWU5pqYPt1o6iDEZyPaBraAA3rKfTTSfYj"
 			]
 		},
+		"@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol": {
+			"keccak256": "0xcc3d0c93fc9ac0febbe09f941b465b57f750bcf3b48432da0b97dc289cfdc489",
+			"license": "GPL-2.0-or-later",
+			"urls": [
+				"bzz-raw://b9379ad954680c44a0bc523b314ae4c4da735f9fe1d02aa56ea5bdba6f1136f2",
+				"dweb:/ipfs/QmZXdgQNXKAckrXWz9R3mc47F1fvDvr28a2ewJrwNAw71B"
+			]
+		},
 		"@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol": {
 			"keccak256": "0xfe6113d518466cd6652c85b111e01f33eb62157f49ae5ed7d5a3947a2044adb1",
 			"license": "GPL-2.0-or-later",
@@ -1191,43 +1622,43 @@
 			]
 		},
 		"CCFL.sol": {
-			"keccak256": "0x2dac0c67f0a3267d2bf56a56a0a02787bae49c00b971afb3322e491d32d74e8d",
+			"keccak256": "0x8b61f4ff27709f21f2f201a76876445de0e4778c49ecb11af92bf4866448a340",
 			"license": "UNLICENSED",
 			"urls": [
-				"bzz-raw://c8a9095adcae5848986c7b0e07a8cc7295f9aa610ddfccde1539078d0d3b29bc",
-				"dweb:/ipfs/QmPta6P3HSLSrRoaP7qLw4Sarx13UY6sMqcsJeaUvsxK1T"
+				"bzz-raw://18765b3f31b44023ad524cf52b0ecd6f6ea66c19a5e815577b18815348b42a35",
+				"dweb:/ipfs/QmYaNqoKDK4EYrfgUQNhyTXUQMcLB5UMmPtU2psWhJo9kR"
 			]
 		},
 		"DataTypes.sol": {
-			"keccak256": "0xaec916965df4a33d0cb4c0c354969299411c1d8379b4284f44941094a815d3a2",
+			"keccak256": "0xadf06b0957ff63350fdf59597d6fbaf8331c595960a88e1bc8f1d3cb9ec7b505",
 			"license": "BUSL-1.1",
 			"urls": [
-				"bzz-raw://beb81aec3c35a361852b84c7dbdc7c0d5ab3619040e4d46c19c48de52f43e259",
-				"dweb:/ipfs/QmQ6jSbaW4cb3Tu77Nbx7dHBTJ3CKfH3uSrLZ1a1Z8CE6r"
+				"bzz-raw://c740360c1d539d9c73b314d09e7b593647bde496e96c327ac4e99a42aa867cf1",
+				"dweb:/ipfs/QmYxS2ZRpJkN5r2pj7c9FvSeq8uJXfRk3iQexwQzRHfSap"
 			]
 		},
 		"ICCFL.sol": {
-			"keccak256": "0x8c1b531197bb8a061c25ee53391d07a803de1cb6153e684732aa433efe4bab34",
+			"keccak256": "0xb78466585d6e558bbe86b59f4e691eca93aff6789124cb551449c0a40eab4b44",
 			"license": "UNLICENSED",
 			"urls": [
-				"bzz-raw://05ae47d274196fa8a48446d1a3b54c8a2d9393616e11a2e49f1e3937e1e91c77",
-				"dweb:/ipfs/QmUuSJPgBJdKqJxH62Xvx3Z8CNfgVdsF2otx4LmRjya4qa"
+				"bzz-raw://415a303f9d078056119cc19beb9935ff6b4da04a17ee62e2dc689bfe973d3e57",
+				"dweb:/ipfs/QmU6AWJCzn86u73PdPfYHWpAbEDPhnyMHEq2zE4PWXwBQ2"
 			]
 		},
 		"ICCFLLoan.sol": {
-			"keccak256": "0xb3a864cd5d730faf2f140ff04bc07ef768c424fbc2d814ac58bc0dd3c37a9399",
+			"keccak256": "0xf6fd968da1a8827dfae7042a8c6e2b0922c9826af1550b55d8ddc62a572362a4",
 			"license": "UNLICENSED",
 			"urls": [
-				"bzz-raw://625e3db654f604da034c3d7e91cad863eb4994691a8a598e81cd6295dfbf43d3",
-				"dweb:/ipfs/QmQG1w34jc9NGYjdqPQVRFGruUiGu3gBqNpPd7wS3Gtfb8"
+				"bzz-raw://b665f83dc6e9fd3883ea14e729c2ced79a38ff77bb155360c5ccb240d1e96e11",
+				"dweb:/ipfs/QmdoYBSNfFeDLKq7DQWEjLZ3ZMBYw7fvcGbXnroLbbuMju"
 			]
 		},
 		"ICCFLPool.sol": {
-			"keccak256": "0x4600cd85770cfc9aec37a31805b950df187cb4ba5749586e882a226406b95c4f",
+			"keccak256": "0xd2f87d0c7fdc508561889022b3497cf3a73ebd8e3c989e02e15c9b58fa254509",
 			"license": "UNLICENSED",
 			"urls": [
-				"bzz-raw://0c76d019cb961ab868fa5bc5ae9963dd3198da9b57ed2ae594658432602e47ea",
-				"dweb:/ipfs/QmNbEVSzPwqw6HgPhygXPF8pJmN2PLPhyHATqeC3pJc4Cu"
+				"bzz-raw://5e63fe0377d4b7fe7dcddb9e2bddb3306ec31282f003ef10eb43e4a9cee8f7ba",
+				"dweb:/ipfs/QmbL8U3f6tEZ9GdPURwcrjXVDozVm1Pppa991nApYybtA1"
 			]
 		},
 		"IERC20Standard.sol": {
@@ -1252,6 +1683,14 @@
 			"urls": [
 				"bzz-raw://49355f780520494d1d5a0f01858385e51bb5280ce0ecfb960f16995065dca395",
 				"dweb:/ipfs/QmSwJ6C5QLz6xKeQZS8wbwjU1KxRFTYfwbGmtzisd5sRW4"
+			]
+		},
+		"helpers/Errors.sol": {
+			"keccak256": "0x0fdd562f068dbcf081dc0f2d1ebafd8473ae6f89a73fa8af0d79f799d11d757e",
+			"license": "BUSL-1.1",
+			"urls": [
+				"bzz-raw://fb02e42f6e4f26455273c9595316ee0b74f79793457d2f895d053ee2a716f4ac",
+				"dweb:/ipfs/QmUs6kULijV6cBZxLzjQNe2h6GrxAvGPfpBnymddX2Lise"
 			]
 		},
 		"math/MathUtils.sol": {
