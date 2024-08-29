@@ -116,13 +116,13 @@ contract CCFLLoan is ICCFLLoan, Initializable {
     }
 
     function withdrawLiquidity() public onlyOwner returns (uint256) {
+        IERC20Standard asset = collateralToken;
         uint amount = aToken.balanceOf(address(this));
-        if (amount > 0) {
-            IPool aavePool = IPool(aaveAddressProvider.getPool());
-            aToken.approve(address(aavePool), amount);
-            aavePool.withdraw(address(aToken), amount, address(this));
-            emit LiquidityWithdrawn(address(this), address(aToken), amount);
-        }
+        require(amount > 0, Errors.DO_NOT_HAVE_ASSETS);
+        IPool aavePool = IPool(aaveAddressProvider.getPool());
+        aToken.approve(address(aavePool), amount);
+        aavePool.withdraw(address(asset), amount, address(this));
+        emit LiquidityWithdrawn(address(this), address(aToken), amount);
 
         isStakeAave = false;
         // share 30% for platform;

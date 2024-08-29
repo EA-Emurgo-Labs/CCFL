@@ -187,7 +187,7 @@ describe("sepolia", () => {
     });
 
     it.only("repay loan", async () => {
-      repay(BigInt(9), ethers.parseUnits("200", 6));
+      repay(BigInt(13), ethers.parseUnits("200", 6));
     });
 
     it("check health factor", async () => {
