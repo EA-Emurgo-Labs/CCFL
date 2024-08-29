@@ -30,10 +30,57 @@
 						"type": "address"
 					},
 					{
+						"components": [
+							{
+								"internalType": "uint256",
+								"name": "loanId",
+								"type": "uint256"
+							},
+							{
+								"internalType": "bool",
+								"name": "isPaid",
+								"type": "bool"
+							},
+							{
+								"internalType": "uint256",
+								"name": "amount",
+								"type": "uint256"
+							},
+							{
+								"internalType": "bool",
+								"name": "isClosed",
+								"type": "bool"
+							},
+							{
+								"internalType": "address",
+								"name": "borrower",
+								"type": "address"
+							},
+							{
+								"internalType": "bool",
+								"name": "isLiquidated",
+								"type": "bool"
+							},
+							{
+								"internalType": "contract IERC20Standard",
+								"name": "stableCoin",
+								"type": "address"
+							},
+							{
+								"internalType": "bool",
+								"name": "isFinalty",
+								"type": "bool"
+							},
+							{
+								"internalType": "bool",
+								"name": "isFiat",
+								"type": "bool"
+							}
+						],
 						"indexed": false,
-						"internalType": "uint256",
-						"name": "loanId",
-						"type": "uint256"
+						"internalType": "struct DataTypes.Loan",
+						"name": "loanInfo",
+						"type": "tuple"
 					},
 					{
 						"indexed": false,
@@ -52,12 +99,6 @@
 						"internalType": "bool",
 						"name": "isETH",
 						"type": "bool"
-					},
-					{
-						"indexed": false,
-						"internalType": "uint256",
-						"name": "timestamp",
-						"type": "uint256"
 					}
 				],
 				"name": "AddCollateral",
@@ -74,15 +115,62 @@
 					},
 					{
 						"indexed": false,
-						"internalType": "uint256",
-						"name": "loanAmount",
-						"type": "uint256"
+						"internalType": "address",
+						"name": "loanAddress",
+						"type": "address"
 					},
 					{
+						"components": [
+							{
+								"internalType": "uint256",
+								"name": "loanId",
+								"type": "uint256"
+							},
+							{
+								"internalType": "bool",
+								"name": "isPaid",
+								"type": "bool"
+							},
+							{
+								"internalType": "uint256",
+								"name": "amount",
+								"type": "uint256"
+							},
+							{
+								"internalType": "bool",
+								"name": "isClosed",
+								"type": "bool"
+							},
+							{
+								"internalType": "address",
+								"name": "borrower",
+								"type": "address"
+							},
+							{
+								"internalType": "bool",
+								"name": "isLiquidated",
+								"type": "bool"
+							},
+							{
+								"internalType": "contract IERC20Standard",
+								"name": "stableCoin",
+								"type": "address"
+							},
+							{
+								"internalType": "bool",
+								"name": "isFinalty",
+								"type": "bool"
+							},
+							{
+								"internalType": "bool",
+								"name": "isFiat",
+								"type": "bool"
+							}
+						],
 						"indexed": false,
-						"internalType": "contract IERC20Standard",
-						"name": "supply",
-						"type": "address"
+						"internalType": "struct DataTypes.Loan",
+						"name": "loanInfo",
+						"type": "tuple"
 					},
 					{
 						"indexed": false,
@@ -107,18 +195,6 @@
 						"internalType": "bool",
 						"name": "isETH",
 						"type": "bool"
-					},
-					{
-						"indexed": false,
-						"internalType": "uint256",
-						"name": "loanId",
-						"type": "uint256"
-					},
-					{
-						"indexed": false,
-						"internalType": "uint256",
-						"name": "timestamp",
-						"type": "uint256"
 					}
 				],
 				"name": "CreateLoan",
@@ -147,16 +223,75 @@
 						"type": "address"
 					},
 					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "borrower",
+						"type": "address"
+					},
+					{
+						"components": [
+							{
+								"internalType": "uint256",
+								"name": "loanId",
+								"type": "uint256"
+							},
+							{
+								"internalType": "bool",
+								"name": "isPaid",
+								"type": "bool"
+							},
+							{
+								"internalType": "uint256",
+								"name": "amount",
+								"type": "uint256"
+							},
+							{
+								"internalType": "bool",
+								"name": "isClosed",
+								"type": "bool"
+							},
+							{
+								"internalType": "address",
+								"name": "borrower",
+								"type": "address"
+							},
+							{
+								"internalType": "bool",
+								"name": "isLiquidated",
+								"type": "bool"
+							},
+							{
+								"internalType": "contract IERC20Standard",
+								"name": "stableCoin",
+								"type": "address"
+							},
+							{
+								"internalType": "bool",
+								"name": "isFinalty",
+								"type": "bool"
+							},
+							{
+								"internalType": "bool",
+								"name": "isFiat",
+								"type": "bool"
+							}
+						],
 						"indexed": false,
-						"internalType": "uint256",
-						"name": "loanId",
-						"type": "uint256"
+						"internalType": "struct DataTypes.Loan",
+						"name": "loanInfo",
+						"type": "tuple"
 					},
 					{
 						"indexed": false,
 						"internalType": "uint256",
-						"name": "timestamp",
+						"name": "collateralAmount",
 						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "contract IERC20Standard",
+						"name": "collateral",
+						"type": "address"
 					}
 				],
 				"name": "Liquidate",
@@ -172,27 +307,68 @@
 						"type": "address"
 					},
 					{
+						"components": [
+							{
+								"internalType": "uint256",
+								"name": "loanId",
+								"type": "uint256"
+							},
+							{
+								"internalType": "bool",
+								"name": "isPaid",
+								"type": "bool"
+							},
+							{
+								"internalType": "uint256",
+								"name": "amount",
+								"type": "uint256"
+							},
+							{
+								"internalType": "bool",
+								"name": "isClosed",
+								"type": "bool"
+							},
+							{
+								"internalType": "address",
+								"name": "borrower",
+								"type": "address"
+							},
+							{
+								"internalType": "bool",
+								"name": "isLiquidated",
+								"type": "bool"
+							},
+							{
+								"internalType": "contract IERC20Standard",
+								"name": "stableCoin",
+								"type": "address"
+							},
+							{
+								"internalType": "bool",
+								"name": "isFinalty",
+								"type": "bool"
+							},
+							{
+								"internalType": "bool",
+								"name": "isFiat",
+								"type": "bool"
+							}
+						],
+						"indexed": false,
+						"internalType": "struct DataTypes.Loan",
+						"name": "loanInfo",
+						"type": "tuple"
+					},
+					{
 						"indexed": false,
 						"internalType": "uint256",
-						"name": "loanId",
+						"name": "repayAmount",
 						"type": "uint256"
 					},
 					{
 						"indexed": false,
 						"internalType": "uint256",
-						"name": "amount",
-						"type": "uint256"
-					},
-					{
-						"indexed": false,
-						"internalType": "contract IERC20Standard",
-						"name": "supply",
-						"type": "address"
-					},
-					{
-						"indexed": false,
-						"internalType": "uint256",
-						"name": "timestamp",
+						"name": "debtRemain",
 						"type": "uint256"
 					}
 				],
@@ -209,25 +385,162 @@
 						"type": "address"
 					},
 					{
+						"components": [
+							{
+								"internalType": "uint256",
+								"name": "loanId",
+								"type": "uint256"
+							},
+							{
+								"internalType": "bool",
+								"name": "isPaid",
+								"type": "bool"
+							},
+							{
+								"internalType": "uint256",
+								"name": "amount",
+								"type": "uint256"
+							},
+							{
+								"internalType": "bool",
+								"name": "isClosed",
+								"type": "bool"
+							},
+							{
+								"internalType": "address",
+								"name": "borrower",
+								"type": "address"
+							},
+							{
+								"internalType": "bool",
+								"name": "isLiquidated",
+								"type": "bool"
+							},
+							{
+								"internalType": "contract IERC20Standard",
+								"name": "stableCoin",
+								"type": "address"
+							},
+							{
+								"internalType": "bool",
+								"name": "isFinalty",
+								"type": "bool"
+							},
+							{
+								"internalType": "bool",
+								"name": "isFiat",
+								"type": "bool"
+							}
+						],
+						"indexed": false,
+						"internalType": "struct DataTypes.Loan",
+						"name": "loanInfo",
+						"type": "tuple"
+					},
+					{
 						"indexed": false,
 						"internalType": "uint256",
-						"name": "loanId",
+						"name": "collateralAmount",
 						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "contract IERC20Standard",
+						"name": "collateral",
+						"type": "address"
 					},
 					{
 						"indexed": false,
 						"internalType": "bool",
 						"name": "isETH",
 						"type": "bool"
+					}
+				],
+				"name": "WithdrawAllCollateral",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "admin",
+						"type": "address"
+					},
+					{
+						"components": [
+							{
+								"internalType": "uint256",
+								"name": "loanId",
+								"type": "uint256"
+							},
+							{
+								"internalType": "bool",
+								"name": "isPaid",
+								"type": "bool"
+							},
+							{
+								"internalType": "uint256",
+								"name": "amount",
+								"type": "uint256"
+							},
+							{
+								"internalType": "bool",
+								"name": "isClosed",
+								"type": "bool"
+							},
+							{
+								"internalType": "address",
+								"name": "borrower",
+								"type": "address"
+							},
+							{
+								"internalType": "bool",
+								"name": "isLiquidated",
+								"type": "bool"
+							},
+							{
+								"internalType": "contract IERC20Standard",
+								"name": "stableCoin",
+								"type": "address"
+							},
+							{
+								"internalType": "bool",
+								"name": "isFinalty",
+								"type": "bool"
+							},
+							{
+								"internalType": "bool",
+								"name": "isFiat",
+								"type": "bool"
+							}
+						],
+						"indexed": false,
+						"internalType": "struct DataTypes.Loan",
+						"name": "loanInfo",
+						"type": "tuple"
 					},
 					{
 						"indexed": false,
 						"internalType": "uint256",
-						"name": "timestamp",
+						"name": "collateralAmount",
 						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "contract IERC20Standard",
+						"name": "collateral",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "bool",
+						"name": "isETH",
+						"type": "bool"
 					}
 				],
-				"name": "WithdrawAllCollateral",
+				"name": "WithdrawAllCollateralByAdmin",
 				"type": "event"
 			},
 			{
@@ -240,22 +553,57 @@
 						"type": "address"
 					},
 					{
+						"components": [
+							{
+								"internalType": "uint256",
+								"name": "loanId",
+								"type": "uint256"
+							},
+							{
+								"internalType": "bool",
+								"name": "isPaid",
+								"type": "bool"
+							},
+							{
+								"internalType": "uint256",
+								"name": "amount",
+								"type": "uint256"
+							},
+							{
+								"internalType": "bool",
+								"name": "isClosed",
+								"type": "bool"
+							},
+							{
+								"internalType": "address",
+								"name": "borrower",
+								"type": "address"
+							},
+							{
+								"internalType": "bool",
+								"name": "isLiquidated",
+								"type": "bool"
+							},
+							{
+								"internalType": "contract IERC20Standard",
+								"name": "stableCoin",
+								"type": "address"
+							},
+							{
+								"internalType": "bool",
+								"name": "isFinalty",
+								"type": "bool"
+							},
+							{
+								"internalType": "bool",
+								"name": "isFiat",
+								"type": "bool"
+							}
+						],
 						"indexed": false,
-						"internalType": "uint256",
-						"name": "loanId",
-						"type": "uint256"
-					},
-					{
-						"indexed": false,
-						"internalType": "contract IERC20Standard",
-						"name": "supply",
-						"type": "address"
-					},
-					{
-						"indexed": false,
-						"internalType": "uint256",
-						"name": "timestamp",
-						"type": "uint256"
+						"internalType": "struct DataTypes.Loan",
+						"name": "loanInfo",
+						"type": "tuple"
 					}
 				],
 				"name": "WithdrawLoan",
@@ -1398,6 +1746,19 @@
 			{
 				"inputs": [
 					{
+						"internalType": "uint256",
+						"name": "_loanId",
+						"type": "uint256"
+					}
+				],
+				"name": "withdrawLiquidityByAdmin",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
 						"internalType": "contract IERC20Standard",
 						"name": "_stableCoin",
 						"type": "address"
@@ -1622,11 +1983,11 @@
 			]
 		},
 		"CCFL.sol": {
-			"keccak256": "0x8b61f4ff27709f21f2f201a76876445de0e4778c49ecb11af92bf4866448a340",
+			"keccak256": "0x4b45a9667353f5f4739abbf7ebf49db389b0bf98b3779015ca10026ed4193534",
 			"license": "UNLICENSED",
 			"urls": [
-				"bzz-raw://18765b3f31b44023ad524cf52b0ecd6f6ea66c19a5e815577b18815348b42a35",
-				"dweb:/ipfs/QmYaNqoKDK4EYrfgUQNhyTXUQMcLB5UMmPtU2psWhJo9kR"
+				"bzz-raw://6a33337a8c3f89f53156d20f88f0be56ac01767ef58d04811540a9030f25bc4c",
+				"dweb:/ipfs/QmeynhcLqCAk6AHfZwoBTmzH1xs5HqUSpR4yJB4aMiPqMu"
 			]
 		},
 		"DataTypes.sol": {
@@ -1638,27 +1999,27 @@
 			]
 		},
 		"ICCFL.sol": {
-			"keccak256": "0xb78466585d6e558bbe86b59f4e691eca93aff6789124cb551449c0a40eab4b44",
+			"keccak256": "0x80d35c723087a707666c60472dbdc726657619cc1c255aab675240889c3f59b0",
 			"license": "UNLICENSED",
 			"urls": [
-				"bzz-raw://415a303f9d078056119cc19beb9935ff6b4da04a17ee62e2dc689bfe973d3e57",
-				"dweb:/ipfs/QmU6AWJCzn86u73PdPfYHWpAbEDPhnyMHEq2zE4PWXwBQ2"
+				"bzz-raw://26d4f6cd5d345563b039be15f232cb2cb06087b0f96f5856e32ea6c0d85aeeb8",
+				"dweb:/ipfs/QmY2qSwSF1tnyxR7vKneD61mVFHmwbBvqsWuMTaVTttXpn"
 			]
 		},
 		"ICCFLLoan.sol": {
-			"keccak256": "0xf6fd968da1a8827dfae7042a8c6e2b0922c9826af1550b55d8ddc62a572362a4",
+			"keccak256": "0x77e450d8ba709b04247be9028bee66aa1d0b967cb777f6e49e47242cf4674823",
 			"license": "UNLICENSED",
 			"urls": [
-				"bzz-raw://b665f83dc6e9fd3883ea14e729c2ced79a38ff77bb155360c5ccb240d1e96e11",
-				"dweb:/ipfs/QmdoYBSNfFeDLKq7DQWEjLZ3ZMBYw7fvcGbXnroLbbuMju"
+				"bzz-raw://e8758a4d0b8d97474d876026c8d9055a3b9c828ef00644d43d556ce38009f1d1",
+				"dweb:/ipfs/QmbyZnsUnUJJFjBkXYnPH37ZkRddZyqTNZzTKLdikKW6NZ"
 			]
 		},
 		"ICCFLPool.sol": {
-			"keccak256": "0xd2f87d0c7fdc508561889022b3497cf3a73ebd8e3c989e02e15c9b58fa254509",
+			"keccak256": "0x98460eb11f1770e71096a99e31f719098768405e0eb3f278b54b8ce20f393b38",
 			"license": "UNLICENSED",
 			"urls": [
-				"bzz-raw://5e63fe0377d4b7fe7dcddb9e2bddb3306ec31282f003ef10eb43e4a9cee8f7ba",
-				"dweb:/ipfs/QmbL8U3f6tEZ9GdPURwcrjXVDozVm1Pppa991nApYybtA1"
+				"bzz-raw://776136380e2dc85c37ec5a4eb20669b2c1ad74204b08a30d1102e1eece1ecf20",
+				"dweb:/ipfs/QmNtbSkR1E66dMQx4Pvxh5J5sYhW2FXvM3xWHQCkziyHk5"
 			]
 		},
 		"IERC20Standard.sol": {
@@ -1686,11 +2047,11 @@
 			]
 		},
 		"helpers/Errors.sol": {
-			"keccak256": "0x0fdd562f068dbcf081dc0f2d1ebafd8473ae6f89a73fa8af0d79f799d11d757e",
+			"keccak256": "0xd3417d80784c3279ab9246862161ea22660d0655781303c420456e2049299ce9",
 			"license": "BUSL-1.1",
 			"urls": [
-				"bzz-raw://fb02e42f6e4f26455273c9595316ee0b74f79793457d2f895d053ee2a716f4ac",
-				"dweb:/ipfs/QmUs6kULijV6cBZxLzjQNe2h6GrxAvGPfpBnymddX2Lise"
+				"bzz-raw://f7d450103159d926ef8e5f17b12234a1d6cf2ab6d34d883ca9d7c5876154d142",
+				"dweb:/ipfs/QmeVXNSuq9m9QEwof6fKiy4DsWraAxwtA9totywEwKPvLx"
 			]
 		},
 		"math/MathUtils.sol": {

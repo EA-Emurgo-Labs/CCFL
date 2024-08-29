@@ -593,6 +593,7 @@ contract CCFL is ICCFL, Initializable {
     ) public onlyUnpaused {
         ICCFLLoan loan = loans[_loanId];
         DataTypes.Loan memory info = loan.getLoanInfo();
+        require(msg.sender == info.borrower, Errors.ONLY_THE_BORROWER);
         loan.withdrawAllCollateral(info.borrower, isETH);
 
         emit WithdrawAllCollateral(
@@ -619,6 +620,11 @@ contract CCFL is ICCFL, Initializable {
             loan.getCollateralToken(),
             isETH
         );
+    }
+
+    function withdrawLiquidityByAdmin(uint _loanId) public onlyOwner {
+        ICCFLLoan loan = loans[_loanId];
+        loan.withdrawLiquidity();
     }
 
     function getLatestPrice(

@@ -42,8 +42,14 @@
 					},
 					{
 						"indexed": true,
+						"internalType": "address",
+						"name": "poolAddress",
+						"type": "address"
+					},
+					{
+						"indexed": true,
 						"internalType": "contract IERC20Standard",
-						"name": "supply",
+						"name": "stableCoin",
 						"type": "address"
 					},
 					{
@@ -55,7 +61,25 @@
 					{
 						"indexed": false,
 						"internalType": "uint256",
-						"name": "timestamp",
+						"name": "lenderShare",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "totalSupply",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "totalLiquidity",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "remainingPool",
 						"type": "uint256"
 					}
 				],
@@ -86,8 +110,14 @@
 					},
 					{
 						"indexed": true,
+						"internalType": "address",
+						"name": "poolAddress",
+						"type": "address"
+					},
+					{
+						"indexed": true,
 						"internalType": "contract IERC20Standard",
-						"name": "supply",
+						"name": "stableCoin",
 						"type": "address"
 					},
 					{
@@ -99,7 +129,25 @@
 					{
 						"indexed": false,
 						"internalType": "uint256",
-						"name": "timestamp",
+						"name": "lenderShare",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "totalSupply",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "totalLiquidity",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "remainingPool",
 						"type": "uint256"
 					}
 				],
@@ -751,11 +799,11 @@
 			]
 		},
 		"CCFLPool.sol": {
-			"keccak256": "0x37374189866fb9f4c2316154193ee9b4b3868811db8efe293eaa44a33abe3b4e",
+			"keccak256": "0xda6981c500f9cf09cf02f565d9e001bd1eac3513de728b1c88af7607c2fa6f12",
 			"license": "UNLICENSED",
 			"urls": [
-				"bzz-raw://e842fefa424cb485ca1d06c406e87da737e418d2d5b539757b8d047fef355b31",
-				"dweb:/ipfs/Qmdd6HS4emxTLUJAxe99RFBLJu9EhPBqayWS4QNkP5ywwK"
+				"bzz-raw://b88827a97d2d96f1e4e5405b890e5e9dfac2b60e2f76057c3cfbb10dd09cf931",
+				"dweb:/ipfs/QmTZpjndwQooF1cBvaxn3HcvnLGoESeMTafoBVsNdTENXw"
 			]
 		},
 		"DataTypes.sol": {
@@ -767,11 +815,11 @@
 			]
 		},
 		"ICCFLPool.sol": {
-			"keccak256": "0xd2f87d0c7fdc508561889022b3497cf3a73ebd8e3c989e02e15c9b58fa254509",
+			"keccak256": "0x98460eb11f1770e71096a99e31f719098768405e0eb3f278b54b8ce20f393b38",
 			"license": "UNLICENSED",
 			"urls": [
-				"bzz-raw://5e63fe0377d4b7fe7dcddb9e2bddb3306ec31282f003ef10eb43e4a9cee8f7ba",
-				"dweb:/ipfs/QmbL8U3f6tEZ9GdPURwcrjXVDozVm1Pppa991nApYybtA1"
+				"bzz-raw://776136380e2dc85c37ec5a4eb20669b2c1ad74204b08a30d1102e1eece1ecf20",
+				"dweb:/ipfs/QmNtbSkR1E66dMQx4Pvxh5J5sYhW2FXvM3xWHQCkziyHk5"
 			]
 		},
 		"IERC20Standard.sol": {
@@ -799,11 +847,11 @@
 			]
 		},
 		"helpers/Errors.sol": {
-			"keccak256": "0x0fdd562f068dbcf081dc0f2d1ebafd8473ae6f89a73fa8af0d79f799d11d757e",
+			"keccak256": "0xd3417d80784c3279ab9246862161ea22660d0655781303c420456e2049299ce9",
 			"license": "BUSL-1.1",
 			"urls": [
-				"bzz-raw://fb02e42f6e4f26455273c9595316ee0b74f79793457d2f895d053ee2a716f4ac",
-				"dweb:/ipfs/QmUs6kULijV6cBZxLzjQNe2h6GrxAvGPfpBnymddX2Lise"
+				"bzz-raw://f7d450103159d926ef8e5f17b12234a1d6cf2ab6d34d883ca9d7c5876154d142",
+				"dweb:/ipfs/QmeVXNSuq9m9QEwof6fKiy4DsWraAxwtA9totywEwKPvLx"
 			]
 		},
 		"math/MathUtils.sol": {

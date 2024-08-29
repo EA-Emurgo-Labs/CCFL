@@ -28,4 +28,5 @@ library Errors {
     string public constant ONLY_FIAT_LOAN = "19";
     string public constant ETH_NATIVE_DISABLE = "20";
     string public constant SC_IS_PAUSED = "21";
+    string public constant ONLY_THE_BORROWER = "22";
 }

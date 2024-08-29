@@ -120,9 +120,8 @@ contract CCFLLoan is ICCFLLoan, Initializable {
         uint amount = aToken.balanceOf(address(this));
         require(amount > 0, Errors.DO_NOT_HAVE_ASSETS);
         IPool aavePool = IPool(aaveAddressProvider.getPool());
-        aToken.approve(address(aavePool), amount);
         aavePool.withdraw(address(asset), amount, address(this));
-        emit LiquidityWithdrawn(address(this), address(aToken), amount);
+        emit LiquidityWithdrawn(address(this), address(asset), amount);
 
         isStakeAave = false;
         // share 30% for platform;
