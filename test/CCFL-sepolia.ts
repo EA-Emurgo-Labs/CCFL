@@ -196,11 +196,11 @@ describe("sepolia", () => {
     });
 
     it("repay loan", async () => {
-      repay(BigInt(1), ethers.parseUnits("200", 6));
+      repay(BigInt(3), ethers.parseUnits("200", 6));
     });
 
     it.only("withdraw collateral", async () => {
-      withdrawCollateral(BigInt(1));
+      withdrawCollateral(BigInt(3));
     });
 
     it("check health factor", async () => {

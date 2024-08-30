@@ -1746,19 +1746,6 @@
 			{
 				"inputs": [
 					{
-						"internalType": "uint256",
-						"name": "_loanId",
-						"type": "uint256"
-					}
-				],
-				"name": "withdrawLiquidityByAdmin",
-				"outputs": [],
-				"stateMutability": "nonpayable",
-				"type": "function"
-			},
-			{
-				"inputs": [
-					{
 						"internalType": "contract IERC20Standard",
 						"name": "_stableCoin",
 						"type": "address"
@@ -1983,11 +1970,11 @@
 			]
 		},
 		"CCFL.sol": {
-			"keccak256": "0x4b45a9667353f5f4739abbf7ebf49db389b0bf98b3779015ca10026ed4193534",
+			"keccak256": "0x7201815b69da13aa3237a0508d23c17b2f1ceb93938b11d7ad29f22a06cd6f0a",
 			"license": "UNLICENSED",
 			"urls": [
-				"bzz-raw://6a33337a8c3f89f53156d20f88f0be56ac01767ef58d04811540a9030f25bc4c",
-				"dweb:/ipfs/QmeynhcLqCAk6AHfZwoBTmzH1xs5HqUSpR4yJB4aMiPqMu"
+				"bzz-raw://824f89a404e21da179b9ce19e9da4cfa12b78b752f12bbafa3bc83cf27385db3",
+				"dweb:/ipfs/QmbnXGJPnEcvytGZbcUPN2ForqtUvrHXWk5ixYeRJ3Ffrn"
 			]
 		},
 		"DataTypes.sol": {
