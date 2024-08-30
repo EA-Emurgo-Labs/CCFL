@@ -1,7 +1,7 @@
 const { ethers } = require("hardhat");
 
-let pool = "0x3f4257d1E7dC2FDD98a1375f9c92eaBE9E04A5Dd";
-let ccfl = "0xc68BDD676FDbeac643baC74bfb08e8254841cF41";
+let pool = "0xa99D9a34C57eCdFaC2E9785136d56D9F499a8076";
+let ccfl = "0x5f761F256ECf4c005593066D078E51837Ee80B30";
 
 let usdc = "0x94a9D9AC8a22534E3FaCa9F4e7F2E2cf85d5E4C8";
 let wbtc = "0x29f2D40B0605204364af54EC677bD022dA425d03";
@@ -196,11 +196,11 @@ describe("sepolia", () => {
     });
 
     it("repay loan", async () => {
-      repay(BigInt(16), ethers.parseUnits("200", 6));
+      repay(BigInt(1), ethers.parseUnits("200", 6));
     });
 
     it.only("withdraw collateral", async () => {
-      withdrawCollateral(BigInt(16));
+      withdrawCollateral(BigInt(1));
     });
 
     it("check health factor", async () => {

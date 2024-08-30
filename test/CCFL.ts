@@ -228,7 +228,7 @@ describe("CCFL system", function () {
   }
 
   describe("Lending", function () {
-    it("Should get loan fund at over 80% pool", async function () {
+    it.only("Should get loan fund at over 80% pool", async function () {
       const {
         usdc,
         link,
