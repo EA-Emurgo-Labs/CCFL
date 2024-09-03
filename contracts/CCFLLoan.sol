@@ -4,12 +4,14 @@ pragma solidity ^0.8.24;
 import "./ICCFLLoan.sol";
 import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import "./helpers/Errors.sol";
+import "./IV3SwapRouter.sol";
 
 /// @title CCFL contract
 /// @author
 /// @notice Link/usd
 contract CCFLLoan is ICCFLLoan, Initializable {
     address public owner;
+    address public admin;
 
     // aave config
     IPoolAddressesProvider public aaveAddressProvider;
@@ -17,7 +19,7 @@ contract CCFLLoan is ICCFLLoan, Initializable {
     bool public isStakeAave;
 
     // uniswap config
-    ISwapRouter public swapRouter;
+    IV3SwapRouter public swapRouter;
     uint24 public constant feeTier = 3000;
     IUniswapV3Factory public factory;
 
@@ -49,6 +51,11 @@ contract CCFLLoan is ICCFLLoan, Initializable {
         _;
     }
 
+    modifier onlyAdmin() {
+        require(msg.sender == admin, Errors.ONLY_THE_OWNER);
+        _;
+    }
+
     constructor() {}
 
     function setCCFL(address _ccfl) public onlyOwner {
@@ -56,11 +63,15 @@ contract CCFLLoan is ICCFLLoan, Initializable {
     }
 
     function setSwapRouter(
-        ISwapRouter _swapRouter,
+        IV3SwapRouter _swapRouter,
         IUniswapV3Factory _factory
     ) public onlyOwner {
         swapRouter = _swapRouter;
         factory = _factory;
+    }
+
+    function setAdmin(address _admin) public onlyOwner {
+        admin = _admin;
     }
 
     function initialize(
@@ -250,16 +261,29 @@ contract CCFLLoan is ICCFLLoan, Initializable {
 
         uint24 fee = IUniswapV3Pool(pool).fee();
 
-        ISwapRouter.ExactOutputSingleParams memory params = ISwapRouter
+        uint160 sqrtPriceLimitX96;
+        {
+            (
+                uint160 sqrtPriceX96,
+                int24 tick,
+                uint16 observationIndex,
+                uint16 observationCardinality,
+                uint16 observationCardinalityNext,
+                uint8 feeProtocol,
+                bool unlocked
+            ) = IUniswapV3Pool(pool).slot0();
+            sqrtPriceLimitX96 = sqrtPriceX96;
+        }
+
+        IV3SwapRouter.ExactOutputSingleParams memory params = IV3SwapRouter
             .ExactOutputSingleParams({
                 tokenIn: address(tokenAddress),
                 tokenOut: address(stableCoin),
                 fee: fee,
                 recipient: msg.sender,
-                deadline: block.timestamp,
                 amountOut: amountOut,
                 amountInMaximum: amountInMaximum,
-                sqrtPriceLimitX96: 0
+                sqrtPriceLimitX96: sqrtPriceLimitX96
             });
 
         // Executes the swap returning the amountIn needed to spend to receive the desired amountOut.
@@ -297,16 +321,25 @@ contract CCFLLoan is ICCFLLoan, Initializable {
 
         uint24 fee = IUniswapV3Pool(pool).fee();
 
-        ISwapRouter.ExactInputSingleParams memory params = ISwapRouter
+        (
+            uint160 sqrtPriceX96,
+            int24 tick,
+            uint16 observationIndex,
+            uint16 observationCardinality,
+            uint16 observationCardinalityNext,
+            uint8 feeProtocol,
+            bool unlocked
+        ) = IUniswapV3Pool(pool).slot0();
+
+        IV3SwapRouter.ExactInputSingleParams memory params = IV3SwapRouter
             .ExactInputSingleParams({
                 tokenIn: address(tokenAddress),
                 tokenOut: address(stableCoin),
                 fee: fee,
                 recipient: msg.sender,
-                deadline: block.timestamp,
                 amountIn: amountIn,
                 amountOutMinimum: 0,
-                sqrtPriceLimitX96: 0
+                sqrtPriceLimitX96: sqrtPriceX96
             });
 
         // Executes the swap returning the amountIn needed to spend to receive the desired amountOut.
@@ -349,7 +382,7 @@ contract CCFLLoan is ICCFLLoan, Initializable {
         collateralAmount += amount;
     }
 
-    function closeLoan() public returns (uint256) {
+    function closeLoan() public onlyOwner returns (uint256) {
         initLoan.isClosed = true;
         if (isStakeAave) return withdrawLiquidity();
         return 0;
@@ -375,6 +408,13 @@ contract CCFLLoan is ICCFLLoan, Initializable {
             );
         }
         initLoan.isFinalty = true;
+    }
+
+    function withdrawCollateralByAdmin(
+        IERC20Standard _token,
+        address _receiver
+    ) public onlyAdmin {
+        _token.transfer(_receiver, _token.balanceOf(address(this)));
     }
 
     function getLoanInfo() public view returns (DataTypes.Loan memory) {

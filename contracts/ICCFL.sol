@@ -9,12 +9,12 @@ import {IPool} from "@aave/core-v3/contracts/interfaces/IPool.sol";
 import {IPoolAddressesProvider} from "@aave/core-v3/contracts/interfaces/IPoolAddressesProvider.sol";
 
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
-import "@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol";
 import "@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol";
 
 import "./ICCFLPool.sol";
 import "./ICCFLLoan.sol";
 import "./IERC20Standard.sol";
+import "./IV3SwapRouter.sol";
 
 /// @title CCFL contract
 /// @author
@@ -30,10 +30,7 @@ interface ICCFL {
         bool isETH
     );
 
-    event WithdrawLoan(
-        address indexed borrower,
-        DataTypes.Loan loanInfo
-    );
+    event WithdrawLoan(address indexed borrower, DataTypes.Loan loanInfo);
 
     event AddCollateral(
         address indexed borrower,
@@ -125,7 +122,7 @@ interface ICCFL {
     ) external;
 
     function setSwapRouter(
-        ISwapRouter _swapRouter,
+        IV3SwapRouter _swapRouter,
         IUniswapV3Factory _factory
     ) external;
 

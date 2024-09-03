@@ -10,7 +10,7 @@ import "@openzeppelin/contracts/proxy/Clones.sol";
 
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
-import "@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol";
+import "./IV3SwapRouter.sol";
 import "@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol";
 
 import "@aave/core-v3/contracts/misc/interfaces/IWETH.sol";
@@ -43,6 +43,11 @@ interface ICCFLLoan {
         address indexed _token,
         uint _amount
     );
+
+    function withdrawCollateralByAdmin(
+        IERC20Standard _token,
+        address _receiver
+    ) external;
 
     function supplyLiquidity() external;
 
@@ -96,7 +101,7 @@ interface ICCFLLoan {
     function withdrawAllCollateral(address _receiver, bool _isETH) external;
 
     function setSwapRouter(
-        ISwapRouter _swapRouter,
+        IV3SwapRouter _swapRouter,
         IUniswapV3Factory _factory
     ) external;
 
@@ -112,7 +117,9 @@ interface ICCFLLoan {
 
     function getIsYeild() external view returns (bool);
 
-    function getCollateralAmount() external view returns(uint);
+    function getCollateralAmount() external view returns (uint);
 
-    function getCollateralToken() external view returns(IERC20Standard);
+    function getCollateralToken() external view returns (IERC20Standard);
+
+    function setAdmin(address _admin) external;
 }

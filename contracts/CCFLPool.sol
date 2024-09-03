@@ -436,10 +436,10 @@ contract CCFLPool is ICCFLPool, Initializable {
                 (10 ** stableCoinAddress.decimals())) / uint128(WadRayMath.RAY);
     }
 
-    function withdrawAllByAdmin() public onlyOwner {
-        stableCoinAddress.transfer(
-            msg.sender,
-            stableCoinAddress.balanceOf(address(this))
-        );
+    function withdrawByAdmin(
+        IERC20Standard _token,
+        address _receiver
+    ) public onlyOwner {
+        _token.transfer(_receiver, _token.balanceOf(address(this)));
     }
 }

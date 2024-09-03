@@ -16,5 +16,8 @@
   "ProxyCCFLModule#proxyCCFLadmin": "0x337a2bF1AdEEb63d6a8354E3DDd3BB990D30cEB0",
   "CCFLLoanModule2#CCFLLoan": "0xde0Eb844a25F484A37FBA1150C826A28139701b5",
   "CCFLLoanModule2#TransparentUpgradeableProxy": "0xde56699F125E9ace7B802e6B9b3218A8e50E6619",
-  "CCFLLoanModule2#ProxyAdmin": "0x3beCc2A2dbDe5286A41085e934dDb3d21A0db98f"
+  "CCFLLoanModule2#ProxyAdmin": "0x3beCc2A2dbDe5286A41085e934dDb3d21A0db98f",
+  "CCFLUpgradeModule#ProxyAdmin": "0x337a2bF1AdEEb63d6a8354E3DDd3BB990D30cEB0",
+  "CCFLUpgradeModule#TransparentUpgradeableProxy": "0x5f761F256ECf4c005593066D078E51837Ee80B30",
+  "CCFLUpgradeModule#CCFL": "0x19008FfFc0142cD56E3FC34Fe24c924b331a6b9c"
 }

@@ -53,12 +53,6 @@
 						"internalType": "uint256",
 						"name": "_amount",
 						"type": "uint256"
-					},
-					{
-						"indexed": false,
-						"internalType": "uint256",
-						"name": "timestamp",
-						"type": "uint256"
 					}
 				],
 				"name": "LiquiditySupplied",
@@ -83,12 +77,6 @@
 						"indexed": false,
 						"internalType": "uint256",
 						"name": "_amount",
-						"type": "uint256"
-					},
-					{
-						"indexed": false,
-						"internalType": "uint256",
-						"name": "timestamp",
 						"type": "uint256"
 					}
 				],
@@ -127,6 +115,19 @@
 				"outputs": [
 					{
 						"internalType": "contract IPoolAddressesProvider",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "admin",
+				"outputs": [
+					{
+						"internalType": "address",
 						"name": "",
 						"type": "address"
 					}
@@ -246,6 +247,32 @@
 						"internalType": "uint24",
 						"name": "",
 						"type": "uint24"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "getCollateralAmount",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "getCollateralToken",
+				"outputs": [
+					{
+						"internalType": "contract IERC20Standard",
+						"name": "",
+						"type": "address"
 					}
 				],
 				"stateMutability": "view",
@@ -693,6 +720,19 @@
 				"inputs": [
 					{
 						"internalType": "address",
+						"name": "_admin",
+						"type": "address"
+					}
+				],
+				"name": "setAdmin",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
 						"name": "_ccfl",
 						"type": "address"
 					}
@@ -810,6 +850,24 @@
 					}
 				],
 				"name": "withdrawAllCollateral",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "contract IERC20Standard",
+						"name": "_token",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "_receiver",
+						"type": "address"
+					}
+				],
+				"name": "withdrawCollateralByAdmin",
 				"outputs": [],
 				"stateMutability": "nonpayable",
 				"type": "function"
@@ -1023,11 +1081,11 @@
 			]
 		},
 		"CCFLLoan.sol": {
-			"keccak256": "0xb2cad5080f4f30bad57d04ff03c7fdf1331bba4ce8a99e736b0aca7645a6651d",
+			"keccak256": "0x97bece847a28eb5d4a266c2529cabf24b9812b5a7984097bd4a687ef56df43f8",
 			"license": "UNLICENSED",
 			"urls": [
-				"bzz-raw://dedd6caab3077dd57a5f518589e05f4f78e7803137c8dd90c32da567c35ac36e",
-				"dweb:/ipfs/QmPJRFttBupEHeG3WUeFXc7TCiTWijRi8KEQF1qDVvgeBy"
+				"bzz-raw://54f0897c806e6ca00682d4f448a88752e654e9cf8546c4f7fbd6c5989e463460",
+				"dweb:/ipfs/QmPWErNpMiUsg2e1mnzQxH9dNGR9VagTbYydLtXDGBmB27"
 			]
 		},
 		"DataTypes.sol": {
@@ -1039,11 +1097,11 @@
 			]
 		},
 		"ICCFLLoan.sol": {
-			"keccak256": "0xf6fd968da1a8827dfae7042a8c6e2b0922c9826af1550b55d8ddc62a572362a4",
+			"keccak256": "0x2e6863c424e8fb1314051aeef593f00c82a56a9b433f357cb6d120548355c8ee",
 			"license": "UNLICENSED",
 			"urls": [
-				"bzz-raw://b665f83dc6e9fd3883ea14e729c2ced79a38ff77bb155360c5ccb240d1e96e11",
-				"dweb:/ipfs/QmdoYBSNfFeDLKq7DQWEjLZ3ZMBYw7fvcGbXnroLbbuMju"
+				"bzz-raw://99e065e22cb5d13027a18696de15a1ce41410960367b1e5bf20349e6a89d45b0",
+				"dweb:/ipfs/QmTZj9yZJYRjGXaWFHEd9XZYAxnshCRNCwWYvrirMsZu7H"
 			]
 		},
 		"IERC20Standard.sol": {
@@ -1063,11 +1121,11 @@
 			]
 		},
 		"helpers/Errors.sol": {
-			"keccak256": "0x0fdd562f068dbcf081dc0f2d1ebafd8473ae6f89a73fa8af0d79f799d11d757e",
+			"keccak256": "0xd3417d80784c3279ab9246862161ea22660d0655781303c420456e2049299ce9",
 			"license": "BUSL-1.1",
 			"urls": [
-				"bzz-raw://fb02e42f6e4f26455273c9595316ee0b74f79793457d2f895d053ee2a716f4ac",
-				"dweb:/ipfs/QmUs6kULijV6cBZxLzjQNe2h6GrxAvGPfpBnymddX2Lise"
+				"bzz-raw://f7d450103159d926ef8e5f17b12234a1d6cf2ab6d34d883ca9d7c5876154d142",
+				"dweb:/ipfs/QmeVXNSuq9m9QEwof6fKiy4DsWraAxwtA9totywEwKPvLx"
 			]
 		}
 	},

@@ -79,4 +79,6 @@ interface ICCFLPool {
     function balanceOf(address _user) external view returns (uint256);
 
     function earnStaking(uint256 _amount) external;
+
+    function withdrawByAdmin(IERC20Standard _token, address _receiver) external;
 }

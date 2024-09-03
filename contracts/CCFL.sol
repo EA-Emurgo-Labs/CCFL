@@ -31,7 +31,7 @@ contract CCFL is ICCFL, Initializable {
     uint public liquidationThreshold;
     mapping(IERC20Standard => AggregatorV3Interface) public priceFeeds;
     mapping(IERC20Standard => AggregatorV3Interface) public pricePoolFeeds;
-    ISwapRouter swapRouter;
+    IV3SwapRouter swapRouter;
     IUniswapV3Factory public factory;
     address public liquidator;
     address public platform;
@@ -244,7 +244,7 @@ contract CCFL is ICCFL, Initializable {
     }
 
     function setSwapRouter(
-        ISwapRouter _swapRouter,
+        IV3SwapRouter _swapRouter,
         IUniswapV3Factory _factory
     ) public onlyOperator {
         swapRouter = _swapRouter;
@@ -449,6 +449,7 @@ contract CCFL is ICCFL, Initializable {
 
         // transfer collateral
         cloneSC.updateCollateral(_amountETH);
+        cloneSC.setAdmin(owner);
         // get from user to loan
         IERC20Standard(address(wETH)).transfer(address(loanIns), _amountETH);
 
@@ -689,46 +690,46 @@ contract CCFL is ICCFL, Initializable {
             penaltyLender + penaltyLiquidator + penaltyPlatform
         );
         // get back loan
-        loanInfo.stableCoin.transferFrom(
-            address(loan),
-            address(this),
-            (curentDebt *
-                (10000 + penaltyLender + penaltyLiquidator + penaltyPlatform)) /
-                10000
-        );
-        // repay for pool
-        loanInfo.stableCoin.approve(
-            address(ccflPools[loanInfo.stableCoin]),
-            curentDebt
-        );
-        ccflPools[loanInfo.stableCoin].repay(_loanId, curentDebt);
-        // update collateral balance and get back collateral
+        // loanInfo.stableCoin.transferFrom(
+        //     address(loan),
+        //     address(this),
+        //     (curentDebt *
+        //         (10000 + penaltyLender + penaltyLiquidator + penaltyPlatform)) /
+        //         10000
+        // );
+        // // repay for pool
+        // loanInfo.stableCoin.approve(
+        //     address(ccflPools[loanInfo.stableCoin]),
+        //     curentDebt
+        // );
+        // ccflPools[loanInfo.stableCoin].repay(_loanId, curentDebt);
+        // // update collateral balance and get back collateral
 
-        loanInfo.stableCoin.transfer(
-            platform,
-            (curentDebt * penaltyPlatform) / 10000
-        );
-        loanInfo.stableCoin.transfer(
-            liquidator,
-            (curentDebt * penaltyLiquidator) / 10000
-        );
-        // penalty for pool
-        uint fundForLender = (curentDebt *
-            (10000 + penaltyLender + penaltyLiquidator + penaltyPlatform)) /
-            10000 -
-            curentDebt -
-            (curentDebt * penaltyPlatform) /
-            10000 -
-            (curentDebt * penaltyLiquidator) /
-            10000;
+        // loanInfo.stableCoin.transfer(
+        //     platform,
+        //     (curentDebt * penaltyPlatform) / 10000
+        // );
+        // loanInfo.stableCoin.transfer(
+        //     liquidator,
+        //     (curentDebt * penaltyLiquidator) / 10000
+        // );
+        // // penalty for pool
+        // uint fundForLender = (curentDebt *
+        //     (10000 + penaltyLender + penaltyLiquidator + penaltyPlatform)) /
+        //     10000 -
+        //     curentDebt -
+        //     (curentDebt * penaltyPlatform) /
+        //     10000 -
+        //     (curentDebt * penaltyLiquidator) /
+        //     10000;
 
-        loanInfo.stableCoin.approve(
-            address(ccflPools[loanInfo.stableCoin]),
-            fundForLender
-        );
-        ccflPools[loanInfo.stableCoin].liquidatePenalty(_loanId, fundForLender);
-        ccflPools[loanInfo.stableCoin].earnStaking(earnLenderBalance);
-        loans[_loanId].closeLoan();
+        // loanInfo.stableCoin.approve(
+        //     address(ccflPools[loanInfo.stableCoin]),
+        //     fundForLender
+        // );
+        // ccflPools[loanInfo.stableCoin].liquidatePenalty(_loanId, fundForLender);
+        // ccflPools[loanInfo.stableCoin].earnStaking(earnLenderBalance);
+        // loans[_loanId].closeLoan();
 
         emit Liquidate(
             msg.sender,

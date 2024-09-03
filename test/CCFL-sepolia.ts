@@ -127,6 +127,15 @@ async function withdrawCollateral(loanId: any) {
   const tx = await iUsdc.withdrawAllCollateral(loanId, false);
 }
 
+async function liquidate(loanId: any) {
+  const signer = await ethers.provider.getSigner();
+  console.log("signer", await signer.getAddress());
+
+  const iUsdc = await ethers.getContractAt("ICCFL", ccfl, signer);
+
+  const tx = await iUsdc.liquidate(loanId);
+}
+
 async function getCurrentLoan(loanId: any) {
   const signer = await ethers.provider.getSigner();
   console.log("signer", await signer.getAddress());
@@ -187,7 +196,7 @@ describe("sepolia", () => {
     });
 
     it("get current loan", async () => {
-      getCurrentLoan(BigInt(1));
+      getCurrentLoan(BigInt(6));
     });
 
     it("approve usdc", async () => {
@@ -199,16 +208,20 @@ describe("sepolia", () => {
       repay(BigInt(3), ethers.parseUnits("200", 6));
     });
 
-    it.only("withdraw collateral", async () => {
+    it("withdraw collateral", async () => {
       withdrawCollateral(BigInt(3));
     });
 
     it("check health factor", async () => {
       await getHealthFactor(
-        ethers.parseUnits("50", 6),
+        ethers.parseUnits("10", 6),
         ethers.parseUnits("0.0005", 8),
-        BigInt(1)
+        BigInt(6)
       );
+    });
+
+    it.only("liquidate", async () => {
+      await liquidate(BigInt(6));
     });
   });
 });
