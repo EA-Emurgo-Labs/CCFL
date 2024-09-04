@@ -104,8 +104,8 @@ async function changeWbtcprice(price: any) {
 }
 
 async function createLoan() {
-  const amountUsdc = ethers.parseUnits("10", 6);
-  const amountWbtc = ethers.parseUnits("0.01", 8);
+  const amountUsdc = ethers.parseUnits("1", 6);
+  const amountWbtc = ethers.parseUnits("0.1", 8);
   const signer = await ethers.provider.getSigner();
   console.log("signer", await signer.getAddress());
 
@@ -127,8 +127,8 @@ async function createLoan() {
 }
 
 async function createLoanNoStake() {
-  const amountUsdc = ethers.parseUnits("10", 6);
-  const amountWbtc = ethers.parseUnits("0.01", 8);
+  const amountUsdc = ethers.parseUnits("1", 6);
+  const amountWbtc = ethers.parseUnits("0.1", 8);
   const signer = await ethers.provider.getSigner();
   console.log("signer", await signer.getAddress());
 
@@ -256,7 +256,7 @@ describe("sepolia", () => {
     });
 
     it.only("liquidate", async () => {
-      await liquidate(BigInt(8));
+      await liquidate(BigInt(9));
     });
 
     it("change wbtc price", async () => {

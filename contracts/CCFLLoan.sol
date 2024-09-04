@@ -356,15 +356,13 @@ contract CCFLLoan is ICCFLLoan, Initializable {
         IERC20Standard token = collateralToken;
 
         swapTokenForUSD(
-            // (_currentDebt * (10000 + _percent)) / 10000,
-            // token.balanceOf(address(this)),
-            100000,
-            1000000,
+            (_currentDebt * (10000 + _percent)) / 10000,
+            token.balanceOf(address(this)),
             initLoan.stableCoin,
             token
         );
 
-        // initLoan.isLiquidated = true;
+        initLoan.isLiquidated = true;
 
         // close this loan
         // initLoan.stableCoin.approve(
