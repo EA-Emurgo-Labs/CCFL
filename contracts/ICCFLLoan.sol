@@ -51,7 +51,7 @@ interface ICCFLLoan {
 
     function supplyLiquidity() external;
 
-    function withdrawLiquidity() external returns (uint256);
+    function withdrawLiquidity() external;
 
     function getUserAccountData(
         address user

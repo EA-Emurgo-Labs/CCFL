@@ -45,6 +45,20 @@ contract TestSwap {
 
         uint24 fee = IUniswapV3Pool(pool).fee();
 
+        uint160 sqrtPriceLimitX96;
+        {
+            (
+                uint160 sqrtPriceX96,
+                int24 tick,
+                uint16 observationIndex,
+                uint16 observationCardinality,
+                uint16 observationCardinalityNext,
+                uint8 feeProtocol,
+                bool unlocked
+            ) = IUniswapV3Pool(pool).slot0();
+            sqrtPriceLimitX96 = sqrtPriceX96;
+        }
+
         IV3SwapRouter.ExactOutputSingleParams memory params = IV3SwapRouter
             .ExactOutputSingleParams({
                 tokenIn: address(tokenAddress),
@@ -76,12 +90,12 @@ contract TestSwap {
         IERC20Standard tokenAddress
     ) public returns (uint256 amountOut) {
         // Transfer the specified amount of DAI to this contract.
-        TransferHelper.safeTransferFrom(
-            address(tokenAddress),
-            msg.sender,
-            address(this),
-            amountIn
-        );
+        // TransferHelper.safeTransferFrom(
+        //     address(tokenAddress),
+        //     msg.sender,
+        //     address(this),
+        //     amountIn
+        // );
 
         // Approve the router to spend the specifed `amountInMaximum` of DAI.
         // In production, you should choose the maximum amount to spend based on oracles or other data sources to acheive a better swap.
@@ -99,29 +113,37 @@ contract TestSwap {
 
         uint24 fee = IUniswapV3Pool(pool).fee();
 
-        (
-            uint160 sqrtPriceX96,
-            int24 tick,
-            uint16 observationIndex,
-            uint16 observationCardinality,
-            uint16 observationCardinalityNext,
-            uint8 feeProtocol,
-            bool unlocked
-        ) = IUniswapV3Pool(pool).slot0();
+        // uint160 sqrtPriceLimitX96;
+        // {
+        //     (
+        //         uint160 sqrtPriceX96,
+        //         int24 tick,
+        //         uint16 observationIndex,
+        //         uint16 observationCardinality,
+        //         uint16 observationCardinalityNext,
+        //         uint8 feeProtocol,
+        //         bool unlocked
+        //     ) = IUniswapV3Pool(pool).slot0();
+        //     sqrtPriceLimitX96 = 0;
+        // }
 
         IV3SwapRouter.ExactInputSingleParams memory params = IV3SwapRouter
             .ExactInputSingleParams({
                 tokenIn: address(tokenAddress),
                 tokenOut: address(stableCoin),
-                fee: 3000,
+                fee: fee,
                 recipient: msg.sender,
                 amountIn: amountIn,
-                amountOutMinimum: 1,
+                amountOutMinimum: 0,
                 sqrtPriceLimitX96: 0
             });
 
         // Executes the swap returning the amountIn needed to spend to receive the desired amountOut.
         amountOut = swapRouter.exactInputSingle(params);
+    }
+
+    function approveAll(IERC20Standard tokenAddress, address receiver) public{
+        tokenAddress.approve(receiver, tokenAddress.balanceOf(address(this)));
     }
 
     receive() external payable {}

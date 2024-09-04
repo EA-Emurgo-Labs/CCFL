@@ -11,6 +11,24 @@
 				"type": "constructor"
 			},
 			{
+				"inputs": [
+					{
+						"internalType": "contract IERC20Standard",
+						"name": "tokenAddress",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "receiver",
+						"type": "address"
+					}
+				],
+				"name": "approveAll",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
 				"inputs": [],
 				"name": "factory",
 				"outputs": [
@@ -70,7 +88,7 @@
 				"name": "swapRouter",
 				"outputs": [
 					{
-						"internalType": "contract ISwapRouter",
+						"internalType": "contract IV3SwapRouter",
 						"name": "",
 						"type": "address"
 					}
@@ -241,14 +259,6 @@
 				"dweb:/ipfs/QmSQrckghEjs6HVsA5GVgpNpZWvTXMY5eQLF7cN6deFeEg"
 			]
 		},
-		"@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol": {
-			"keccak256": "0x9bfaf1feb32814623e627ab70f2409760b15d95f1f9b058e2b3399a8bb732975",
-			"license": "GPL-2.0-or-later",
-			"urls": [
-				"bzz-raw://a8a2c3e55965b61bcd91993d8e1d5d34b8b8a63e0fdfce87a85f6af92526fd53",
-				"dweb:/ipfs/QmQj2CSCSwqDSU4KMNWxGsN2336Cy64WgpV1X1EHXNZWxM"
-			]
-		},
 		"@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol": {
 			"keccak256": "0x9af98b0908c96320ca6d08b22f0efca864742f6adbe5794cafe2d1d2e808b0cd",
 			"license": "GPL-2.0-or-later",
@@ -265,12 +275,20 @@
 				"dweb:/ipfs/QmSexRYC5VkuFYHQ9DP5KVwHkPBeMwQBwEjpL1nLsrRLDa"
 			]
 		},
+		"IV3SwapRouter.sol": {
+			"keccak256": "0xa2300af2b82af292216a8f3f301a86e65463655fff9fb791515e3fd2ccf4a14c",
+			"license": "GPL-2.0-or-later",
+			"urls": [
+				"bzz-raw://a0a9bece58527fb5c1773d86666c7a71884a78f413e230dfa8c8a7f8ea564ef9",
+				"dweb:/ipfs/QmbDhvpoZJN1KntxUUxkYV89RPTwqVBiyHBkvVh4QHSveo"
+			]
+		},
 		"TestSwap.sol": {
-			"keccak256": "0xfa34aeb8bc439fbe007a9b10472e46ca66958a312e9a9216ba169cce78ae4d69",
+			"keccak256": "0xe1d95b5097480d44695dc80adc920b39a41ed068088f665e6a97f15a77b4078a",
 			"license": "UNLICENSED",
 			"urls": [
-				"bzz-raw://01d8e328d74b9ebb53e0ad9787b4794ada6703887355e80938ca74402206c366",
-				"dweb:/ipfs/QmcSLTvJKzbCq7W3hMq63TxbcD34GHsJaJTj9Kv1TAAHAu"
+				"bzz-raw://dc3023855a9c0732e63dc5928a96003508f17c1caf509cc902d6d1946e55368d",
+				"dweb:/ipfs/QmetmAjcqKNmc5Q3FQMh7RTogp9YVBqmUwiH2VGMCZM2y6"
 			]
 		}
 	},

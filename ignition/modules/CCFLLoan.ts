@@ -1,5 +1,5 @@
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
-const CCFLLoanModule = buildModule("CCFLLoanModule24", (m) => {
+const CCFLLoanModule = buildModule("CCFLLoanModule4", (m) => {
   const loan = m.contract("CCFLLoan", []);
 
   return { loan };

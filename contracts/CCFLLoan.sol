@@ -46,6 +46,10 @@ contract CCFLLoan is ICCFLLoan, Initializable {
     uint public earnBorrower;
     uint public earnLender;
 
+    uint public sharePlatform;
+    uint public shareLender;
+    uint public shareBorrower;
+
     modifier onlyOwner() {
         require(msg.sender == owner, Errors.ONLY_THE_OWNER);
         _;
@@ -126,7 +130,7 @@ contract CCFLLoan is ICCFLLoan, Initializable {
         initLoan.isPaid = true;
     }
 
-    function withdrawLiquidity() public onlyOwner returns (uint256) {
+    function withdrawLiquidity() public onlyOwner {
         IERC20Standard asset = collateralToken;
         uint amount = aToken.balanceOf(address(this));
         require(amount > 0, Errors.DO_NOT_HAVE_ASSETS);
@@ -138,27 +142,19 @@ contract CCFLLoan is ICCFLLoan, Initializable {
         // share 30% for platform;
         uint currentCollateral = collateralToken.balanceOf(address(this));
         if (currentCollateral - collateralAmount > 0) {
-            uint earn = ((currentCollateral - collateralAmount) *
-                (earnBorrower)) / 10000;
-            uint outUSD = swapEarnForUSD(
-                (currentCollateral - collateralAmount) - earn,
-                initLoan.stableCoin,
-                collateralToken
-            );
-            initLoan.stableCoin.transfer(
-                platform,
-                (outUSD * (earnPlatform)) / (earnLender + earnPlatform)
-            );
-            initLoan.stableCoin.approve(
-                ccfl,
-                outUSD - (outUSD * (earnPlatform)) / (earnLender + earnPlatform)
-            );
-            return
-                outUSD -
-                (outUSD * (earnPlatform)) /
+            shareBorrower =
+                ((currentCollateral - collateralAmount) * (earnBorrower)) /
+                10000;
+
+            sharePlatform =
+                (((currentCollateral - collateralAmount) - shareBorrower) *
+                    (earnPlatform)) /
                 (earnLender + earnPlatform);
+            shareLender =
+                (currentCollateral - collateralAmount) -
+                shareBorrower -
+                sharePlatform;
         }
-        return 0;
     }
 
     function getUserAccountData(
@@ -261,19 +257,19 @@ contract CCFLLoan is ICCFLLoan, Initializable {
 
         uint24 fee = IUniswapV3Pool(pool).fee();
 
-        uint160 sqrtPriceLimitX96;
-        {
-            (
-                uint160 sqrtPriceX96,
-                int24 tick,
-                uint16 observationIndex,
-                uint16 observationCardinality,
-                uint16 observationCardinalityNext,
-                uint8 feeProtocol,
-                bool unlocked
-            ) = IUniswapV3Pool(pool).slot0();
-            sqrtPriceLimitX96 = sqrtPriceX96;
-        }
+        // uint160 sqrtPriceLimitX96;
+        // {
+        //     (
+        //         uint160 sqrtPriceX96,
+        //         int24 tick,
+        //         uint16 observationIndex,
+        //         uint16 observationCardinality,
+        //         uint16 observationCardinalityNext,
+        //         uint8 feeProtocol,
+        //         bool unlocked
+        //     ) = IUniswapV3Pool(pool).slot0();
+        //     sqrtPriceLimitX96 = sqrtPriceX96;
+        // }
 
         IV3SwapRouter.ExactOutputSingleParams memory params = IV3SwapRouter
             .ExactOutputSingleParams({
@@ -283,7 +279,7 @@ contract CCFLLoan is ICCFLLoan, Initializable {
                 recipient: msg.sender,
                 amountOut: amountOut,
                 amountInMaximum: amountInMaximum,
-                sqrtPriceLimitX96: sqrtPriceLimitX96
+                sqrtPriceLimitX96: 0
             });
 
         // Executes the swap returning the amountIn needed to spend to receive the desired amountOut.
@@ -321,15 +317,15 @@ contract CCFLLoan is ICCFLLoan, Initializable {
 
         uint24 fee = IUniswapV3Pool(pool).fee();
 
-        (
-            uint160 sqrtPriceX96,
-            int24 tick,
-            uint16 observationIndex,
-            uint16 observationCardinality,
-            uint16 observationCardinalityNext,
-            uint8 feeProtocol,
-            bool unlocked
-        ) = IUniswapV3Pool(pool).slot0();
+        // (
+        //     uint160 sqrtPriceX96,
+        //     int24 tick,
+        //     uint16 observationIndex,
+        //     uint16 observationCardinality,
+        //     uint16 observationCardinalityNext,
+        //     uint8 feeProtocol,
+        //     bool unlocked
+        // ) = IUniswapV3Pool(pool).slot0();
 
         IV3SwapRouter.ExactInputSingleParams memory params = IV3SwapRouter
             .ExactInputSingleParams({
@@ -339,7 +335,7 @@ contract CCFLLoan is ICCFLLoan, Initializable {
                 recipient: msg.sender,
                 amountIn: amountIn,
                 amountOutMinimum: 0,
-                sqrtPriceLimitX96: sqrtPriceX96
+                sqrtPriceLimitX96: 0
             });
 
         // Executes the swap returning the amountIn needed to spend to receive the desired amountOut.
@@ -350,32 +346,34 @@ contract CCFLLoan is ICCFLLoan, Initializable {
         uint _currentDebt,
         uint _percent
     ) public onlyOwner returns (uint256) {
-        require(
-            getHealthFactor(_currentDebt, 0) < 100,
-            Errors.CAN_NOT_LIQUIDATE
-        );
+        // require(
+        //     getHealthFactor(_currentDebt, 0) < 100,
+        //     Errors.CAN_NOT_LIQUIDATE
+        // );
         // get all collateral from aave
-        uint256 earnLenderBalance = 0;
-        if (isStakeAave) earnLenderBalance = withdrawLiquidity();
+        if (isStakeAave) withdrawLiquidity();
 
         IERC20Standard token = collateralToken;
 
         swapTokenForUSD(
-            (_currentDebt * (10000 + _percent)) / 10000,
-            collateralToken.balanceOf(address(this)),
+            // (_currentDebt * (10000 + _percent)) / 10000,
+            // token.balanceOf(address(this)),
+            100000,
+            1000000,
             initLoan.stableCoin,
             token
         );
 
-        initLoan.isLiquidated = true;
+        // initLoan.isLiquidated = true;
 
         // close this loan
-        initLoan.stableCoin.approve(
-            ccfl,
-            (_currentDebt * (10000 + _percent)) / 10000
-        );
+        // initLoan.stableCoin.approve(
+        //     ccfl,
+        //     (_currentDebt * (10000 + _percent)) / 10000
+        // );
 
-        return earnLenderBalance;
+        // return earnLenderBalance;
+        return 0;
     }
 
     function updateCollateral(uint amount) external onlyOwner {
@@ -384,7 +382,30 @@ contract CCFLLoan is ICCFLLoan, Initializable {
 
     function closeLoan() public onlyOwner returns (uint256) {
         initLoan.isClosed = true;
-        if (isStakeAave) return withdrawLiquidity();
+        if (isStakeAave) withdrawLiquidity();
+        if (shareLender + sharePlatform > 0) {
+            collateralToken.approve(
+                address(swapRouter),
+                shareLender + sharePlatform
+            );
+            uint outUSD = swapEarnForUSD(
+                shareLender + sharePlatform,
+                initLoan.stableCoin,
+                collateralToken
+            );
+            initLoan.stableCoin.transfer(
+                platform,
+                (outUSD * (earnPlatform)) / (earnLender + earnPlatform)
+            );
+            initLoan.stableCoin.approve(
+                ccfl,
+                outUSD - (outUSD * (earnPlatform)) / (earnLender + earnPlatform)
+            );
+            return
+                outUSD -
+                (outUSD * (earnPlatform)) /
+                (earnLender + earnPlatform);
+        }
         return 0;
     }
 

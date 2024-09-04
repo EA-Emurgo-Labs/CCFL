@@ -1207,7 +1207,7 @@
 		{
 			"inputs": [
 				{
-					"internalType": "contract ISwapRouter",
+					"internalType": "contract IV3SwapRouter",
 					"name": "_swapRouter",
 					"type": "address"
 				},

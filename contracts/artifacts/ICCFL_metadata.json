@@ -1131,7 +1131,7 @@
 			{
 				"inputs": [
 					{
-						"internalType": "contract ISwapRouter",
+						"internalType": "contract IV3SwapRouter",
 						"name": "_swapRouter",
 						"type": "address"
 					},
@@ -1397,14 +1397,6 @@
 				"dweb:/ipfs/QmSQrckghEjs6HVsA5GVgpNpZWvTXMY5eQLF7cN6deFeEg"
 			]
 		},
-		"@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol": {
-			"keccak256": "0x9bfaf1feb32814623e627ab70f2409760b15d95f1f9b058e2b3399a8bb732975",
-			"license": "GPL-2.0-or-later",
-			"urls": [
-				"bzz-raw://a8a2c3e55965b61bcd91993d8e1d5d34b8b8a63e0fdfce87a85f6af92526fd53",
-				"dweb:/ipfs/QmQj2CSCSwqDSU4KMNWxGsN2336Cy64WgpV1X1EHXNZWxM"
-			]
-		},
 		"@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol": {
 			"keccak256": "0x9af98b0908c96320ca6d08b22f0efca864742f6adbe5794cafe2d1d2e808b0cd",
 			"license": "GPL-2.0-or-later",
@@ -1422,27 +1414,27 @@
 			]
 		},
 		"ICCFL.sol": {
-			"keccak256": "0x80d35c723087a707666c60472dbdc726657619cc1c255aab675240889c3f59b0",
+			"keccak256": "0xdd6ec890b81cbeac4f87ff5bba8cfde94ccb494dfd285bedf833aff31afb5595",
 			"license": "UNLICENSED",
 			"urls": [
-				"bzz-raw://26d4f6cd5d345563b039be15f232cb2cb06087b0f96f5856e32ea6c0d85aeeb8",
-				"dweb:/ipfs/QmY2qSwSF1tnyxR7vKneD61mVFHmwbBvqsWuMTaVTttXpn"
+				"bzz-raw://a5d8f157dccdc2c874430467807710d2fefa19657ab2142635ab051905d09968",
+				"dweb:/ipfs/Qmeq7nUa7yaVv3AfWcntQhp8BfLUYD5nXZCH2AGNv9RWMw"
 			]
 		},
 		"ICCFLLoan.sol": {
-			"keccak256": "0x77e450d8ba709b04247be9028bee66aa1d0b967cb777f6e49e47242cf4674823",
+			"keccak256": "0x2ef33e7ce3b6bf6fc20af1153e4fc1ce017a478bbe58854515428eb2b9fac486",
 			"license": "UNLICENSED",
 			"urls": [
-				"bzz-raw://e8758a4d0b8d97474d876026c8d9055a3b9c828ef00644d43d556ce38009f1d1",
-				"dweb:/ipfs/QmbyZnsUnUJJFjBkXYnPH37ZkRddZyqTNZzTKLdikKW6NZ"
+				"bzz-raw://922b86cb932998572987a45cf2b28deb64b9a3c4223d7a7cb2e368b5e57d3272",
+				"dweb:/ipfs/QmZYbi3BXA3qoPJcyMQKiB2XQ37iRjWh7zyd26o1htHHUN"
 			]
 		},
 		"ICCFLPool.sol": {
-			"keccak256": "0x98460eb11f1770e71096a99e31f719098768405e0eb3f278b54b8ce20f393b38",
+			"keccak256": "0x9c0418ce133917af5c477e8ba0a1bd21c0f72963438d8a3c9b3f8eb18badfa03",
 			"license": "UNLICENSED",
 			"urls": [
-				"bzz-raw://776136380e2dc85c37ec5a4eb20669b2c1ad74204b08a30d1102e1eece1ecf20",
-				"dweb:/ipfs/QmNtbSkR1E66dMQx4Pvxh5J5sYhW2FXvM3xWHQCkziyHk5"
+				"bzz-raw://2bb3c1b8802b89720e3b5a741431ee500b9d0508f34a12799ee2833ede0d14ea",
+				"dweb:/ipfs/QmRoqWCaDRng5KSsoy7JWNzmD3RQEDWe9S9Zk87Koj7j3e"
 			]
 		},
 		"IERC20Standard.sol": {
@@ -1459,6 +1451,14 @@
 			"urls": [
 				"bzz-raw://7cef5d2dbeb8ff575e704374d71a426e6710823cccb4f91ec43817ad9068ce9a",
 				"dweb:/ipfs/QmUwDfbbtpDYUiJkCeS6AnjvnhiciSNXo4tKSkZ4oXqods"
+			]
+		},
+		"IV3SwapRouter.sol": {
+			"keccak256": "0xa2300af2b82af292216a8f3f301a86e65463655fff9fb791515e3fd2ccf4a14c",
+			"license": "GPL-2.0-or-later",
+			"urls": [
+				"bzz-raw://a0a9bece58527fb5c1773d86666c7a71884a78f413e230dfa8c8a7f8ea564ef9",
+				"dweb:/ipfs/QmbDhvpoZJN1KntxUUxkYV89RPTwqVBiyHBkvVh4QHSveo"
 			]
 		},
 		"hardhat/console.sol": {

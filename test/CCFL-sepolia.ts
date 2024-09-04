@@ -1,7 +1,7 @@
 const { ethers } = require("hardhat");
 
-let pool = "0xa99D9a34C57eCdFaC2E9785136d56D9F499a8076";
-let ccfl = "0x5f761F256ECf4c005593066D078E51837Ee80B30";
+let pool = "0xc715d83A4f50be08c4687D5c748db88eeb34b703";
+let ccfl = "0xC3cbDd8a16F2F98A4E9278aE1Bb5ca50524217A3";
 
 let usdc = "0x94a9D9AC8a22534E3FaCa9F4e7F2E2cf85d5E4C8";
 let wbtc = "0x29f2D40B0605204364af54EC677bD022dA425d03";
@@ -9,6 +9,7 @@ let wETH = "0xC558DBdd856501FCd9aaF1E62eae57A9F0629a3c";
 let aWBTC = "0x1804Bf30507dc2EB3bDEbbbdd859991EAeF6EefF";
 let aWETH = "0x5b071b590a59395fE4025A0Ccc1FcC931AAc1830";
 let PoolAddressesProviderAave = "0x012bAC54348C0E635dCAc9D5FB99f06F24136C9A";
+let btcAgrr = "0x2B1EdE85Ea8105e638429a9B3Ec621d1A7939597";
 
 async function approveUsdc(AMOUNT: any) {
   const signer = await ethers.provider.getSigner();
@@ -95,6 +96,13 @@ async function repay(loanId: any, AMOUNT: any) {
   console.log(`Got ${balance}`);
 }
 
+async function changeWbtcprice(price: any) {
+  const signer = await ethers.provider.getSigner();
+  console.log("signer", await signer.getAddress());
+  const iUsdc = await ethers.getContractAt("MockAggregator", btcAgrr, signer);
+  await iUsdc.setPrice(price);
+}
+
 async function createLoan() {
   const amountUsdc = ethers.parseUnits("10", 6);
   const amountWbtc = ethers.parseUnits("0.01", 8);
@@ -109,6 +117,29 @@ async function createLoan() {
     amountWbtc,
     wbtc,
     true,
+    false
+  );
+  await tx.wait(1);
+  const ids = await iUsdc.getLoanIds(
+    "0x17883e3728E7bB528b542B8AAb354022eD20C149"
+  );
+  console.log(`Got ${ids}`);
+}
+
+async function createLoanNoStake() {
+  const amountUsdc = ethers.parseUnits("10", 6);
+  const amountWbtc = ethers.parseUnits("0.01", 8);
+  const signer = await ethers.provider.getSigner();
+  console.log("signer", await signer.getAddress());
+
+  const iUsdc = await ethers.getContractAt("ICCFL", ccfl, signer);
+
+  const tx = await iUsdc.createLoan(
+    amountUsdc,
+    usdc,
+    amountWbtc,
+    wbtc,
+    false,
     false
   );
   await tx.wait(1);
@@ -195,6 +226,10 @@ describe("sepolia", () => {
       await createLoan();
     });
 
+    it("create a loan no stake", async () => {
+      await createLoanNoStake();
+    });
+
     it("get current loan", async () => {
       getCurrentLoan(BigInt(6));
     });
@@ -205,23 +240,28 @@ describe("sepolia", () => {
     });
 
     it("repay loan", async () => {
-      repay(BigInt(3), ethers.parseUnits("200", 6));
+      repay(BigInt(1), ethers.parseUnits("200", 6));
     });
 
     it("withdraw collateral", async () => {
-      withdrawCollateral(BigInt(3));
+      withdrawCollateral(BigInt(1));
     });
 
     it("check health factor", async () => {
       await getHealthFactor(
         ethers.parseUnits("10", 6),
         ethers.parseUnits("0.0005", 8),
-        BigInt(6)
+        BigInt(2)
       );
     });
 
     it.only("liquidate", async () => {
-      await liquidate(BigInt(6));
+      await liquidate(BigInt(8));
+    });
+
+    it("change wbtc price", async () => {
+      await changeWbtcprice(60000e8);
+      // await changeWbtcprice(1000e8);
     });
   });
 });
