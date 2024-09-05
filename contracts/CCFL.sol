@@ -445,6 +445,8 @@ contract CCFL is ICCFL, Initializable {
         );
         cloneSC.setCCFL(address(this));
         cloneSC.setSwapRouter(swapRouter, factory, quoter);
+        cloneSC.setEarnShare(earnBorrower, earnPlatform, earnLender);
+        cloneSC.setPenalty(penaltyPlatform, penaltyLiquidator, penaltyLender);
 
         // transfer collateral
         cloneSC.updateCollateral(_amountETH);
