@@ -15,6 +15,7 @@ import "./ICCFLPool.sol";
 import "./ICCFLLoan.sol";
 import "./IERC20Standard.sol";
 import "./IV3SwapRouter.sol";
+import "./IQuoterV2.sol";
 
 /// @title CCFL contract
 /// @author
@@ -123,7 +124,8 @@ interface ICCFL {
 
     function setSwapRouter(
         IV3SwapRouter _swapRouter,
-        IUniswapV3Factory _factory
+        IUniswapV3Factory _factory,
+        IQuoterV2 _quoter
     ) external;
 
     // create loan

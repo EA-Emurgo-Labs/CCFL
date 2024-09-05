@@ -15,6 +15,7 @@ import "@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol";
 
 import "@aave/core-v3/contracts/misc/interfaces/IWETH.sol";
 import "./DataTypes.sol";
+import "./IQuoterV2.sol";
 
 interface AggregatorV3Interface {
     function latestRoundData()
@@ -51,7 +52,11 @@ interface ICCFLLoan {
 
     function supplyLiquidity() external;
 
-    function withdrawLiquidity() external;
+    function withdrawLiquidity(
+        uint _earnPlatform,
+        uint _earnBorrower,
+        uint _earnLender
+    ) external;
 
     function getUserAccountData(
         address user
@@ -76,11 +81,10 @@ interface ICCFLLoan {
         uint _threshold,
         AggregatorV3Interface _priceFeed,
         AggregatorV3Interface _pricePoolFeed,
-        address _platform,
         IWETH _iWETH
     ) external;
 
-    function closeLoan() external returns (uint256);
+    function closeLoan() external returns (uint256, uint256);
 
     function setCCFL(address _ccfl) external;
 
@@ -92,9 +96,8 @@ interface ICCFLLoan {
     function updateCollateral(uint _amount) external;
 
     function liquidate(
-        uint _currentDebt,
-        uint _percent
-    ) external returns (uint256);
+        uint _currentDebt
+    ) external returns (uint256, uint256, uint256, uint256);
 
     function getLoanInfo() external view returns (DataTypes.Loan memory);
 
@@ -102,7 +105,8 @@ interface ICCFLLoan {
 
     function setSwapRouter(
         IV3SwapRouter _swapRouter,
-        IUniswapV3Factory _factory
+        IUniswapV3Factory _factory,
+        IQuoterV2 _quoter
     ) external;
 
     function setPaid() external;
@@ -113,7 +117,7 @@ interface ICCFLLoan {
         uint _lender
     ) external;
 
-    function getYieldEarned() external view returns (uint);
+    function getYieldEarned(uint _earnBorrower) external view returns (uint);
 
     function getIsYeild() external view returns (bool);
 
@@ -122,4 +126,10 @@ interface ICCFLLoan {
     function getCollateralToken() external view returns (IERC20Standard);
 
     function setAdmin(address _admin) external;
+
+    function setPenalty(
+        uint _platform,
+        uint _liquidator,
+        uint _lender
+    ) external;
 }

@@ -33,6 +33,7 @@ contract CCFL is ICCFL, Initializable {
     mapping(IERC20Standard => AggregatorV3Interface) public pricePoolFeeds;
     IV3SwapRouter swapRouter;
     IUniswapV3Factory public factory;
+    IQuoterV2 public quoter;
     address public liquidator;
     address public platform;
     address public owner;
@@ -245,10 +246,12 @@ contract CCFL is ICCFL, Initializable {
 
     function setSwapRouter(
         IV3SwapRouter _swapRouter,
-        IUniswapV3Factory _factory
+        IUniswapV3Factory _factory,
+        IQuoterV2 _quoter
     ) public onlyOperator {
         swapRouter = _swapRouter;
         factory = _factory;
+        quoter = _quoter;
     }
 
     function setWETH(IWETH _iWETH) public onlyOperator {
@@ -342,12 +345,10 @@ contract CCFL is ICCFL, Initializable {
             liquidationThreshold,
             priceFeeds[token],
             _pricePoolFeeds,
-            platform,
             wETH
         );
         cloneSC.setCCFL(address(this));
-        cloneSC.setSwapRouter(swapRouter, factory);
-        cloneSC.setEarnShare(earnBorrower, earnPlatform, earnLender);
+        cloneSC.setSwapRouter(swapRouter, factory, quoter);
 
         // transfer collateral
         cloneSC.updateCollateral(_amountCollateral);
@@ -440,12 +441,10 @@ contract CCFL is ICCFL, Initializable {
             liquidationThreshold,
             priceFeeds[token],
             _pricePoolFeeds,
-            platform,
             wETH
         );
         cloneSC.setCCFL(address(this));
-        cloneSC.setSwapRouter(swapRouter, factory);
-        cloneSC.setEarnShare(earnBorrower, earnPlatform, earnLender);
+        cloneSC.setSwapRouter(swapRouter, factory, quoter);
 
         // transfer collateral
         cloneSC.updateCollateral(_amountETH);
@@ -580,9 +579,22 @@ contract CCFL is ICCFL, Initializable {
         // Todo: if full payment, close loan
         uint _debtRemain = ccflPools[_stableCoin].getCurrentLoan(_loanId);
         if (_debtRemain == 0) {
-            uint256 earnLenderBalance = loans[_loanId].closeLoan();
-            if (earnLenderBalance > 0)
-                ccflPools[_stableCoin].earnStaking(earnLenderBalance);
+            (uint256 usdLender, uint256 usdPlatform) = loans[_loanId]
+                .closeLoan();
+            if (usdLender > 0) {
+                _stableCoin.transferFrom(
+                    address(loans[_loanId]),
+                    address(ccflPools[_stableCoin]),
+                    usdLender
+                );
+                ccflPools[_stableCoin].earnStaking(usdLender);
+            }
+            if (usdPlatform > 0)
+                _stableCoin.transferFrom(
+                    address(loans[_loanId]),
+                    platform,
+                    usdPlatform
+                );
         }
 
         emit RepayLoan(msg.sender, info, _amount, _debtRemain);
@@ -685,51 +697,42 @@ contract CCFL is ICCFL, Initializable {
         uint curentDebt = ccflPools[loanInfo.stableCoin].getCurrentLoan(
             _loanId
         );
-        uint256 earnLenderBalance = loan.liquidate(
-            curentDebt,
-            penaltyLender + penaltyLiquidator + penaltyPlatform
-        );
+        (
+            uint256 usdLiquidatedLender,
+            uint256 usdEarnLender,
+            uint256 usdPlatform,
+            uint256 usdLiquidator
+        ) = loan.liquidate(curentDebt);
         // get back loan
-        // loanInfo.stableCoin.transferFrom(
-        //     address(loan),
-        //     address(this),
-        //     (curentDebt *
-        //         (10000 + penaltyLender + penaltyLiquidator + penaltyPlatform)) /
-        //         10000
-        // );
-        // // repay for pool
-        // loanInfo.stableCoin.approve(
-        //     address(ccflPools[loanInfo.stableCoin]),
-        //     curentDebt
-        // );
-        // ccflPools[loanInfo.stableCoin].repay(_loanId, curentDebt);
-        // // update collateral balance and get back collateral
+        loanInfo.stableCoin.transferFrom(
+            address(loan),
+            address(this),
+            curentDebt + usdLiquidatedLender + usdEarnLender
+        );
+        // repay for pool
+        loanInfo.stableCoin.approve(
+            address(ccflPools[loanInfo.stableCoin]),
+            curentDebt
+        );
+        ccflPools[loanInfo.stableCoin].repay(_loanId, curentDebt);
+        // update collateral balance and get back collateral
 
-        // loanInfo.stableCoin.transfer(
-        //     platform,
-        //     (curentDebt * penaltyPlatform) / 10000
-        // );
-        // loanInfo.stableCoin.transfer(
-        //     liquidator,
-        //     (curentDebt * penaltyLiquidator) / 10000
-        // );
-        // // penalty for pool
-        // uint fundForLender = (curentDebt *
-        //     (10000 + penaltyLender + penaltyLiquidator + penaltyPlatform)) /
-        //     10000 -
-        //     curentDebt -
-        //     (curentDebt * penaltyPlatform) /
-        //     10000 -
-        //     (curentDebt * penaltyLiquidator) /
-        //     10000;
+        loanInfo.stableCoin.transferFrom(address(loan), platform, usdPlatform);
+        loanInfo.stableCoin.transferFrom(
+            address(loan),
+            liquidator,
+            usdLiquidator
+        );
 
-        // loanInfo.stableCoin.approve(
-        //     address(ccflPools[loanInfo.stableCoin]),
-        //     fundForLender
-        // );
-        // ccflPools[loanInfo.stableCoin].liquidatePenalty(_loanId, fundForLender);
-        // ccflPools[loanInfo.stableCoin].earnStaking(earnLenderBalance);
-        // loans[_loanId].closeLoan();
+        loanInfo.stableCoin.approve(
+            address(ccflPools[loanInfo.stableCoin]),
+            usdLiquidatedLender + usdEarnLender
+        );
+        ccflPools[loanInfo.stableCoin].liquidatePenalty(
+            _loanId,
+            usdLiquidatedLender
+        );
+        ccflPools[loanInfo.stableCoin].earnStaking(usdEarnLender);
 
         emit Liquidate(
             msg.sender,

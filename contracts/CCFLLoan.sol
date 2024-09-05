@@ -4,7 +4,6 @@ pragma solidity ^0.8.24;
 import "./ICCFLLoan.sol";
 import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import "./helpers/Errors.sol";
-import "./IV3SwapRouter.sol";
 
 /// @title CCFL contract
 /// @author
@@ -22,6 +21,7 @@ contract CCFLLoan is ICCFLLoan, Initializable {
     IV3SwapRouter public swapRouter;
     uint24 public constant feeTier = 3000;
     IUniswapV3Factory public factory;
+    IQuoterV2 public quoter;
 
     // collateral
     uint public liquidationThreshold;
@@ -50,6 +50,10 @@ contract CCFLLoan is ICCFLLoan, Initializable {
     uint public shareLender;
     uint public shareBorrower;
 
+    uint public penaltyPlatform;
+    uint public penaltyLiquidator;
+    uint public penaltyLender;
+
     modifier onlyOwner() {
         require(msg.sender == owner, Errors.ONLY_THE_OWNER);
         _;
@@ -68,10 +72,12 @@ contract CCFLLoan is ICCFLLoan, Initializable {
 
     function setSwapRouter(
         IV3SwapRouter _swapRouter,
-        IUniswapV3Factory _factory
+        IUniswapV3Factory _factory,
+        IQuoterV2 _quoter
     ) public onlyOwner {
         swapRouter = _swapRouter;
         factory = _factory;
+        quoter = _quoter;
     }
 
     function setAdmin(address _admin) public onlyOwner {
@@ -87,7 +93,6 @@ contract CCFLLoan is ICCFLLoan, Initializable {
         uint _threshold,
         AggregatorV3Interface _priceFeed,
         AggregatorV3Interface _pricePoolFeed,
-        address _platform,
         IWETH _iWETH
     ) external initializer {
         owner = msg.sender;
@@ -99,18 +104,7 @@ contract CCFLLoan is ICCFLLoan, Initializable {
         aToken = _aToken;
         priceFeed = _priceFeed;
         pricePoolFeed = _pricePoolFeed;
-        platform = _platform;
         wETH = _iWETH;
-    }
-
-    function setEarnShare(
-        uint _borrower,
-        uint _platform,
-        uint _lender
-    ) public onlyOwner {
-        earnLender = _lender;
-        earnBorrower = _borrower;
-        earnPlatform = _platform;
     }
 
     function supplyLiquidity() public onlyOwner {
@@ -130,7 +124,11 @@ contract CCFLLoan is ICCFLLoan, Initializable {
         initLoan.isPaid = true;
     }
 
-    function withdrawLiquidity() public onlyOwner {
+    function withdrawLiquidity(
+        uint _earnPlatform,
+        uint _earnBorrower,
+        uint _earnLender
+    ) public onlyOwner {
         IERC20Standard asset = collateralToken;
         uint amount = aToken.balanceOf(address(this));
         require(amount > 0, Errors.DO_NOT_HAVE_ASSETS);
@@ -143,13 +141,14 @@ contract CCFLLoan is ICCFLLoan, Initializable {
         uint currentCollateral = collateralToken.balanceOf(address(this));
         if (currentCollateral - collateralAmount > 0) {
             shareBorrower =
-                ((currentCollateral - collateralAmount) * (earnBorrower)) /
+                ((currentCollateral - collateralAmount) * (_earnBorrower)) /
                 10000;
 
             sharePlatform =
                 (((currentCollateral - collateralAmount) - shareBorrower) *
-                    (earnPlatform)) /
-                (earnLender + earnPlatform);
+                    (_earnPlatform)) /
+                (_earnLender + _earnPlatform);
+
             shareLender =
                 (currentCollateral - collateralAmount) -
                 shareBorrower -
@@ -342,45 +341,119 @@ contract CCFLLoan is ICCFLLoan, Initializable {
         amountOut = swapRouter.exactInputSingle(params);
     }
 
+    function quoteEarnForUSD(
+        uint256 amountIn,
+        IERC20Standard stableCoin,
+        IERC20Standard tokenAddress
+    ) internal returns (uint256) {
+        address pool = factory.getPool(
+            address(tokenAddress),
+            address(stableCoin),
+            feeTier
+        );
+
+        uint24 fee = IUniswapV3Pool(pool).fee();
+
+        // (
+        //     uint160 sqrtPriceX96,
+        //     int24 tick,
+        //     uint16 observationIndex,
+        //     uint16 observationCardinality,
+        //     uint16 observationCardinalityNext,
+        //     uint8 feeProtocol,
+        //     bool unlocked
+        // ) = IUniswapV3Pool(pool).slot0();
+
+        IQuoterV2.QuoteExactInputSingleParams memory params = IQuoterV2
+            .QuoteExactInputSingleParams({
+                tokenIn: address(tokenAddress),
+                tokenOut: address(stableCoin),
+                fee: fee,
+                amountIn: amountIn,
+                sqrtPriceLimitX96: 0
+            });
+
+        // Executes the swap returning the amountIn needed to spend to receive the desired amountOut.
+        (
+            uint256 amountOut,
+            uint160 sqrtPriceX96After,
+            uint32 initializedTicksCrossed,
+            uint256 gasEstimate
+        ) = quoter.quoteExactInputSingle(params);
+
+        return amountOut;
+    }
+
     function liquidate(
-        uint _currentDebt,
-        uint _percent
-    ) public onlyOwner returns (uint256) {
+        uint _currentDebt
+    ) public onlyOwner returns (uint256, uint256, uint256, uint256) {
         // require(
         //     getHealthFactor(_currentDebt, 0) < 100,
         //     Errors.CAN_NOT_LIQUIDATE
         // );
         // get all collateral from aave
-        if (isStakeAave) withdrawLiquidity();
+        if (isStakeAave)
+            withdrawLiquidity(earnPlatform, earnBorrower, earnLender);
 
-        IERC20Standard token = collateralToken;
+        (uint outUSD, uint amountOut) = calculateSwap(_currentDebt);
 
-        swapTokenForUSD(
-            (_currentDebt * (10000 + _percent)) / 10000,
-            token.balanceOf(address(this)),
-            initLoan.stableCoin,
-            token
-        );
+        (
+            uint lender1,
+            uint lender2,
+            uint platform1,
+            uint liquidator1
+        ) = calculateLiquidation(_currentDebt, amountOut);
 
         initLoan.isLiquidated = true;
+        initLoan.isClosed = true;
 
-        // close this loan
-        // initLoan.stableCoin.approve(
-        //     ccfl,
-        //     (_currentDebt * (10000 + _percent)) / 10000
-        // );
+        initLoan.stableCoin.approve(ccfl, outUSD);
+        return (lender1, lender2, platform1, liquidator1);
+    }
 
-        // return earnLenderBalance;
-        return 0;
+    function calculateSwap(uint _currentDebt) public returns (uint, uint) {
+        uint totalPenalty = penaltyLender + penaltyLiquidator + penaltyPlatform;
+        uint amountOut = 0;
+        if (shareLender + sharePlatform > 0)
+            amountOut = quoteEarnForUSD(
+                shareLender + sharePlatform,
+                collateralToken,
+                initLoan.stableCoin
+            );
+        uint penalty = (_currentDebt * totalPenalty) / 10000;
+        uint amountSwap = _currentDebt + penalty + amountOut;
+        uint outUSD = swapTokenForUSD(
+            amountSwap,
+            collateralToken.balanceOf(address(this)),
+            initLoan.stableCoin,
+            collateralToken
+        );
+
+        return (outUSD, amountOut);
+    }
+
+    function calculateLiquidation(
+        uint _currentDebt,
+        uint _amountOut
+    ) public view returns (uint, uint, uint, uint) {
+        uint totalPenalty = penaltyLender + penaltyLiquidator + penaltyPlatform;
+        uint penalty = (_currentDebt * totalPenalty) / 10000;
+        uint lender1 = (penalty * penaltyLender) / totalPenalty;
+        uint platform1 = (penalty * penaltyPlatform) / totalPenalty;
+        uint liquidator1 = penalty - lender1 - platform1;
+        uint lender2 = (_amountOut * earnLender) / (earnLender + earnPlatform);
+        uint platform2 = _amountOut - lender2;
+        return (lender1, lender2, platform1 + platform2, liquidator1);
     }
 
     function updateCollateral(uint amount) external onlyOwner {
         collateralAmount += amount;
     }
 
-    function closeLoan() public onlyOwner returns (uint256) {
+    function closeLoan() public onlyOwner returns (uint256, uint256) {
         initLoan.isClosed = true;
-        if (isStakeAave) withdrawLiquidity();
+        if (isStakeAave)
+            withdrawLiquidity(earnPlatform, earnBorrower, earnLender);
         if (shareLender + sharePlatform > 0) {
             collateralToken.approve(
                 address(swapRouter),
@@ -391,20 +464,13 @@ contract CCFLLoan is ICCFLLoan, Initializable {
                 initLoan.stableCoin,
                 collateralToken
             );
-            initLoan.stableCoin.transfer(
-                platform,
-                (outUSD * (earnPlatform)) / (earnLender + earnPlatform)
-            );
-            initLoan.stableCoin.approve(
-                ccfl,
-                outUSD - (outUSD * (earnPlatform)) / (earnLender + earnPlatform)
-            );
-            return
-                outUSD -
-                (outUSD * (earnPlatform)) /
+            initLoan.stableCoin.approve(ccfl, outUSD);
+            uint usdLender = (earnLender * outUSD) /
                 (earnLender + earnPlatform);
+            uint usdPlatform = outUSD - usdLender;
+            return (usdLender, usdPlatform);
         }
-        return 0;
+        return (0, 0);
     }
 
     function withdrawAllCollateral(
@@ -440,10 +506,10 @@ contract CCFLLoan is ICCFLLoan, Initializable {
         return initLoan;
     }
 
-    function getYieldEarned() public view returns (uint) {
+    function getYieldEarned(uint _earnBorrower) public view returns (uint) {
         uint current = aToken.balanceOf(address(this));
         uint earned = current - collateralAmount;
-        return (earned * earnBorrower) / 10000;
+        return (earned * _earnBorrower) / 10000;
     }
 
     function getIsYeild() public view returns (bool) {
@@ -456,6 +522,26 @@ contract CCFLLoan is ICCFLLoan, Initializable {
 
     function getCollateralToken() public view returns (IERC20Standard) {
         return collateralToken;
+    }
+
+    function setPenalty(
+        uint _platform,
+        uint _liquidator,
+        uint _lender
+    ) public onlyOwner {
+        penaltyLender = _lender;
+        penaltyLiquidator = _liquidator;
+        penaltyPlatform = _platform;
+    }
+
+    function setEarnShare(
+        uint _borrower,
+        uint _platform,
+        uint _lender
+    ) public onlyOwner {
+        earnLender = _lender;
+        earnBorrower = _borrower;
+        earnPlatform = _platform;
     }
 
     receive() external payable {}
