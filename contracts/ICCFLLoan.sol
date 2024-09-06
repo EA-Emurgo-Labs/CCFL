@@ -45,11 +45,6 @@ interface ICCFLLoan {
         uint _amount
     );
 
-    function withdrawCollateralByAdmin(
-        IERC20Standard _token,
-        address _receiver
-    ) external;
-
     function supplyLiquidity() external;
 
     function withdrawLiquidity(
@@ -124,8 +119,6 @@ interface ICCFLLoan {
     function getCollateralAmount() external view returns (uint);
 
     function getCollateralToken() external view returns (IERC20Standard);
-
-    function setAdmin(address _admin) external;
 
     function setPenalty(
         uint _platform,

@@ -1,7 +1,7 @@
 const { ethers } = require("hardhat");
 
-let pool = "0xc715d83A4f50be08c4687D5c748db88eeb34b703";
-let ccfl = "0xC3cbDd8a16F2F98A4E9278aE1Bb5ca50524217A3";
+let pool = "0x9c5edc5B9129d53b8fcf514785E88a4B4d489E4e";
+let ccfl = "0xC5095DEaAb52F0f788158790244BEBCa5b590368";
 
 let usdc = "0x94a9D9AC8a22534E3FaCa9F4e7F2E2cf85d5E4C8";
 let wbtc = "0x29f2D40B0605204364af54EC677bD022dA425d03";
@@ -217,12 +217,12 @@ describe("sepolia", () => {
   });
 
   describe("CCFL", () => {
-    it("approve wbtc", async () => {
+    it.only("approve wbtc", async () => {
       const AMOUNT = ethers.parseUnits("0.1", 8);
       await approveWBTC(AMOUNT);
     });
 
-    it("create a loan", async () => {
+    it.only("create a loan", async () => {
       await createLoan();
     });
 
@@ -256,7 +256,7 @@ describe("sepolia", () => {
     });
 
     it.only("liquidate", async () => {
-      await liquidate(BigInt(9));
+      await liquidate(BigInt(11));
     });
 
     it("change wbtc price", async () => {

@@ -1,5 +1,5 @@
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
-const CCFLUpgradeModule = buildModule("CCFLUpgradeModule", (m) => {
+const CCFLUpgradeModule = buildModule("CCFLUpgradeModule7", (m) => {
   const proxyAdminOwner = m.getAccount(0);
   console.log(proxyAdminOwner);
 
@@ -14,12 +14,12 @@ const CCFLUpgradeModule = buildModule("CCFLUpgradeModule", (m) => {
 
   const proxy = m.contractAt(
     "TransparentUpgradeableProxy",
-    "0x5f761F256ECf4c005593066D078E51837Ee80B30"
+    "0xC5095DEaAb52F0f788158790244BEBCa5b590368"
   );
 
   const proxyAdmin = m.contractAt(
     "ProxyAdmin",
-    "0x337a2bF1AdEEb63d6a8354E3DDd3BB990D30cEB0"
+    "0x6777fc5cFf74426f036bFc4C657F875e76EEDE74"
   );
 
   m.call(proxyAdmin, "upgradeAndCall", [proxy, ccfl, data]);

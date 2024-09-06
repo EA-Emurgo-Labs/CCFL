@@ -697,6 +697,7 @@ contract CCFL is ICCFL, Initializable {
         // update collateral balance and get back collateral
 
         loanInfo.stableCoin.transferFrom(address(loan), platform, usdPlatform);
+
         loanInfo.stableCoin.transferFrom(
             address(loan),
             liquidator,
@@ -707,11 +708,14 @@ contract CCFL is ICCFL, Initializable {
             address(ccflPools[loanInfo.stableCoin]),
             usdLiquidatedLender + usdEarnLender
         );
+
         ccflPools[loanInfo.stableCoin].liquidatePenalty(
             _loanId,
             usdLiquidatedLender
         );
-        ccflPools[loanInfo.stableCoin].earnStaking(usdEarnLender);
+
+        if (usdEarnLender > 0)
+            ccflPools[loanInfo.stableCoin].earnStaking(usdEarnLender);
 
         emit Liquidate(
             msg.sender,

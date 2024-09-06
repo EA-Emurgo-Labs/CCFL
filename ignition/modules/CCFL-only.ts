@@ -110,6 +110,11 @@ const ProxyCCFLModule = buildModule("ProxyCCFLModule", (m) => {
     "0x0227628f3F023bb0B980b67D528571c95c6DaC1c"
   );
 
+  const quoterV2 = m.contractAt(
+    "IQuoterV2",
+    "0xEd1f6473345F45b75F8179591dd5bA1888cf2FB3"
+  );
+
   m.call(ccflProxyRemap, "setPenalty", [BigInt(50), BigInt(100), BigInt(50)]);
 
   m.call(ccflProxyRemap, "setPlatformAddress", [
@@ -119,7 +124,7 @@ const ProxyCCFLModule = buildModule("ProxyCCFLModule", (m) => {
 
   m.call(ccflPoolProxyRemap, "setCCFL", [ccflProxyRemap]);
 
-  m.call(ccflProxyRemap, "setSwapRouter", [swapRouterV2, factoryV3]);
+  m.call(ccflProxyRemap, "setSwapRouter", [swapRouterV2, factoryV3, quoterV2]);
 
   m.call(ccflProxyRemap, "setEarnShare", [
     BigInt(7000),

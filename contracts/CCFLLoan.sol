@@ -10,7 +10,6 @@ import "./helpers/Errors.sol";
 /// @notice Link/usd
 contract CCFLLoan is ICCFLLoan, Initializable {
     address public owner;
-    address public admin;
 
     // aave config
     IPoolAddressesProvider public aaveAddressProvider;
@@ -59,11 +58,6 @@ contract CCFLLoan is ICCFLLoan, Initializable {
         _;
     }
 
-    modifier onlyAdmin() {
-        require(msg.sender == admin, Errors.ONLY_THE_OWNER);
-        _;
-    }
-
     constructor() {}
 
     function setCCFL(address _ccfl) public onlyOwner {
@@ -78,10 +72,6 @@ contract CCFLLoan is ICCFLLoan, Initializable {
         swapRouter = _swapRouter;
         factory = _factory;
         quoter = _quoter;
-    }
-
-    function setAdmin(address _admin) public onlyOwner {
-        admin = _admin;
     }
 
     function initialize(
@@ -275,7 +265,7 @@ contract CCFLLoan is ICCFLLoan, Initializable {
                 tokenIn: address(tokenAddress),
                 tokenOut: address(stableCoin),
                 fee: fee,
-                recipient: msg.sender,
+                recipient: address(this),
                 amountOut: amountOut,
                 amountInMaximum: amountInMaximum,
                 sqrtPriceLimitX96: 0
@@ -331,7 +321,7 @@ contract CCFLLoan is ICCFLLoan, Initializable {
                 tokenIn: address(tokenAddress),
                 tokenOut: address(stableCoin),
                 fee: fee,
-                recipient: msg.sender,
+                recipient: address(this),
                 amountIn: amountIn,
                 amountOutMinimum: 0,
                 sqrtPriceLimitX96: 0
@@ -493,13 +483,6 @@ contract CCFLLoan is ICCFLLoan, Initializable {
             );
         }
         initLoan.isFinalty = true;
-    }
-
-    function withdrawCollateralByAdmin(
-        IERC20Standard _token,
-        address _receiver
-    ) public onlyAdmin {
-        _token.transfer(_receiver, _token.balanceOf(address(this)));
     }
 
     function getLoanInfo() public view returns (DataTypes.Loan memory) {

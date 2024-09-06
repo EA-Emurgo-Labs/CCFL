@@ -1354,6 +1354,19 @@
 				"type": "function"
 			},
 			{
+				"inputs": [],
+				"name": "quoter",
+				"outputs": [
+					{
+						"internalType": "contract IQuoterV2",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
 				"inputs": [
 					{
 						"internalType": "uint256",
@@ -1613,6 +1626,11 @@
 					{
 						"internalType": "contract IUniswapV3Factory",
 						"name": "_factory",
+						"type": "address"
+					},
+					{
+						"internalType": "contract IQuoterV2",
+						"name": "_quoter",
 						"type": "address"
 					}
 				],
@@ -1962,11 +1980,11 @@
 			]
 		},
 		"CCFL.sol": {
-			"keccak256": "0x6f6948bbb76ebbc4cebbf4c1b3dcb40899b8bbb38e9105f4866ee46150a24be4",
+			"keccak256": "0x78d959dc0c64ea3869e3d76dd1fcc3c74b34bce38e5694f04f71f0e2d386f0c2",
 			"license": "UNLICENSED",
 			"urls": [
-				"bzz-raw://878e1511cf45b973fd78512b636abfb6d718a3b71003525c67d0d1bf96628973",
-				"dweb:/ipfs/QmP7P6rxeNKyWG7DmDAu5TinLBPWCfbcuMBJVyV8iUPqLQ"
+				"bzz-raw://26ad21130ff29286646af600bfe714c7b178b2c2c8187aa8dd352b082e9322d0",
+				"dweb:/ipfs/QmZxCsofgV5Tt8hoYhtcV9jhgqgD3S9d3zZJvr2HdkpjoK"
 			]
 		},
 		"DataTypes.sol": {
@@ -1978,19 +1996,19 @@
 			]
 		},
 		"ICCFL.sol": {
-			"keccak256": "0xdd6ec890b81cbeac4f87ff5bba8cfde94ccb494dfd285bedf833aff31afb5595",
+			"keccak256": "0x7779e78e14780982828f9864f1466f4a2bf3a1f07b1104ee454f6a64dce41262",
 			"license": "UNLICENSED",
 			"urls": [
-				"bzz-raw://a5d8f157dccdc2c874430467807710d2fefa19657ab2142635ab051905d09968",
-				"dweb:/ipfs/Qmeq7nUa7yaVv3AfWcntQhp8BfLUYD5nXZCH2AGNv9RWMw"
+				"bzz-raw://f8b8b6a938a5d3f6d22e4d5224e07c48f739156a0c3c00669fef4eb7b524df9b",
+				"dweb:/ipfs/QmcaoyVAHzMUSwxVTQmDiFkugDwa36yjjAHTpgEgk5zLwq"
 			]
 		},
 		"ICCFLLoan.sol": {
-			"keccak256": "0x2ef33e7ce3b6bf6fc20af1153e4fc1ce017a478bbe58854515428eb2b9fac486",
+			"keccak256": "0xf9e693ca40c4933dd504495597e98b108c6d63bb89ce4c847a0d3e994a935a77",
 			"license": "UNLICENSED",
 			"urls": [
-				"bzz-raw://922b86cb932998572987a45cf2b28deb64b9a3c4223d7a7cb2e368b5e57d3272",
-				"dweb:/ipfs/QmZYbi3BXA3qoPJcyMQKiB2XQ37iRjWh7zyd26o1htHHUN"
+				"bzz-raw://89c4e7f567ddf42c2d7e183849458d30c3ac5a9a0c4197ecb2461ad500a30d61",
+				"dweb:/ipfs/QmTybcH7KG8m1TuLTcU1qdnxLHSQiHfCHEwp1sSP6jM6Hk"
 			]
 		},
 		"ICCFLPool.sol": {
@@ -2007,6 +2025,14 @@
 			"urls": [
 				"bzz-raw://dce6237b20eeb6103c81e205dac93ba9bf3d057279f6f4c787c0cdde7f84ea9a",
 				"dweb:/ipfs/QmSexRYC5VkuFYHQ9DP5KVwHkPBeMwQBwEjpL1nLsrRLDa"
+			]
+		},
+		"IQuoterV2.sol": {
+			"keccak256": "0x0b4db97b33ed3a96d9656de81fbe9d8a940b84302e8edca4c8ff34c32c0ed2da",
+			"license": "GPL-2.0-or-later",
+			"urls": [
+				"bzz-raw://592c0372a565bbfb5fd328d8cf425c549810f0f6d283a27b35e50effa4bf2bc3",
+				"dweb:/ipfs/QmeejGBGyQc49euZBxUTFFFc7qY4porvYV69RK6zozvH8D"
 			]
 		},
 		"IReserveInterestRateStrategy.sol": {
