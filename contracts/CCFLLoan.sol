@@ -377,10 +377,10 @@ contract CCFLLoan is ICCFLLoan, Initializable {
     function liquidate(
         uint _currentDebt
     ) public onlyOwner returns (uint256, uint256, uint256, uint256) {
-        // require(
-        //     getHealthFactor(_currentDebt, 0) < 100,
-        //     Errors.CAN_NOT_LIQUIDATE
-        // );
+        require(
+            getHealthFactor(_currentDebt, 0) < 100,
+            Errors.CAN_NOT_LIQUIDATE
+        );
         // get all collateral from aave
         if (isStakeAave)
             withdrawLiquidity(earnPlatform, earnBorrower, earnLender);
