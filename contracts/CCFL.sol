@@ -650,6 +650,9 @@ contract CCFL is ICCFL, Initializable {
         uint curentDebt = ccflPools[loanInfo.stableCoin].getCurrentLoan(
             _loanId
         );
+        if (_amount >= curentDebt) {
+            return 99999;
+        }
         return loan.getHealthFactor(curentDebt - _amount, 0);
     }
 
