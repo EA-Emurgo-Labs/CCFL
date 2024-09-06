@@ -319,6 +319,28 @@ contract CCFL is ICCFL, Initializable {
         );
     }
 
+    function estimateHealthFactor(
+        IERC20Standard _stableCoin,
+        uint _amount,
+        IERC20Standard _collateralToken,
+        uint _amountCollateral
+    ) public view returns (uint) {
+        uint stableCoinPrice = getLatestPrice(_stableCoin, true);
+        uint collateralPrice = getLatestPrice(_collateralToken, false);
+
+        uint totalCollaterals = (_amountCollateral *
+            collateralPrice *
+            liquidationThreshold) /
+            10000 /
+            (10 ** _collateralToken.decimals());
+
+        uint totalLoan = (_amount * stableCoinPrice) /
+            (10 ** _stableCoin.decimals());
+
+        uint healthFactor = (totalCollaterals * 100) / totalLoan;
+        return healthFactor;
+    }
+
     function createLoanCore(
         uint _amount,
         IERC20Standard _stableCoin,

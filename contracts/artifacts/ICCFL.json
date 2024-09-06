@@ -56,6 +56,7 @@
 			"checkMinimalCollateralForLoan(uint256,address,address)": "1bb514cf",
 			"createLoan(uint256,address,uint256,address,bool,bool)": "a8700c3c",
 			"createLoanByETH(uint256,address,uint256,bool,bool)": "b5dbde5f",
+			"estimateHealthFactor(address,uint256,address,uint256)": "8858ddc5",
 			"getHealthFactor(uint256)": "17845c69",
 			"getLatestPrice(address,bool)": "b3bffeaa",
 			"getLoanAddress(uint256)": "fdb2b32c",
@@ -72,7 +73,7 @@
 			"setPenalty(uint256,uint256,uint256)": "f3cf4ada",
 			"setPlatformAddress(address,address)": "f8f126ff",
 			"setPools(address[],address[],address[])": "0769594d",
-			"setSwapRouter(address,address)": "dc40e2d0",
+			"setSwapRouter(address,address,address)": "10ac5c3c",
 			"setThreshold(uint256,uint256)": "b9c36209",
 			"setWETH(address)": "5b769f3c",
 			"withdrawAllCollateral(uint256,bool)": "5c8edac4",
@@ -849,6 +850,40 @@
 		{
 			"inputs": [
 				{
+					"internalType": "contract IERC20Standard",
+					"name": "_stableCoin",
+					"type": "address"
+				},
+				{
+					"internalType": "uint256",
+					"name": "_amount",
+					"type": "uint256"
+				},
+				{
+					"internalType": "contract IERC20Standard",
+					"name": "_collateralToken",
+					"type": "address"
+				},
+				{
+					"internalType": "uint256",
+					"name": "_amountCollateral",
+					"type": "uint256"
+				}
+			],
+			"name": "estimateHealthFactor",
+			"outputs": [
+				{
+					"internalType": "uint256",
+					"name": "",
+					"type": "uint256"
+				}
+			],
+			"stateMutability": "view",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
 					"internalType": "uint256",
 					"name": "_loanId",
 					"type": "uint256"
@@ -1214,6 +1249,11 @@
 				{
 					"internalType": "contract IUniswapV3Factory",
 					"name": "_factory",
+					"type": "address"
+				},
+				{
+					"internalType": "contract IQuoterV2",
+					"name": "_quoter",
 					"type": "address"
 				}
 			],

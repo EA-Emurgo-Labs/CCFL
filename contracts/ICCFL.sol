@@ -209,4 +209,11 @@ interface ICCFL {
         bool _isYieldGenerating,
         bool _isFiat
     ) external payable;
+
+    function estimateHealthFactor(
+        IERC20Standard _stableCoin,
+        uint _amount,
+        IERC20Standard _collateralToken,
+        uint _amountCollateral
+    ) external view returns (uint);
 }
