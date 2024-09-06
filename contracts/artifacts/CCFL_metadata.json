@@ -1002,6 +1002,40 @@
 				"type": "function"
 			},
 			{
+				"inputs": [
+					{
+						"internalType": "contract IERC20Standard",
+						"name": "_stableCoin",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "_amount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "contract IERC20Standard",
+						"name": "_collateralToken",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "_amountCollateral",
+						"type": "uint256"
+					}
+				],
+				"name": "estimateHealthFactor",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
 				"inputs": [],
 				"name": "factory",
 				"outputs": [
@@ -1980,11 +2014,11 @@
 			]
 		},
 		"CCFL.sol": {
-			"keccak256": "0xe0bdf65c928dc05c8d2b5878ae2c6a7a69f426ef777f6c11d2f774fb11ff6e17",
+			"keccak256": "0x0542d1d78040dcf5927e6d81208738b806e58dbd73f8a8a123df20f363445052",
 			"license": "UNLICENSED",
 			"urls": [
-				"bzz-raw://1cd50694277a7fc97d6cc19cc4b5b82750a4a075a91886e85a075d5b452b584e",
-				"dweb:/ipfs/QmY4Jj9UcuyVMGonnhK4ofEaiSvu5v8zwQBDK5WdzPWSKC"
+				"bzz-raw://98416e25110a4845f3dbd627631562d2569e0c0347cbbd21cd3257a7c4ddc342",
+				"dweb:/ipfs/QmawRbzTMRNStHFBQio2CHsKcbksxWXoRTyQ4AhJjcGPaU"
 			]
 		},
 		"DataTypes.sol": {
@@ -1996,11 +2030,11 @@
 			]
 		},
 		"ICCFL.sol": {
-			"keccak256": "0x7779e78e14780982828f9864f1466f4a2bf3a1f07b1104ee454f6a64dce41262",
+			"keccak256": "0x0ce8e764fd91ef6bdbb694fe305fdd58d3e6e795be8b68542a75ccf5a9556fa6",
 			"license": "UNLICENSED",
 			"urls": [
-				"bzz-raw://f8b8b6a938a5d3f6d22e4d5224e07c48f739156a0c3c00669fef4eb7b524df9b",
-				"dweb:/ipfs/QmcaoyVAHzMUSwxVTQmDiFkugDwa36yjjAHTpgEgk5zLwq"
+				"bzz-raw://2e07397ed4a9ecfe588a9b10050f486ced515378d9c27758b5af2cc591f2bf7b",
+				"dweb:/ipfs/QmNeKFF6CsfTHSB1Zy7GuRchWHDk5BbjxNrvMFgmofFDuj"
 			]
 		},
 		"ICCFLLoan.sol": {
