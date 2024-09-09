@@ -1,14 +1,14 @@
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
-const CCFLUpgradeModule = buildModule("CCFLUpgradeModule9", (m) => {
+const CCFLUpgradeModule = buildModule("CCFLUpgradeModule12", (m) => {
   const proxyAdminOwner = m.getAccount(0);
   console.log(proxyAdminOwner);
 
-  const ccfl = m.contract("CCFL");
+  // const ccfl = m.contract("CCFL");
 
-  // const ccfl = m.contractAt(
-  //   "CCFL",
-  //   "0x9B235A0AaC2F1ba3702ed0846462cC4920aDDeB9"
-  // );
+  const ccfl = m.contractAt(
+    "CCFL",
+    "0xe6138F2bcE382A325329bB33dB86b89f7E3fFD31"
+  );
 
   const data = "0x";
 

@@ -240,11 +240,11 @@ describe("sepolia", () => {
     });
 
     it("repay loan", async () => {
-      repay(BigInt(1), ethers.parseUnits("200", 6));
+      repay(BigInt(17), ethers.parseUnits("200", 6));
     });
 
     it("withdraw collateral", async () => {
-      withdrawCollateral(BigInt(1));
+      withdrawCollateral(BigInt(17));
     });
 
     it("check health factor", async () => {
@@ -255,13 +255,13 @@ describe("sepolia", () => {
       );
     });
 
-    it("liquidate", async () => {
-      await liquidate(BigInt(15));
+    it.only("liquidate", async () => {
+      await liquidate(BigInt(20));
     });
 
-    // it.only("change wbtc price", async () => {
-    //   // await changeWbtcprice(60000e8);
-    //   await changeWbtcprice(10e8);
-    // });
+    it("change wbtc price", async () => {
+      // await changeWbtcprice(60000e8);
+      await changeWbtcprice(10e8);
+    });
   });
 });
