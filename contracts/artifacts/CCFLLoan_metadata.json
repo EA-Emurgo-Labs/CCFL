@@ -123,16 +123,66 @@
 				"type": "function"
 			},
 			{
-				"inputs": [],
-				"name": "admin",
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "_currentDebt",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "_amountOut",
+						"type": "uint256"
+					}
+				],
+				"name": "calculateLiquidation",
 				"outputs": [
 					{
-						"internalType": "address",
+						"internalType": "uint256",
 						"name": "",
-						"type": "address"
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
 					}
 				],
 				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "_currentDebt",
+						"type": "uint256"
+					}
+				],
+				"name": "calculateSwap",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "nonpayable",
 				"type": "function"
 			},
 			{
@@ -152,6 +202,11 @@
 				"inputs": [],
 				"name": "closeLoan",
 				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					},
 					{
 						"internalType": "uint256",
 						"name": "",
@@ -444,7 +499,13 @@
 				"type": "function"
 			},
 			{
-				"inputs": [],
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "_earnBorrower",
+						"type": "uint256"
+					}
+				],
 				"name": "getYieldEarned",
 				"outputs": [
 					{
@@ -599,11 +660,6 @@
 						"type": "address"
 					},
 					{
-						"internalType": "address",
-						"name": "_platform",
-						"type": "address"
-					},
-					{
 						"internalType": "contract IWETH",
 						"name": "_iWETH",
 						"type": "address"
@@ -633,15 +689,25 @@
 						"internalType": "uint256",
 						"name": "_currentDebt",
 						"type": "uint256"
-					},
-					{
-						"internalType": "uint256",
-						"name": "_percent",
-						"type": "uint256"
 					}
 				],
 				"name": "liquidate",
 				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					},
 					{
 						"internalType": "uint256",
 						"name": "",
@@ -672,6 +738,45 @@
 						"internalType": "address",
 						"name": "",
 						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "penaltyLender",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "penaltyLiquidator",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "penaltyPlatform",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
 					}
 				],
 				"stateMutability": "view",
@@ -717,16 +822,16 @@
 				"type": "function"
 			},
 			{
-				"inputs": [
+				"inputs": [],
+				"name": "quoter",
+				"outputs": [
 					{
-						"internalType": "address",
-						"name": "_admin",
+						"internalType": "contract IQuoterV2",
+						"name": "",
 						"type": "address"
 					}
 				],
-				"name": "setAdmin",
-				"outputs": [],
-				"stateMutability": "nonpayable",
+				"stateMutability": "view",
 				"type": "function"
 			},
 			{
@@ -775,7 +880,30 @@
 			{
 				"inputs": [
 					{
-						"internalType": "contract ISwapRouter",
+						"internalType": "uint256",
+						"name": "_platform",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "_liquidator",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "_lender",
+						"type": "uint256"
+					}
+				],
+				"name": "setPenalty",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "contract IV3SwapRouter",
 						"name": "_swapRouter",
 						"type": "address"
 					},
@@ -783,11 +911,55 @@
 						"internalType": "contract IUniswapV3Factory",
 						"name": "_factory",
 						"type": "address"
+					},
+					{
+						"internalType": "contract IQuoterV2",
+						"name": "_quoter",
+						"type": "address"
 					}
 				],
 				"name": "setSwapRouter",
 				"outputs": [],
 				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "shareBorrower",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "shareLender",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "sharePlatform",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
 				"type": "function"
 			},
 			{
@@ -802,7 +974,7 @@
 				"name": "swapRouter",
 				"outputs": [
 					{
-						"internalType": "contract ISwapRouter",
+						"internalType": "contract IV3SwapRouter",
 						"name": "",
 						"type": "address"
 					}
@@ -857,31 +1029,23 @@
 			{
 				"inputs": [
 					{
-						"internalType": "contract IERC20Standard",
-						"name": "_token",
-						"type": "address"
+						"internalType": "uint256",
+						"name": "_earnPlatform",
+						"type": "uint256"
 					},
 					{
-						"internalType": "address",
-						"name": "_receiver",
-						"type": "address"
-					}
-				],
-				"name": "withdrawCollateralByAdmin",
-				"outputs": [],
-				"stateMutability": "nonpayable",
-				"type": "function"
-			},
-			{
-				"inputs": [],
-				"name": "withdrawLiquidity",
-				"outputs": [
+						"internalType": "uint256",
+						"name": "_earnBorrower",
+						"type": "uint256"
+					},
 					{
 						"internalType": "uint256",
-						"name": "",
+						"name": "_earnLender",
 						"type": "uint256"
 					}
 				],
+				"name": "withdrawLiquidity",
+				"outputs": [],
 				"stateMutability": "nonpayable",
 				"type": "function"
 			},
@@ -1064,14 +1228,6 @@
 				"dweb:/ipfs/QmSQrckghEjs6HVsA5GVgpNpZWvTXMY5eQLF7cN6deFeEg"
 			]
 		},
-		"@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol": {
-			"keccak256": "0x9bfaf1feb32814623e627ab70f2409760b15d95f1f9b058e2b3399a8bb732975",
-			"license": "GPL-2.0-or-later",
-			"urls": [
-				"bzz-raw://a8a2c3e55965b61bcd91993d8e1d5d34b8b8a63e0fdfce87a85f6af92526fd53",
-				"dweb:/ipfs/QmQj2CSCSwqDSU4KMNWxGsN2336Cy64WgpV1X1EHXNZWxM"
-			]
-		},
 		"@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol": {
 			"keccak256": "0x9af98b0908c96320ca6d08b22f0efca864742f6adbe5794cafe2d1d2e808b0cd",
 			"license": "GPL-2.0-or-later",
@@ -1081,11 +1237,11 @@
 			]
 		},
 		"CCFLLoan.sol": {
-			"keccak256": "0x97bece847a28eb5d4a266c2529cabf24b9812b5a7984097bd4a687ef56df43f8",
+			"keccak256": "0x4d41b71988d4a5dc5a4dc9f01d5f9314a9e40dcb523adcb88299976c7fca75ed",
 			"license": "UNLICENSED",
 			"urls": [
-				"bzz-raw://54f0897c806e6ca00682d4f448a88752e654e9cf8546c4f7fbd6c5989e463460",
-				"dweb:/ipfs/QmPWErNpMiUsg2e1mnzQxH9dNGR9VagTbYydLtXDGBmB27"
+				"bzz-raw://28165fb03a1c1ebe90f4119eaf1f36d5eec73285a2b271f30e769f81731eb903",
+				"dweb:/ipfs/QmayMbw8272oX5MW6t54cSfTV1gbvZwSaSvoXwmiRm7DCF"
 			]
 		},
 		"DataTypes.sol": {
@@ -1097,11 +1253,11 @@
 			]
 		},
 		"ICCFLLoan.sol": {
-			"keccak256": "0x2e6863c424e8fb1314051aeef593f00c82a56a9b433f357cb6d120548355c8ee",
+			"keccak256": "0x98d6d9acb5b462aca636ebb4cabf8b17f968dd67cecff440ad138a290d67d0f1",
 			"license": "UNLICENSED",
 			"urls": [
-				"bzz-raw://99e065e22cb5d13027a18696de15a1ce41410960367b1e5bf20349e6a89d45b0",
-				"dweb:/ipfs/QmTZj9yZJYRjGXaWFHEd9XZYAxnshCRNCwWYvrirMsZu7H"
+				"bzz-raw://79ff257f2cb5ebfd0e521b8f26dc5f4f9265adfe0d40ee8c016d38d5ed949904",
+				"dweb:/ipfs/QmYEYPAQVHg3Zcj5pUvBMXfGkFCDLYm5TcBnDtXTmPHrU4"
 			]
 		},
 		"IERC20Standard.sol": {
@@ -1110,6 +1266,22 @@
 			"urls": [
 				"bzz-raw://dce6237b20eeb6103c81e205dac93ba9bf3d057279f6f4c787c0cdde7f84ea9a",
 				"dweb:/ipfs/QmSexRYC5VkuFYHQ9DP5KVwHkPBeMwQBwEjpL1nLsrRLDa"
+			]
+		},
+		"IQuoterV2.sol": {
+			"keccak256": "0x0b4db97b33ed3a96d9656de81fbe9d8a940b84302e8edca4c8ff34c32c0ed2da",
+			"license": "GPL-2.0-or-later",
+			"urls": [
+				"bzz-raw://592c0372a565bbfb5fd328d8cf425c549810f0f6d283a27b35e50effa4bf2bc3",
+				"dweb:/ipfs/QmeejGBGyQc49euZBxUTFFFc7qY4porvYV69RK6zozvH8D"
+			]
+		},
+		"IV3SwapRouter.sol": {
+			"keccak256": "0xa2300af2b82af292216a8f3f301a86e65463655fff9fb791515e3fd2ccf4a14c",
+			"license": "GPL-2.0-or-later",
+			"urls": [
+				"bzz-raw://a0a9bece58527fb5c1773d86666c7a71884a78f413e230dfa8c8a7f8ea564ef9",
+				"dweb:/ipfs/QmbDhvpoZJN1KntxUUxkYV89RPTwqVBiyHBkvVh4QHSveo"
 			]
 		},
 		"hardhat/console.sol": {
