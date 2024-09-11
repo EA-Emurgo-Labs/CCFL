@@ -380,7 +380,7 @@ describe("sepolia", () => {
       await approveWBTC(AMOUNT);
     });
 
-    it.only("create a loan", async () => {
+    it("create a loan", async () => {
       await createLoanUSDT();
     });
 
@@ -392,17 +392,17 @@ describe("sepolia", () => {
       getCurrentLoan(BigInt(6));
     });
 
-    it("approve usdc", async () => {
+    it("approve usdt", async () => {
       const AMOUNT = ethers.parseUnits("200", 6);
-      await approveLoanUsdc(AMOUNT);
+      await approveLoanUsdt(AMOUNT);
     });
 
     it("repay loan", async () => {
-      repay(BigInt(17), ethers.parseUnits("200", 6));
+      repayUSDT(BigInt(1), ethers.parseUnits("200", 6));
     });
 
-    it("withdraw collateral", async () => {
-      withdrawCollateral(BigInt(17));
+    it.only("withdraw collateral", async () => {
+      withdrawCollateral(BigInt(1));
     });
 
     it("check health factor", async () => {
