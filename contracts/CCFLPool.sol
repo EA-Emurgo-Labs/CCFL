@@ -35,6 +35,7 @@ contract CCFLPool is ICCFLPool, Initializable {
     address owner;
     bool public isPaused;
 
+    uint public cap;
     modifier onlyCCFL() {
         require(CCFL == msg.sender, Errors.ONLY_THE_CCFL);
         _;
@@ -61,7 +62,8 @@ contract CCFLPool is ICCFLPool, Initializable {
 
     function initialize(
         IERC20Standard _stableCoinAddress,
-        address interestRateStrategyAddress
+        address interestRateStrategyAddress,
+        uint _cap
     ) external initializer {
         stableCoinAddress = _stableCoinAddress;
         reserve.interestRateStrategyAddress = interestRateStrategyAddress;
@@ -69,6 +71,7 @@ contract CCFLPool is ICCFLPool, Initializable {
         reserve.variableBorrowIndex = uint128(WadRayMath.RAY);
         owner = msg.sender;
         operators[msg.sender] = true;
+        cap = _cap;
     }
 
     function setOperators(
@@ -82,6 +85,10 @@ contract CCFLPool is ICCFLPool, Initializable {
 
     function setCCFL(address _ccfl) public onlyOperator {
         CCFL = _ccfl;
+    }
+
+    function setCap(uint _cap) public onlyOperator {
+        cap = _cap;
     }
 
     function getRemainingPool() public view returns (uint amount) {
@@ -218,6 +225,7 @@ contract CCFLPool is ICCFLPool, Initializable {
     }
 
     function supply(uint256 _amount) public onlyUnpaused {
+        require(getTotalSupply() + _amount <= cap, Errors.OVER_CAP);
         DataTypes.ReserveCache memory reserveCache = cache();
 
         updateState(reserveCache);

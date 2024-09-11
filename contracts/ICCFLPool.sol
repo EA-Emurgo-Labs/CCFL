@@ -71,7 +71,8 @@ interface ICCFLPool {
 
     function initialize(
         IERC20Standard _stableCoinAddress,
-        address interestRateStrategyAddress
+        address interestRateStrategyAddress,
+        uint _cap
     ) external;
 
     function getTotalSupply() external view returns (uint256);

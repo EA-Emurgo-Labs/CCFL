@@ -40,6 +40,7 @@ const ProxyCCFLModule = buildModule("ProxyCCFLModule", (m) => {
   const dataPool = m.encodeFunctionCall(ccflPool, "initialize", [
     usdc,
     defaultReserveInterestRateStrategy,
+    100000000000000,
   ]);
 
   const proxyPool = m.contract(
