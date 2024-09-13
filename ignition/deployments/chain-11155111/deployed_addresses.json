@@ -25,5 +25,8 @@
   "ProxyAddMorePoolCCFLModule#proxyAdminPool": "0x80f8c4CaA12D655cC3d72209d1FDbF80493F0eb3",
   "CCFLPoolUpgradeModule6#ProxyAdmin": "0x03F87F3830F0C96f70b3cc3c6F66260142411aa9",
   "CCFLPoolUpgradeModule6#TransparentUpgradeableProxy": "0x9a858bf4FB0E7bc4971eCd781C2A9FF981B79Aa9",
-  "CCFLPoolUpgradeModule6#CCFLPool": "0xbA55Ae9f899121BC448ff0DeBb684ae7e50827A2"
+  "CCFLPoolUpgradeModule6#CCFLPool": "0xbA55Ae9f899121BC448ff0DeBb684ae7e50827A2",
+  "CCFLUpgradeModule1#ProxyAdmin": "0xdcAcfeA818cD4191415E91a81d4CE0f45ab5Be24",
+  "CCFLUpgradeModule1#TransparentUpgradeableProxy": "0x847B9D52d563fdF6a8cbc761c6B429741d59F6E1",
+  "CCFLUpgradeModule1#CCFL": "0x3A6B605070df9e6D8FeFfbA8c0723d2f252b6Ef6"
 }

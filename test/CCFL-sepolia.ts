@@ -1,3 +1,5 @@
+import { bigint } from "hardhat/internal/core/params/argumentTypes";
+
 const { ethers } = require("hardhat");
 
 let pool = "0x2c178873E95aF410A6D0493B3715cc343dD76Ae4";
@@ -298,6 +300,28 @@ async function getHealthFactor(usdcAmount: any, wbtcAmount: any, loanId: any) {
   }
 }
 
+async function getMinimumCollateral(usdcAmount: any) {
+  const signer = await ethers.provider.getSigner();
+  console.log("signer", await signer.getAddress());
+
+  const iUsdc = await ethers.getContractAt("ICCFL", ccfl, signer);
+
+  const minimal = await iUsdc.checkMinimalCollateralForLoan(
+    BigInt(usdcAmount),
+    usdc,
+    wbtc
+  );
+  console.log(`Got ${minimal}wBTC`);
+
+  const estimateHeathFactor = await iUsdc.estimateHealthFactor(
+    usdc,
+    BigInt(1e6),
+    wbtc,
+    BigInt(3366)
+  );
+  console.log(`Got ${estimateHeathFactor} health-factor`);
+}
+
 describe("sepolia", () => {
   describe("CCFL Pool", () => {
     it("approve usdc", async () => {
@@ -331,7 +355,7 @@ describe("sepolia", () => {
       await approveWBTC(AMOUNT);
     });
 
-    it.only("create a loan", async () => {
+    it("create a loan", async () => {
       await createLoan();
     });
 
@@ -369,8 +393,13 @@ describe("sepolia", () => {
     });
 
     it("change wbtc price", async () => {
+      await changeWbtcprice(60000e8);
+      // await changeWbtcprice(10e8);
+    });
+
+    it.only("get minimal wbtc", async () => {
       // await changeWbtcprice(60000e8);
-      await changeWbtcprice(10e8);
+      await getMinimumCollateral(1e6);
     });
   });
 

@@ -1,5 +1,5 @@
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
-const CCFLUpgradeModule = buildModule("CCFLUpgradeModule12", (m) => {
+const CCFLUpgradeModule = buildModule("CCFLUpgradeModule1", (m) => {
   const proxyAdminOwner = m.getAccount(0);
   console.log(proxyAdminOwner);
 
