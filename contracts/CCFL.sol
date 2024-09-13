@@ -280,10 +280,10 @@ contract CCFL is ICCFL, Initializable {
         IERC20Standard _stableCoin,
         IERC20Standard _collateral
     ) public view returns (uint) {
-        return ((((_amount * (10 ** _collateral.decimals()) * maxLTV) *
+        return ((((_amount * (10 ** _collateral.decimals()) * 10000) *
             getLatestPrice(_stableCoin, true)) /
             (10 ** _stableCoin.decimals())) /
-            10000 /
+            maxLTV /
             getLatestPrice(_collateral, false));
     }
 
