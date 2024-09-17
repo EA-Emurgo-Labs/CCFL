@@ -530,9 +530,9 @@ contract CCFLLoan is ICCFLLoan, Initializable {
     }
 
     function setEarnShare(
-        uint _borrower,
-        uint _platform,
-        uint _lender
+        uint24 _borrower,
+        uint24 _platform,
+        uint24 _lender
     ) public onlyOwner {
         earnLender = _lender;
         earnBorrower = _borrower;

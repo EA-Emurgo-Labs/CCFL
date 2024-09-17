@@ -107,9 +107,9 @@ interface ICCFLLoan {
     function setPaid() external;
 
     function setEarnShare(
-        uint _borrower,
-        uint _platform,
-        uint _lender
+        uint24 _borrower,
+        uint24 _platform,
+        uint24 _lender
     ) external;
 
     function getYieldEarned(uint _earnBorrower) external view returns (uint);

@@ -116,12 +116,6 @@ interface ICCFL {
 
     function setThreshold(uint _maxLTV, uint _liquidationThreshold) external;
 
-    function setPenalty(
-        uint _platform,
-        uint _liquidator,
-        uint _lender
-    ) external;
-
     function setSwapRouter(
         IV3SwapRouter _swapRouter,
         IUniswapV3Factory _factory,
@@ -190,12 +184,6 @@ interface ICCFL {
     ) external view returns (uint);
 
     function getLoanIds(address borrower) external view returns (uint[] memory);
-
-    function setEarnShare(
-        uint _borrower,
-        uint _platform,
-        uint _lender
-    ) external;
 
     function withdrawFiatLoan(
         IERC20Standard _stableCoin,

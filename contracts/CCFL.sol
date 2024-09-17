@@ -3,6 +3,7 @@ pragma solidity ^0.8.24;
 import "./ICCFL.sol";
 import "@aave/core-v3/contracts/misc/interfaces/IWETH.sol";
 import "./helpers/Errors.sol";
+import "./ICCFLConfig.sol";
 
 /// @title CCFL contract
 /// @author
@@ -42,19 +43,12 @@ contract CCFL is ICCFL, Initializable {
 
     mapping(address => uint[]) public userLoans;
 
-    // penalty / 10000
-    uint public penaltyPlatform;
-    uint public penaltyLiquidator;
-    uint public penaltyLender;
-    // earn AAVE /10000
-    uint public earnPlatform;
-    uint public earnBorrower;
-    uint public earnLender;
-
     bool isEnableETHNative;
 
     mapping(IERC20Standard => mapping(IERC20Standard => uint24))
         public collateralToStableCoinFee;
+
+    ICCFLConfig public ccflConfig;
 
     modifier onlyOwner() {
         require(msg.sender == owner, Errors.ONLY_THE_OWNER);
@@ -150,16 +144,6 @@ contract CCFL is ICCFL, Initializable {
         isPaused = _paused;
     }
 
-    function setEarnShare(
-        uint _borrower,
-        uint _platform,
-        uint _lender
-    ) public onlyOperator {
-        earnLender = _lender;
-        earnBorrower = _borrower;
-        earnPlatform = _platform;
-    }
-
     function setOperators(
         address[] memory _addresses,
         bool[] memory _isActives
@@ -235,16 +219,6 @@ contract CCFL is ICCFL, Initializable {
     ) public onlyOperator {
         maxLTV = _maxLTV;
         liquidationThreshold = _liquidationThreshold;
-    }
-
-    function setPenalty(
-        uint _platform,
-        uint _liquidator,
-        uint _lender
-    ) public onlyOperator {
-        penaltyLender = _lender;
-        penaltyLiquidator = _liquidator;
-        penaltyPlatform = _platform;
     }
 
     function setSwapRouter(
@@ -402,9 +376,29 @@ contract CCFL is ICCFL, Initializable {
         );
         cloneSC.setCCFL(address(this));
         cloneSC.setSwapRouter(swapRouter, factory, quoter);
-        cloneSC.setEarnShare(earnBorrower, earnPlatform, earnLender);
-        cloneSC.setPenalty(penaltyPlatform, penaltyLiquidator, penaltyLender);
-        cloneSC.setUniFee(collateralToStableCoinFee[token][_stableCoin]);
+        {
+            (
+                uint24 earnBorrower,
+                uint24 earnPlatform,
+                uint24 earnLender
+            ) = ccflConfig.getEarnShare();
+            cloneSC.setEarnShare(earnBorrower, earnPlatform, earnLender);
+        }
+        {
+            (
+                uint24 penaltyPlatform,
+                uint24 penaltyLiquidator,
+                uint24 penaltyLender
+            ) = ccflConfig.getPenalty();
+            cloneSC.setPenalty(
+                penaltyPlatform,
+                penaltyLiquidator,
+                penaltyLender
+            );
+        }
+
+        uint24 fee = collateralToStableCoinFee[token][_stableCoin];
+        cloneSC.setUniFee(fee);
 
         if (_isETH == false) {
             // transfer collateral
