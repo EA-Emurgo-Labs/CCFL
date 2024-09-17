@@ -53,6 +53,9 @@ contract CCFL is ICCFL, Initializable {
 
     bool isEnableETHNative;
 
+    mapping(IERC20Standard => mapping(IERC20Standard => uint24))
+        public collateralToStableCoinFee;
+
     modifier onlyOwner() {
         require(msg.sender == owner, Errors.ONLY_THE_OWNER);
         _;
@@ -266,6 +269,14 @@ contract CCFL is ICCFL, Initializable {
         platform = _platform;
     }
 
+    function setCollateralToStableFee(
+        IERC20Standard _collateral,
+        IERC20Standard _stable,
+        uint24 _fee
+    ) public onlyOperator {
+        collateralToStableCoinFee[_collateral][_stable] = _fee;
+    }
+
     // Modifier to check token allowance
     // modifier checkTokenAllowance(IERC20Standard _token, uint _amount) {
     //     require(
@@ -393,6 +404,7 @@ contract CCFL is ICCFL, Initializable {
         cloneSC.setSwapRouter(swapRouter, factory, quoter);
         cloneSC.setEarnShare(earnBorrower, earnPlatform, earnLender);
         cloneSC.setPenalty(penaltyPlatform, penaltyLiquidator, penaltyLender);
+        cloneSC.setUniFee(collateralToStableCoinFee[token][_stableCoin]);
 
         if (_isETH == false) {
             // transfer collateral
