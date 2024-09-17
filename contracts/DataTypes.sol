@@ -48,6 +48,7 @@ library DataTypes {
         IERC20Standard stableCoin;
         bool isFinalty;
         bool isFiat;
+        uint closedAmount;
     }
 
     struct UpdateInterestRatesLocalVars {

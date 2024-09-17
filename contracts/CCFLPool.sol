@@ -35,6 +35,8 @@ contract CCFLPool is ICCFLPool, Initializable {
     address owner;
     bool public isPaused;
 
+    mapping(address => uint) public depositWithdrawAmount;
+
     uint public cap;
     modifier onlyCCFL() {
         require(CCFL == msg.sender, Errors.ONLY_THE_CCFL);
@@ -244,7 +246,7 @@ contract CCFLPool is ICCFLPool, Initializable {
         share[msg.sender] = total;
         remainingPool += _amount;
         stableCoinAddress.transferFrom(msg.sender, address(this), _amount);
-
+        depositWithdrawAmount[msg.sender] += _amount;
         emit AddSupply(
             msg.sender,
             address(this),
@@ -261,6 +263,12 @@ contract CCFLPool is ICCFLPool, Initializable {
         return
             (share[_user].rayMul(reserve.liquidityIndex)) /
             (10 ** (27 - stableCoinAddress.decimals()));
+    }
+
+    function getDepositWithdrawAmount(
+        address _user
+    ) public view returns (uint256) {
+        return depositWithdrawAmount[_user];
     }
 
     function withdraw(uint256 _amount) public onlyUnpaused {
@@ -282,6 +290,10 @@ contract CCFLPool is ICCFLPool, Initializable {
         share[msg.sender] = total;
         remainingPool -= _amount;
         stableCoinAddress.transfer(msg.sender, _amount);
+
+        if (depositWithdrawAmount[msg.sender] > _amount)
+            depositWithdrawAmount[msg.sender] -= _amount;
+        else depositWithdrawAmount[msg.sender] = 0;
 
         emit WithdrawSupply(
             msg.sender,

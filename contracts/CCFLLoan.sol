@@ -381,9 +381,13 @@ contract CCFLLoan is ICCFLLoan, Initializable {
             getHealthFactor(_currentDebt, 0) < 100,
             Errors.CAN_NOT_LIQUIDATE
         );
+        initLoan.closedAmount = initLoan.amount;
+
         // get all collateral from aave
-        if (isStakeAave)
+        if (isStakeAave) {
+            initLoan.closedAmount = aToken.balanceOf(address(this));
             withdrawLiquidity(earnPlatform, earnBorrower, earnLender);
+        }
 
         (uint outUSD, uint amountOut) = calculateSwap(_currentDebt);
 
@@ -442,8 +446,12 @@ contract CCFLLoan is ICCFLLoan, Initializable {
 
     function closeLoan() public onlyOwner returns (uint256, uint256) {
         initLoan.isClosed = true;
-        if (isStakeAave)
+        initLoan.closedAmount = initLoan.amount;
+        if (isStakeAave) {
+            initLoan.closedAmount = aToken.balanceOf(address(this));
             withdrawLiquidity(earnPlatform, earnBorrower, earnLender);
+        }
+
         if (shareLender + sharePlatform > 0) {
             collateralToken.approve(
                 address(swapRouter),
