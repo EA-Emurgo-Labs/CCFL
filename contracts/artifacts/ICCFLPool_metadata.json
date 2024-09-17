@@ -9,10 +9,22 @@
 				"anonymous": false,
 				"inputs": [
 					{
-						"indexed": false,
-						"internalType": "uint256",
-						"name": "loanId",
-						"type": "uint256"
+						"indexed": true,
+						"internalType": "address",
+						"name": "lender",
+						"type": "address"
+					},
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "poolAddress",
+						"type": "address"
+					},
+					{
+						"indexed": true,
+						"internalType": "contract IERC20Standard",
+						"name": "stableCoin",
+						"type": "address"
 					},
 					{
 						"indexed": false,
@@ -22,27 +34,51 @@
 					},
 					{
 						"indexed": false,
-						"internalType": "address",
-						"name": "borrower",
-						"type": "address"
+						"internalType": "uint256",
+						"name": "lenderShare",
+						"type": "uint256"
 					},
 					{
 						"indexed": false,
 						"internalType": "uint256",
-						"name": "when",
+						"name": "totalSupply",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "totalLiquidity",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "remainingPool",
 						"type": "uint256"
 					}
 				],
-				"name": "CloseLoan",
+				"name": "AddSupply",
 				"type": "event"
 			},
 			{
 				"anonymous": false,
 				"inputs": [
 					{
-						"indexed": false,
+						"indexed": true,
 						"internalType": "address",
-						"name": "user",
+						"name": "lender",
+						"type": "address"
+					},
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "poolAddress",
+						"type": "address"
+					},
+					{
+						"indexed": true,
+						"internalType": "contract IERC20Standard",
+						"name": "stableCoin",
 						"type": "address"
 					},
 					{
@@ -54,61 +90,29 @@
 					{
 						"indexed": false,
 						"internalType": "uint256",
-						"name": "when",
+						"name": "lenderShare",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "totalSupply",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "totalLiquidity",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "remainingPool",
 						"type": "uint256"
 					}
 				],
-				"name": "Deposit",
-				"type": "event"
-			},
-			{
-				"anonymous": false,
-				"inputs": [
-					{
-						"indexed": false,
-						"internalType": "address",
-						"name": "user",
-						"type": "address"
-					},
-					{
-						"indexed": false,
-						"internalType": "uint256",
-						"name": "amount",
-						"type": "uint256"
-					},
-					{
-						"indexed": false,
-						"internalType": "uint256",
-						"name": "when",
-						"type": "uint256"
-					}
-				],
-				"name": "Withdraw",
-				"type": "event"
-			},
-			{
-				"anonymous": false,
-				"inputs": [
-					{
-						"indexed": false,
-						"internalType": "address",
-						"name": "user",
-						"type": "address"
-					},
-					{
-						"indexed": false,
-						"internalType": "uint256",
-						"name": "amount",
-						"type": "uint256"
-					},
-					{
-						"indexed": false,
-						"internalType": "uint256",
-						"name": "when",
-						"type": "uint256"
-					}
-				],
-				"name": "WithdrawLoan",
+				"name": "WithdrawSupply",
 				"type": "event"
 			},
 			{
@@ -119,7 +123,7 @@
 						"type": "address"
 					}
 				],
-				"name": "balance",
+				"name": "balanceOf",
 				"outputs": [
 					{
 						"internalType": "uint256",
@@ -146,9 +150,27 @@
 						"internalType": "address",
 						"name": "_borrower",
 						"type": "address"
+					},
+					{
+						"internalType": "bool",
+						"name": "_isFiat",
+						"type": "bool"
 					}
 				],
 				"name": "borrow",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "_amount",
+						"type": "uint256"
+					}
+				],
+				"name": "earnStaking",
 				"outputs": [],
 				"stateMutability": "nonpayable",
 				"type": "function"
@@ -250,6 +272,11 @@
 						"internalType": "address",
 						"name": "interestRateStrategyAddress",
 						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "_cap",
+						"type": "uint256"
 					}
 				],
 				"name": "initialize",
@@ -259,6 +286,11 @@
 			},
 			{
 				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "_loanId",
+						"type": "uint256"
+					},
 					{
 						"internalType": "uint256",
 						"name": "_amount",
@@ -323,6 +355,24 @@
 					}
 				],
 				"name": "withdraw",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "contract IERC20Standard",
+						"name": "_token",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "_receiver",
+						"type": "address"
+					}
+				],
+				"name": "withdrawByAdmin",
 				"outputs": [],
 				"stateMutability": "nonpayable",
 				"type": "function"
@@ -400,19 +450,19 @@
 			]
 		},
 		"DataTypes.sol": {
-			"keccak256": "0xaec916965df4a33d0cb4c0c354969299411c1d8379b4284f44941094a815d3a2",
+			"keccak256": "0x63ef520417db9cca137c12f1285744605422b38e29f3bb241b2354ebd2a44669",
 			"license": "BUSL-1.1",
 			"urls": [
-				"bzz-raw://beb81aec3c35a361852b84c7dbdc7c0d5ab3619040e4d46c19c48de52f43e259",
-				"dweb:/ipfs/QmQ6jSbaW4cb3Tu77Nbx7dHBTJ3CKfH3uSrLZ1a1Z8CE6r"
+				"bzz-raw://a137995d588568f79a94892b09be806184376a0ef68f9e6f5be699056141bffd",
+				"dweb:/ipfs/QmRUxibLgKzw2RPcmoi9DnwPkzqGpJFTsqjJsQga58Weof"
 			]
 		},
 		"ICCFLPool.sol": {
-			"keccak256": "0x50aba1d433e6c7227bd97f4d1ea4ec5f8caa870af4d413c4e883e056f1a25869",
+			"keccak256": "0xa3162ac9a2a1bfccefe7ea2906d09321f6ed0e25027123d404500a2357f37fbf",
 			"license": "UNLICENSED",
 			"urls": [
-				"bzz-raw://df3647347c78b3035f8f69040da98ead536860510b76a98c267f0f10b7769eec",
-				"dweb:/ipfs/QmXypRv8K3DhxLbUqsCrhxqjtoxxjGnDLrvafoQn4kowGh"
+				"bzz-raw://62430121c9fc250fbe21a66a8c257792e569159955cb2a857c2171a57ad48af1",
+				"dweb:/ipfs/QmabH1TEcBrVD6ffnuMyYCQcnD83BFF1xJd9DSzhDSztVQ"
 			]
 		},
 		"IERC20Standard.sol": {

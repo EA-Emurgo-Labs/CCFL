@@ -75,6 +75,11 @@
 								"internalType": "bool",
 								"name": "isFiat",
 								"type": "bool"
+							},
+							{
+								"internalType": "uint256",
+								"name": "closedAmount",
+								"type": "uint256"
 							}
 						],
 						"indexed": false,
@@ -165,6 +170,11 @@
 								"internalType": "bool",
 								"name": "isFiat",
 								"type": "bool"
+							},
+							{
+								"internalType": "uint256",
+								"name": "closedAmount",
+								"type": "uint256"
 							}
 						],
 						"indexed": false,
@@ -274,6 +284,11 @@
 								"internalType": "bool",
 								"name": "isFiat",
 								"type": "bool"
+							},
+							{
+								"internalType": "uint256",
+								"name": "closedAmount",
+								"type": "uint256"
 							}
 						],
 						"indexed": false,
@@ -352,6 +367,11 @@
 								"internalType": "bool",
 								"name": "isFiat",
 								"type": "bool"
+							},
+							{
+								"internalType": "uint256",
+								"name": "closedAmount",
+								"type": "uint256"
 							}
 						],
 						"indexed": false,
@@ -430,6 +450,11 @@
 								"internalType": "bool",
 								"name": "isFiat",
 								"type": "bool"
+							},
+							{
+								"internalType": "uint256",
+								"name": "closedAmount",
+								"type": "uint256"
 							}
 						],
 						"indexed": false,
@@ -514,6 +539,11 @@
 								"internalType": "bool",
 								"name": "isFiat",
 								"type": "bool"
+							},
+							{
+								"internalType": "uint256",
+								"name": "closedAmount",
+								"type": "uint256"
 							}
 						],
 						"indexed": false,
@@ -598,6 +628,11 @@
 								"internalType": "bool",
 								"name": "isFiat",
 								"type": "bool"
+							},
+							{
+								"internalType": "uint256",
+								"name": "closedAmount",
+								"type": "uint256"
 							}
 						],
 						"indexed": false,
@@ -2022,11 +2057,11 @@
 			]
 		},
 		"DataTypes.sol": {
-			"keccak256": "0xadf06b0957ff63350fdf59597d6fbaf8331c595960a88e1bc8f1d3cb9ec7b505",
+			"keccak256": "0x63ef520417db9cca137c12f1285744605422b38e29f3bb241b2354ebd2a44669",
 			"license": "BUSL-1.1",
 			"urls": [
-				"bzz-raw://c740360c1d539d9c73b314d09e7b593647bde496e96c327ac4e99a42aa867cf1",
-				"dweb:/ipfs/QmYxS2ZRpJkN5r2pj7c9FvSeq8uJXfRk3iQexwQzRHfSap"
+				"bzz-raw://a137995d588568f79a94892b09be806184376a0ef68f9e6f5be699056141bffd",
+				"dweb:/ipfs/QmRUxibLgKzw2RPcmoi9DnwPkzqGpJFTsqjJsQga58Weof"
 			]
 		},
 		"ICCFL.sol": {

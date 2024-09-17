@@ -444,6 +444,11 @@
 								"internalType": "bool",
 								"name": "isFiat",
 								"type": "bool"
+							},
+							{
+								"internalType": "uint256",
+								"name": "closedAmount",
+								"type": "uint256"
 							}
 						],
 						"internalType": "struct DataTypes.Loan",
@@ -565,6 +570,11 @@
 						"internalType": "bool",
 						"name": "isFiat",
 						"type": "bool"
+					},
+					{
+						"internalType": "uint256",
+						"name": "closedAmount",
+						"type": "uint256"
 					}
 				],
 				"stateMutability": "view",
@@ -618,6 +628,11 @@
 								"internalType": "bool",
 								"name": "isFiat",
 								"type": "bool"
+							},
+							{
+								"internalType": "uint256",
+								"name": "closedAmount",
+								"type": "uint256"
 							}
 						],
 						"internalType": "struct DataTypes.Loan",
@@ -1237,19 +1252,19 @@
 			]
 		},
 		"CCFLLoan.sol": {
-			"keccak256": "0x4d41b71988d4a5dc5a4dc9f01d5f9314a9e40dcb523adcb88299976c7fca75ed",
+			"keccak256": "0x30d9b26466ff18b0a2efd7e2bdb7a9d97dfff3194267b2e16194aa594a74b226",
 			"license": "UNLICENSED",
 			"urls": [
-				"bzz-raw://28165fb03a1c1ebe90f4119eaf1f36d5eec73285a2b271f30e769f81731eb903",
-				"dweb:/ipfs/QmayMbw8272oX5MW6t54cSfTV1gbvZwSaSvoXwmiRm7DCF"
+				"bzz-raw://99367291a07dfd8902236006798eff58db18acbcef378edb66d128c56aca41d0",
+				"dweb:/ipfs/QmUaQQxGSpHoVvMpEwL6nytBagbmgDHTfywTuS4gLMX5Yc"
 			]
 		},
 		"DataTypes.sol": {
-			"keccak256": "0xadf06b0957ff63350fdf59597d6fbaf8331c595960a88e1bc8f1d3cb9ec7b505",
+			"keccak256": "0x63ef520417db9cca137c12f1285744605422b38e29f3bb241b2354ebd2a44669",
 			"license": "BUSL-1.1",
 			"urls": [
-				"bzz-raw://c740360c1d539d9c73b314d09e7b593647bde496e96c327ac4e99a42aa867cf1",
-				"dweb:/ipfs/QmYxS2ZRpJkN5r2pj7c9FvSeq8uJXfRk3iQexwQzRHfSap"
+				"bzz-raw://a137995d588568f79a94892b09be806184376a0ef68f9e6f5be699056141bffd",
+				"dweb:/ipfs/QmRUxibLgKzw2RPcmoi9DnwPkzqGpJFTsqjJsQga58Weof"
 			]
 		},
 		"ICCFLLoan.sol": {
@@ -1293,11 +1308,11 @@
 			]
 		},
 		"helpers/Errors.sol": {
-			"keccak256": "0xd3417d80784c3279ab9246862161ea22660d0655781303c420456e2049299ce9",
+			"keccak256": "0xa5000dfce8044bf4a9a4cc073cb7c831d677b295cef6d4399c90813e49fda4e8",
 			"license": "BUSL-1.1",
 			"urls": [
-				"bzz-raw://f7d450103159d926ef8e5f17b12234a1d6cf2ab6d34d883ca9d7c5876154d142",
-				"dweb:/ipfs/QmeVXNSuq9m9QEwof6fKiy4DsWraAxwtA9totywEwKPvLx"
+				"bzz-raw://5ea64fccd17551ff8f98ef4b9a45f31efcb90870fe4fa36d2680279ffb6e271a",
+				"dweb:/ipfs/QmfVWveHsd3wed1jZPF6fn81J9s1W8NFj4EF8uaPj4rzDW"
 			]
 		}
 	},

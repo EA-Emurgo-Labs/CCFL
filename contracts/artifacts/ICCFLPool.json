@@ -49,19 +49,21 @@
 		},
 		"gasEstimates": null,
 		"methodIdentifiers": {
-			"balance(address)": "e3d670d7",
-			"borrow(uint256,uint256,address)": "d6bda0c0",
+			"balanceOf(address)": "70a08231",
+			"borrow(uint256,uint256,address,bool)": "3870862b",
+			"earnStaking(uint256)": "9b78dbfc",
 			"getCurrentLoan(uint256)": "a52f38d1",
 			"getCurrentRate()": "f7fb07b0",
 			"getDebtPool()": "03ec357f",
 			"getRemainingPool()": "3b24cc21",
 			"getTotalSupply()": "c4e41b22",
-			"initialize(address,address)": "485cc955",
-			"liquidatePenalty(uint256)": "57379102",
+			"initialize(address,address,uint256)": "1794bb3c",
+			"liquidatePenalty(uint256,uint256)": "7f394031",
 			"repay(uint256,uint256)": "d8aed145",
 			"setCCFL(address)": "8ac1b775",
 			"supply(uint256)": "35403023",
 			"withdraw(uint256)": "2e1a7d4d",
+			"withdrawByAdmin(address,address)": "e3691c51",
 			"withdrawLoan(address,uint256)": "ec7be39d"
 		}
 	},
@@ -70,10 +72,22 @@
 			"anonymous": false,
 			"inputs": [
 				{
-					"indexed": false,
-					"internalType": "uint256",
-					"name": "loanId",
-					"type": "uint256"
+					"indexed": true,
+					"internalType": "address",
+					"name": "lender",
+					"type": "address"
+				},
+				{
+					"indexed": true,
+					"internalType": "address",
+					"name": "poolAddress",
+					"type": "address"
+				},
+				{
+					"indexed": true,
+					"internalType": "contract IERC20Standard",
+					"name": "stableCoin",
+					"type": "address"
 				},
 				{
 					"indexed": false,
@@ -83,27 +97,51 @@
 				},
 				{
 					"indexed": false,
-					"internalType": "address",
-					"name": "borrower",
-					"type": "address"
+					"internalType": "uint256",
+					"name": "lenderShare",
+					"type": "uint256"
 				},
 				{
 					"indexed": false,
 					"internalType": "uint256",
-					"name": "when",
+					"name": "totalSupply",
+					"type": "uint256"
+				},
+				{
+					"indexed": false,
+					"internalType": "uint256",
+					"name": "totalLiquidity",
+					"type": "uint256"
+				},
+				{
+					"indexed": false,
+					"internalType": "uint256",
+					"name": "remainingPool",
 					"type": "uint256"
 				}
 			],
-			"name": "CloseLoan",
+			"name": "AddSupply",
 			"type": "event"
 		},
 		{
 			"anonymous": false,
 			"inputs": [
 				{
-					"indexed": false,
+					"indexed": true,
 					"internalType": "address",
-					"name": "user",
+					"name": "lender",
+					"type": "address"
+				},
+				{
+					"indexed": true,
+					"internalType": "address",
+					"name": "poolAddress",
+					"type": "address"
+				},
+				{
+					"indexed": true,
+					"internalType": "contract IERC20Standard",
+					"name": "stableCoin",
 					"type": "address"
 				},
 				{
@@ -115,61 +153,29 @@
 				{
 					"indexed": false,
 					"internalType": "uint256",
-					"name": "when",
+					"name": "lenderShare",
+					"type": "uint256"
+				},
+				{
+					"indexed": false,
+					"internalType": "uint256",
+					"name": "totalSupply",
+					"type": "uint256"
+				},
+				{
+					"indexed": false,
+					"internalType": "uint256",
+					"name": "totalLiquidity",
+					"type": "uint256"
+				},
+				{
+					"indexed": false,
+					"internalType": "uint256",
+					"name": "remainingPool",
 					"type": "uint256"
 				}
 			],
-			"name": "Deposit",
-			"type": "event"
-		},
-		{
-			"anonymous": false,
-			"inputs": [
-				{
-					"indexed": false,
-					"internalType": "address",
-					"name": "user",
-					"type": "address"
-				},
-				{
-					"indexed": false,
-					"internalType": "uint256",
-					"name": "amount",
-					"type": "uint256"
-				},
-				{
-					"indexed": false,
-					"internalType": "uint256",
-					"name": "when",
-					"type": "uint256"
-				}
-			],
-			"name": "Withdraw",
-			"type": "event"
-		},
-		{
-			"anonymous": false,
-			"inputs": [
-				{
-					"indexed": false,
-					"internalType": "address",
-					"name": "user",
-					"type": "address"
-				},
-				{
-					"indexed": false,
-					"internalType": "uint256",
-					"name": "amount",
-					"type": "uint256"
-				},
-				{
-					"indexed": false,
-					"internalType": "uint256",
-					"name": "when",
-					"type": "uint256"
-				}
-			],
-			"name": "WithdrawLoan",
+			"name": "WithdrawSupply",
 			"type": "event"
 		},
 		{
@@ -180,7 +186,7 @@
 					"type": "address"
 				}
 			],
-			"name": "balance",
+			"name": "balanceOf",
 			"outputs": [
 				{
 					"internalType": "uint256",
@@ -207,9 +213,27 @@
 					"internalType": "address",
 					"name": "_borrower",
 					"type": "address"
+				},
+				{
+					"internalType": "bool",
+					"name": "_isFiat",
+					"type": "bool"
 				}
 			],
 			"name": "borrow",
+			"outputs": [],
+			"stateMutability": "nonpayable",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "uint256",
+					"name": "_amount",
+					"type": "uint256"
+				}
+			],
+			"name": "earnStaking",
 			"outputs": [],
 			"stateMutability": "nonpayable",
 			"type": "function"
@@ -311,6 +335,11 @@
 					"internalType": "address",
 					"name": "interestRateStrategyAddress",
 					"type": "address"
+				},
+				{
+					"internalType": "uint256",
+					"name": "_cap",
+					"type": "uint256"
 				}
 			],
 			"name": "initialize",
@@ -320,6 +349,11 @@
 		},
 		{
 			"inputs": [
+				{
+					"internalType": "uint256",
+					"name": "_loanId",
+					"type": "uint256"
+				},
 				{
 					"internalType": "uint256",
 					"name": "_amount",
@@ -384,6 +418,24 @@
 				}
 			],
 			"name": "withdraw",
+			"outputs": [],
+			"stateMutability": "nonpayable",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "contract IERC20Standard",
+					"name": "_token",
+					"type": "address"
+				},
+				{
+					"internalType": "address",
+					"name": "_receiver",
+					"type": "address"
+				}
+			],
+			"name": "withdrawByAdmin",
 			"outputs": [],
 			"stateMutability": "nonpayable",
 			"type": "function"

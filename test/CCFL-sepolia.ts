@@ -2,10 +2,10 @@ import { bigint } from "hardhat/internal/core/params/argumentTypes";
 
 const { ethers } = require("hardhat");
 
-let pool = "0x2c178873E95aF410A6D0493B3715cc343dD76Ae4";
-let ccfl = "0x847B9D52d563fdF6a8cbc761c6B429741d59F6E1";
+let pool = "0x93B5b99986FAeb328B3944383e6956D299c0CC14";
+let ccfl = "0xB07c62E2a4E3da8465fa207965da12787b9188fc";
 
-let usdtPool = "0xB647750b9C30B9EA260c5FA7b15203c1FC768436";
+let usdtPool = "0xa00Ae2a3aeFd3002EDE22523E12BF28D4676596A";
 
 let usdt = "0xaa8e23fb1079ea71e0a56f48a2aa51851d8433d0";
 let usdc = "0x94a9D9AC8a22534E3FaCa9F4e7F2E2cf85d5E4C8";
@@ -397,19 +397,19 @@ describe("sepolia", () => {
       // await changeWbtcprice(10e8);
     });
 
-    it.only("get minimal wbtc", async () => {
+    it("get minimal wbtc", async () => {
       // await changeWbtcprice(60000e8);
       await getMinimumCollateral(1e6);
     });
   });
 
   describe("CCFL usdt", () => {
-    it("approve wbtc", async () => {
+    it.only("approve wbtc", async () => {
       const AMOUNT = ethers.parseUnits("0.1", 8);
       await approveWBTC(AMOUNT);
     });
 
-    it("create a loan", async () => {
+    it.only("create a loan", async () => {
       await createLoanUSDT();
     });
 
