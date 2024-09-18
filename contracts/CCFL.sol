@@ -11,32 +11,23 @@ contract CCFL is ICCFL, Initializable {
     using Clones for address;
 
     mapping(address => bool) public operators;
-    mapping(address => mapping(IERC20Standard => uint)) public collaterals;
 
     uint public loandIds;
     mapping(IERC20Standard => ICCFLPool) public ccflPools;
     IERC20Standard[] public ccflPoolStableCoins;
-    ICCFLLoan public ccflLoan;
     mapping(uint => ICCFLLoan) loans;
-
-    mapping(IERC20Standard => bool) public ccflActivePoolStableCoins;
+    mapping(IERC20Standard => bool) public ccflActiveCoins;
 
     // init for clone loan sc
     IERC20Standard[] public collateralTokens;
-    mapping(IERC20Standard => bool) public ccflActiveCollaterals;
 
     mapping(IERC20Standard => IERC20Standard) public aTokens;
     mapping(IERC20Standard => AggregatorV3Interface) public priceFeeds;
     mapping(IERC20Standard => AggregatorV3Interface) public pricePoolFeeds;
-    address public liquidator;
-    address public platform;
     address public owner;
-    IWETH public wETH;
     bool public isPaused;
 
     mapping(address => uint[]) public userLoans;
-
-    bool isEnableETHNative;
 
     mapping(IERC20Standard => mapping(IERC20Standard => uint24))
         public collateralToStableCoinFee;
@@ -55,7 +46,7 @@ contract CCFL is ICCFL, Initializable {
 
     modifier supportedPoolToken(IERC20Standard _tokenAddress) {
         require(
-            ccflActivePoolStableCoins[_tokenAddress] == true,
+            ccflActiveCoins[_tokenAddress] == true,
             Errors.POOL_TOKEN_IS_NOT_ACTIVED
         );
         _;
@@ -63,14 +54,17 @@ contract CCFL is ICCFL, Initializable {
 
     modifier supportedCollateralToken(IERC20Standard _tokenAddress) {
         require(
-            ccflActiveCollaterals[_tokenAddress] == true,
+            ccflActiveCoins[_tokenAddress] == true,
             Errors.COLLATERAL_TOKEN_IS_NOT_ACTIVED
         );
         _;
     }
 
     modifier onlyETHNative() {
-        require(isEnableETHNative == true, Errors.ETH_NATIVE_DISABLE);
+        require(
+            ccflConfig.getEnableETHNative() == true,
+            Errors.ETH_NATIVE_DISABLE
+        );
         _;
     }
 
@@ -101,7 +95,6 @@ contract CCFL is ICCFL, Initializable {
         IERC20Standard[] memory _collateralTokens,
         AggregatorV3Interface[] memory _collateralAggregators,
         IERC20Standard[] memory _aTokens,
-        ICCFLLoan _ccflLoan,
         ICCFLConfig _ccflConfig
     ) external initializer {
         ccflPoolStableCoins = _ccflPoolStableCoin;
@@ -110,23 +103,18 @@ contract CCFL is ICCFL, Initializable {
             IERC20Standard token = ccflPoolStableCoins[i];
             ccflPools[token] = _ccflPools[i];
             pricePoolFeeds[token] = _poolAggregators[i];
-            ccflActivePoolStableCoins[token] = true;
+            ccflActiveCoins[token] = true;
         }
         collateralTokens = _collateralTokens;
         for (uint i = 0; i < collateralTokens.length; i++) {
             IERC20Standard token = collateralTokens[i];
             priceFeeds[token] = _collateralAggregators[i];
             aTokens[token] = _aTokens[i];
-            ccflActiveCollaterals[token] = true;
+            ccflActiveCoins[token] = true;
         }
-        ccflLoan = _ccflLoan;
         owner = msg.sender;
         operators[msg.sender] = true;
         ccflConfig = _ccflConfig;
-    }
-
-    function setEnableETHNative(bool _isActived) public onlyOperator {
-        isEnableETHNative = _isActived;
     }
 
     function setPaused(bool _paused) public onlyOwner {
@@ -153,12 +141,8 @@ contract CCFL is ICCFL, Initializable {
                 ccflPoolStableCoins.push(token);
             ccflPools[token] = _ccflPools[i];
             pricePoolFeeds[token] = _poolAggregators[i];
-            ccflActivePoolStableCoins[token] = true;
+            ccflActiveCoins[token] = true;
         }
-    }
-
-    function setCCFLLoan(ICCFLLoan _loan) public onlyOperator {
-        ccflLoan = _loan;
     }
 
     function setCollaterals(
@@ -172,7 +156,7 @@ contract CCFL is ICCFL, Initializable {
                 collateralTokens.push(token);
             priceFeeds[token] = _collateralAggregators[i];
             aTokens[token] = _aTokens[i];
-            ccflActiveCollaterals[token] = true;
+            ccflActiveCoins[token] = true;
         }
     }
 
@@ -186,26 +170,14 @@ contract CCFL is ICCFL, Initializable {
                 checkExistElement(ccflPoolStableCoins, _token) == true,
                 Errors.TOKEN_IS_NOT_EXISTED
             );
-            ccflActiveCollaterals[_token] = _isActived;
+            ccflActiveCoins[_token] = _isActived;
         } else {
             require(
                 checkExistElement(collateralTokens, _token) == true,
                 Errors.TOKEN_IS_NOT_EXISTED
             );
-            ccflActivePoolStableCoins[_token] = _isActived;
+            ccflActiveCoins[_token] = _isActived;
         }
-    }
-
-    function setWETH(IWETH _iWETH) public onlyOperator {
-        wETH = _iWETH;
-    }
-
-    function setPlatformAddress(
-        address _liquidator,
-        address _platform
-    ) public onlyOperator {
-        liquidator = _liquidator;
-        platform = _platform;
     }
 
     function setCollateralToStableFee(
@@ -310,8 +282,7 @@ contract CCFL is ICCFL, Initializable {
 
         // make loan ins
         DataTypes.Loan memory loan;
-        address _borrower = msg.sender;
-        loan.borrower = _borrower;
+        loan.borrower = msg.sender;
         loan.amount = _amount;
         loan.loanId = loandIds;
         loan.isPaid = false;
@@ -328,23 +299,21 @@ contract CCFL is ICCFL, Initializable {
         AggregatorV3Interface _pricePoolFeeds = pricePoolFeeds[_stableCoin];
         IERC20Standard token = _collateral;
         // clone a loan SC
-        address loanIns = address(ccflLoan).clone();
+        address loanIns = address(ccflConfig.getCCFLLoan()).clone();
         ICCFLLoan cloneSC = ICCFLLoan(loanIns);
         {
             (uint maxLTV, uint liquidationThreshold) = ccflConfig
                 .getThreshold();
-            IPoolAddressesProvider aaveAddressProvider = ccflConfig
-                .getAaveProvider();
             cloneSC.initialize(
                 loan,
                 token,
-                aaveAddressProvider,
+                ccflConfig.getAaveProvider(),
                 aTokens[token],
                 maxLTV,
                 liquidationThreshold,
                 priceFeeds[token],
                 _pricePoolFeeds,
-                wETH
+                ccflConfig.getWETH()
             );
         }
         cloneSC.setCCFL(address(this));
@@ -375,8 +344,10 @@ contract CCFL is ICCFL, Initializable {
             );
         }
 
-        uint24 fee = collateralToStableCoinFee[token][_stableCoin];
-        cloneSC.setUniFee(fee);
+        {
+            uint24 fee = collateralToStableCoinFee[token][_stableCoin];
+            cloneSC.setUniFee(fee);
+        }
 
         if (_isETH == false) {
             // transfer collateral
@@ -390,6 +361,7 @@ contract CCFL is ICCFL, Initializable {
             // transfer collateral
             cloneSC.updateCollateral(_amountCollateral);
             // get from user to loan
+            IWETH wETH = ccflConfig.getWETH();
             IERC20Standard(address(wETH)).transfer(
                 address(loanIns),
                 _amountCollateral
@@ -431,6 +403,7 @@ contract CCFL is ICCFL, Initializable {
             _amountETH <= msg.value,
             Errors.DO_NOT_HAVE_ENOUGH_DEPOSITED_ETH
         );
+        IWETH wETH = ccflConfig.getWETH();
         wETH.deposit{value: _amountETH}();
         (uint maxLTV, uint liquidationThreshold) = ccflConfig.getThreshold();
         require(
@@ -490,6 +463,7 @@ contract CCFL is ICCFL, Initializable {
             _amountETH <= msg.value,
             Errors.DO_NOT_HAVE_ENOUGH_DEPOSITED_ETH
         );
+        IWETH wETH = ccflConfig.getWETH();
         wETH.deposit{value: _amountETH}();
 
         ICCFLLoan loan = loans[_loanId];
@@ -574,6 +548,8 @@ contract CCFL is ICCFL, Initializable {
                 );
                 ccflPools[_stableCoin].earnStaking(usdLender);
             }
+            (address liquidator, address platform) = ccflConfig
+                .getPlatformAddress();
             if (usdPlatform > 0)
                 _stableCoin.transferFrom(
                     address(loans[_loanId]),
@@ -587,19 +563,19 @@ contract CCFL is ICCFL, Initializable {
 
     function withdrawAllCollateral(
         uint _loanId,
-        bool isETH
+        bool _isETH
     ) public onlyUnpaused {
         ICCFLLoan loan = loans[_loanId];
         DataTypes.Loan memory info = loan.getLoanInfo();
         require(msg.sender == info.borrower, Errors.ONLY_THE_BORROWER);
-        loan.withdrawAllCollateral(info.borrower, isETH);
+        loan.withdrawAllCollateral(info.borrower, _isETH);
 
         emit WithdrawAllCollateral(
             msg.sender,
             info,
             loan.getCollateralAmount(),
             loan.getCollateralToken(),
-            isETH
+            _isETH
         );
     }
 
@@ -704,6 +680,9 @@ contract CCFL is ICCFL, Initializable {
         );
         ccflPools[loanInfo.stableCoin].repay(_loanId, curentDebt);
         // update collateral balance and get back collateral
+
+        (address liquidator, address platform) = ccflConfig
+            .getPlatformAddress();
 
         loanInfo.stableCoin.transferFrom(address(loan), platform, usdPlatform);
 

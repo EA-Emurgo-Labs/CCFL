@@ -29,6 +29,9 @@ contract CCFLConfig is ICCFLConfig, Initializable {
 
     address public liquidator;
     address public platform;
+    bool isEnableETHNative;
+    IWETH public wETH;
+    ICCFLLoan public ccflLoan;
 
     modifier onlyOwner() {
         require(msg.sender == owner, Errors.ONLY_THE_OWNER);
@@ -36,16 +39,8 @@ contract CCFLConfig is ICCFLConfig, Initializable {
     }
 
     function initialize(
-        IERC20Standard[] memory _ccflPoolStableCoin,
-        AggregatorV3Interface[] memory _poolAggregators,
-        ICCFLPool[] memory _ccflPools,
-        IERC20Standard[] memory _collateralTokens,
-        AggregatorV3Interface[] memory _collateralAggregators,
-        IERC20Standard[] memory _aTokens,
-        IPoolAddressesProvider _aaveAddressProvider,
         uint _maxLTV,
-        uint _liquidationThreshold,
-        ICCFLLoan _ccflLoan
+        uint _liquidationThreshold
     ) external initializer {
         maxLTV = _maxLTV;
         liquidationThreshold = _liquidationThreshold;
@@ -119,5 +114,41 @@ contract CCFLConfig is ICCFLConfig, Initializable {
         returns (IV3SwapRouter, IUniswapV3Factory, IQuoterV2)
     {
         return (swapRouter, factory, quoter);
+    }
+
+    function setPlatformAddress(
+        address _liquidator,
+        address _platform
+    ) public onlyOwner {
+        liquidator = _liquidator;
+        platform = _platform;
+    }
+
+    function getPlatformAddress() public view returns (address, address) {
+        return (liquidator, platform);
+    }
+
+    function setEnableETHNative(bool _isActived) public onlyOwner {
+        isEnableETHNative = _isActived;
+    }
+
+    function getEnableETHNative() public view returns (bool) {
+        return isEnableETHNative;
+    }
+
+    function setWETH(IWETH _iWETH) public onlyOwner {
+        wETH = _iWETH;
+    }
+
+    function getWETH() public view returns (IWETH) {
+        return wETH;
+    }
+
+    function setCCFLLoan(ICCFLLoan _loan) public onlyOwner {
+        ccflLoan = _loan;
+    }
+
+    function getCCFLLoan() public view returns (ICCFLLoan) {
+        return ccflLoan;
     }
 }

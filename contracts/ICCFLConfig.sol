@@ -57,4 +57,23 @@ interface ICCFLConfig {
     ) external;
 
     function getPenalty() external view returns (uint, uint, uint);
+
+    function setPlatformAddress(
+        address _liquidator,
+        address _platform
+    ) external;
+
+    function getPlatformAddress() external view returns (address, address);
+
+    function setEnableETHNative(bool _isActived) external;
+
+    function getEnableETHNative() external view returns (bool);
+
+    function setWETH(IWETH _iWETH) external;
+
+    function getWETH() external view returns (IWETH);
+
+    function setCCFLLoan(ICCFLLoan _loan) external;
+
+    function getCCFLLoan() external view returns (ICCFLLoan);
 }

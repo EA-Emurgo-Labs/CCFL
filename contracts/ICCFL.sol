@@ -80,7 +80,6 @@ interface ICCFL {
         IERC20Standard[] memory _collateralTokens,
         AggregatorV3Interface[] memory _collateralAggregators,
         IERC20Standard[] memory _aTokens,
-        ICCFLLoan _ccflLoan,
         ICCFLConfig _ccflConfig
     ) external;
 
@@ -89,8 +88,6 @@ interface ICCFL {
         AggregatorV3Interface[] memory _poolAggregators,
         ICCFLPool[] memory _ccflPools
     ) external;
-
-    function setCCFLLoan(ICCFLLoan _loan) external;
 
     function setCollaterals(
         IERC20Standard[] memory _collateralTokens,
@@ -114,8 +111,6 @@ interface ICCFL {
         bool _isFiat
     ) external;
 
-    function setWETH(IWETH _iWETH) external;
-
     // withdraw loan
     function withdrawLoan(IERC20Standard _stableCoin, uint _loanId) external;
 
@@ -136,8 +131,6 @@ interface ICCFL {
     function getLoanAddress(uint _loanId) external view returns (address);
 
     function liquidate(uint _loanId) external;
-
-    function setPlatformAddress(address _liquidator, address _plaform) external;
 
     function addCollateral(
         uint _loanId,
