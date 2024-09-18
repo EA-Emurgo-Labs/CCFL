@@ -131,7 +131,6 @@ contract CCFLConfig is ICCFLConfig, Initializable {
     function getSwapRouter()
         public
         view
-        onlyOwner
         returns (IV3SwapRouter, IUniswapV3Factory, IQuoterV2)
     {
         return (swapRouter, factory, quoter);

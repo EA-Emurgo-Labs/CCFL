@@ -6,12 +6,17 @@ import { expect } from "chai";
 import hre from "hardhat";
 import { assert, parseUnits } from "ethers";
 
-describe.skip("CCFL contract", function () {
+describe("CCFL contract", function () {
   // We define a fixture to reuse the same setup in every test.
   // We use loadFixture to run this setup once, snapshot that state,
   // and reset Hardhat Network to that snapshot in every test.
 
-  let mockSwap, wETH9, liquidatorAddress, platformAddress, mockUniFactory;
+  let mockSwap,
+    wETH9,
+    liquidatorAddress,
+    platformAddress,
+    mockUniFactory,
+    mockUniQuoter;
 
   async function deployFixture() {
     // Contracts are deployed using the first signer/account by default
@@ -98,8 +103,30 @@ describe.skip("CCFL contract", function () {
 
     mockUniFactory.setPool(mockUniPool);
 
+    const MockUniQuoter = await hre.ethers.getContractFactory("MockQuoter");
+    mockUniQuoter = await MockUniQuoter.deploy();
+
     const CCFLLoan = await hre.ethers.getContractFactory("CCFLLoan");
     const ccflLoan = await CCFLLoan.deploy();
+
+    const CCFLConfig = await hre.ethers.getContractFactory("CCFLConfig");
+    const ccflConfig = await hre.upgrades.deployProxy(
+      CCFLConfig,
+      [
+        5000,
+        8000,
+        await mockSwap.getAddress(),
+        await mockUniFactory.getAddress(),
+        await mockUniQuoter.getAddress(),
+        await mockPoolAddressesProvider.getAddress(),
+        liquidator,
+        platform,
+        true,
+        wETH9,
+        ccflLoan,
+      ],
+      { initializer: "initialize" }
+    );
 
     const CCFL = await hre.ethers.getContractFactory("CCFL");
     const ccfl = await hre.upgrades.deployProxy(
@@ -111,22 +138,14 @@ describe.skip("CCFL contract", function () {
         [await link.getAddress(), await wETH9.getAddress()],
         [await mockAggr2.getAddress(), await mockAggr3.getAddress()],
         [await aToken.getAddress(), await aToken.getAddress()],
-        await mockPoolAddressesProvider.getAddress(),
-        5000,
-        8000,
-        await ccflLoan.getAddress(),
+        await ccflConfig.getAddress(),
       ],
       { initializer: "initialize" }
     );
     await ccfl.setOperators([owner], [true]);
-    await ccfl.setWETH(await wETH9.getAddress());
 
-    await ccfl.setPlatformAddress(liquidator, platform);
     await ccflPool.setCCFL(await ccfl.getAddress());
-    await ccfl.setSwapRouter(
-      await mockSwap.getAddress(),
-      await mockUniFactory.getAddress()
-    );
+
     await ccfl.setEarnShare(7000, 2000, 1000);
     await ccfl.setEnableETHNative(true);
 
@@ -168,7 +187,7 @@ describe.skip("CCFL contract", function () {
   }
 
   describe("Initialization", () => {
-    it("Should initialize correctly", async () => {
+    it.only("Should initialize correctly", async () => {
       const {
         usdc,
         link,
