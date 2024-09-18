@@ -322,7 +322,7 @@ async function getMinimumCollateral(usdcAmount: any) {
   console.log(`Got ${estimateHeathFactor} health-factor`);
 }
 
-describe("sepolia", () => {
+describe.skip("sepolia", () => {
   describe("CCFL Pool", () => {
     it("approve usdc", async () => {
       const AMOUNT = ethers.parseUnits("600", 6);
@@ -404,12 +404,12 @@ describe("sepolia", () => {
   });
 
   describe("CCFL usdt", () => {
-    it.only("approve wbtc", async () => {
+    it("approve wbtc", async () => {
       const AMOUNT = ethers.parseUnits("0.1", 8);
       await approveWBTC(AMOUNT);
     });
 
-    it.only("create a loan", async () => {
+    it("create a loan", async () => {
       await createLoanUSDT();
     });
 

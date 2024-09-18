@@ -62,6 +62,73 @@ const ProxyCCFLModule = buildModule("ProxyCCFLModule", (m) => {
 
   const loan = m.contract("CCFLLoan");
 
+  const swapRouterV2 = m.contractAt(
+    "MockSwapRouter",
+    "0x3bFA4769FB09eefC5a80d6E87c3B9C650f7Ae48E"
+  );
+
+  const factoryV3 = m.contractAt(
+    "MockFactory",
+    "0x0227628f3F023bb0B980b67D528571c95c6DaC1c"
+  );
+
+  const quoterV2 = m.contractAt(
+    "IQuoterV2",
+    "0xEd1f6473345F45b75F8179591dd5bA1888cf2FB3"
+  );
+
+  const ccflConfig = m.contract("CCFLConfig");
+
+  const dataConfig = m.encodeFunctionCall(ccflConfig, "initialize", [
+    BigInt(5000),
+    BigInt(7000),
+    swapRouterV2,
+    factoryV3,
+    quoterV2,
+    PoolAddressesProviderAave,
+    proxyAdminOwner,
+    proxyAdminOwner,
+    true,
+    wETH,
+    loan,
+  ]);
+
+  const proxyCCFLConfig = m.contract(
+    "TransparentUpgradeableProxy",
+    [ccflConfig, proxyAdminOwner, dataConfig],
+    { id: "proxyCCFLConfig" }
+  );
+
+  const proxyAdminAddressCCFLConfig = m.readEventArgument(
+    proxyCCFLConfig,
+    "AdminChanged",
+    "newAdmin",
+    { id: "proxyAdminAddressCCFLConfig" }
+  );
+
+  const proxyAdminCCFLConfig = m.contractAt(
+    "ProxyAdmin",
+    proxyAdminAddressCCFLConfig,
+    {
+      id: "proxyCCFLConfigadmin",
+    }
+  );
+
+  const ccflConfigProxyRemap = m.contractAt("CCFLConfig", proxyCCFLConfig, {
+    id: "ccflConfigProxyRemap",
+  });
+
+  m.call(ccflConfigProxyRemap, "setPenalty", [
+    BigInt(50),
+    BigInt(100),
+    BigInt(50),
+  ]);
+  m.call(ccflConfigProxyRemap, "setEarnShare", [
+    BigInt(7000),
+    BigInt(2000),
+    BigInt(1000),
+  ]);
+
   const ccfl = m.contract("CCFL");
 
   const data = m.encodeFunctionCall(ccfl, "initialize", [
@@ -71,10 +138,7 @@ const ProxyCCFLModule = buildModule("ProxyCCFLModule", (m) => {
     [wbtc, wETH],
     [wbtcAggr, ethAggr],
     [aWBTC, aWETH],
-    PoolAddressesProviderAave,
-    BigInt(5000),
-    BigInt(7000),
-    loan,
+    proxyCCFLConfig,
   ]);
 
   const proxyCCFL = m.contract(
@@ -101,38 +165,7 @@ const ProxyCCFLModule = buildModule("ProxyCCFLModule", (m) => {
     id: "ccflproxyRemap",
   });
 
-  const swapRouterV2 = m.contractAt(
-    "MockSwapRouter",
-    "0x3bFA4769FB09eefC5a80d6E87c3B9C650f7Ae48E"
-  );
-
-  const factoryV3 = m.contractAt(
-    "MockFactory",
-    "0x0227628f3F023bb0B980b67D528571c95c6DaC1c"
-  );
-
-  const quoterV2 = m.contractAt(
-    "IQuoterV2",
-    "0xEd1f6473345F45b75F8179591dd5bA1888cf2FB3"
-  );
-
-  m.call(ccflProxyRemap, "setPenalty", [BigInt(50), BigInt(100), BigInt(50)]);
-
-  m.call(ccflProxyRemap, "setPlatformAddress", [
-    proxyAdminOwner,
-    proxyAdminOwner,
-  ]);
-
   m.call(ccflPoolProxyRemap, "setCCFL", [ccflProxyRemap]);
-
-  m.call(ccflProxyRemap, "setSwapRouter", [swapRouterV2, factoryV3, quoterV2]);
-
-  m.call(ccflProxyRemap, "setEarnShare", [
-    BigInt(7000),
-    BigInt(2000),
-    BigInt(1000),
-  ]);
-  m.call(ccflProxyRemap, "setEnableETHNative", [true]);
 
   return { proxyAdminCCFL, proxyCCFL, proxyAdminPool, proxyPool };
 });

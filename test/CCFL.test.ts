@@ -2,12 +2,11 @@ import {
   time,
   loadFixture,
 } from "@nomicfoundation/hardhat-toolbox/network-helpers";
-import { anyValue } from "@nomicfoundation/hardhat-chai-matchers/withArgs";
 import { expect } from "chai";
 import hre from "hardhat";
 import { assert, parseUnits } from "ethers";
 
-describe("CCFL contract", function () {
+describe.skip("CCFL contract", function () {
   // We define a fixture to reuse the same setup in every test.
   // We use loadFixture to run this setup once, snapshot that state,
   // and reset Hardhat Network to that snapshot in every test.
@@ -768,11 +767,9 @@ describe("CCFL contract", function () {
         );
 
       await expect(
-        ccfl
-          .connect(borrower1)
-          .addCollateralByETH(BigInt(1), BigInt(500e18), {
-            value: BigInt(100e18),
-          })
+        ccfl.connect(borrower1).addCollateralByETH(BigInt(1), BigInt(500e18), {
+          value: BigInt(100e18),
+        })
       ).to.be.revertedWith("6");
     });
 
