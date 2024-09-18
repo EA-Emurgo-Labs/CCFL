@@ -76,4 +76,15 @@ interface ICCFLConfig {
     function setCCFLLoan(ICCFLLoan _loan) external;
 
     function getCCFLLoan() external view returns (ICCFLLoan);
+
+    function setCollateralToStableFee(
+        IERC20Standard[] memory _collateral,
+        IERC20Standard[] memory _stable,
+        uint24[] memory _fee
+    ) external;
+
+    function getCollateralToStableFee(
+        IERC20Standard _collateral,
+        IERC20Standard _stable
+    ) external view returns (uint24);
 }

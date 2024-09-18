@@ -33,6 +33,9 @@ contract CCFLConfig is ICCFLConfig, Initializable {
     IWETH public wETH;
     ICCFLLoan public ccflLoan;
 
+    mapping(IERC20Standard => mapping(IERC20Standard => uint24))
+        public collateralToStableCoinFee;
+
     modifier onlyOwner() {
         require(msg.sender == owner, Errors.ONLY_THE_OWNER);
         _;
@@ -40,10 +43,28 @@ contract CCFLConfig is ICCFLConfig, Initializable {
 
     function initialize(
         uint _maxLTV,
-        uint _liquidationThreshold
+        uint _liquidationThreshold,
+        IV3SwapRouter _swapRouter,
+        IUniswapV3Factory _factory,
+        IQuoterV2 _quoter,
+        IPoolAddressesProvider _aaveAddressProvider,
+        address _liquidator,
+        address _platform,
+        bool _isEnableETHNative,
+        IWETH _wETH,
+        ICCFLLoan _ccflLoan
     ) external initializer {
         maxLTV = _maxLTV;
         liquidationThreshold = _liquidationThreshold;
+        swapRouter = _swapRouter;
+        factory = _factory;
+        quoter = _quoter;
+        aaveAddressProvider = _aaveAddressProvider;
+        liquidator = _liquidator;
+        platform = _platform;
+        isEnableETHNative = _isEnableETHNative;
+        wETH = _wETH;
+        ccflLoan = _ccflLoan;
         owner = msg.sender;
     }
 
@@ -150,5 +171,21 @@ contract CCFLConfig is ICCFLConfig, Initializable {
 
     function getCCFLLoan() public view returns (ICCFLLoan) {
         return ccflLoan;
+    }
+
+    function setCollateralToStableFee(
+        IERC20Standard[] memory _collateral,
+        IERC20Standard[] memory _stable,
+        uint24[] memory _fee
+    ) public onlyOwner {
+        for (uint i = 0; i < _collateral.length; i++)
+            collateralToStableCoinFee[_collateral[i]][_stable[i]] = _fee[i];
+    }
+
+    function getCollateralToStableFee(
+        IERC20Standard _collateral,
+        IERC20Standard _stable
+    ) public view returns (uint24) {
+        return collateralToStableCoinFee[_collateral][_stable];
     }
 }

@@ -29,9 +29,6 @@ contract CCFL is ICCFL, Initializable {
 
     mapping(address => uint[]) public userLoans;
 
-    mapping(IERC20Standard => mapping(IERC20Standard => uint24))
-        public collateralToStableCoinFee;
-
     ICCFLConfig public ccflConfig;
 
     modifier onlyOwner() {
@@ -178,14 +175,6 @@ contract CCFL is ICCFL, Initializable {
             );
             ccflActiveCoins[_token] = _isActived;
         }
-    }
-
-    function setCollateralToStableFee(
-        IERC20Standard _collateral,
-        IERC20Standard _stable,
-        uint24 _fee
-    ) public onlyOperator {
-        collateralToStableCoinFee[_collateral][_stable] = _fee;
     }
 
     // Modifier to check token allowance
@@ -345,7 +334,10 @@ contract CCFL is ICCFL, Initializable {
         }
 
         {
-            uint24 fee = collateralToStableCoinFee[token][_stableCoin];
+            uint24 fee = ccflConfig.getCollateralToStableFee(
+                token,
+                _stableCoin
+            );
             cloneSC.setUniFee(fee);
         }
 
