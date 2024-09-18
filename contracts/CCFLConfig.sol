@@ -10,21 +10,21 @@ contract CCFLConfig is ICCFLConfig, Initializable {
     using Clones for address;
 
     // init for clone loan sc
-    uint24 public maxLTV;
-    uint24 public liquidationThreshold;
+    uint public maxLTV;
+    uint public liquidationThreshold;
     IV3SwapRouter swapRouter;
     IUniswapV3Factory public factory;
     IQuoterV2 public quoter;
     address public owner;
 
     // penalty / 10000
-    uint24 public penaltyPlatform;
-    uint24 public penaltyLiquidator;
-    uint24 public penaltyLender;
+    uint public penaltyPlatform;
+    uint public penaltyLiquidator;
+    uint public penaltyLender;
     // earn AAVE /10000
-    uint24 public earnPlatform;
-    uint24 public earnBorrower;
-    uint24 public earnLender;
+    uint public earnPlatform;
+    uint public earnBorrower;
+    uint public earnLender;
     IPoolAddressesProvider public aaveAddressProvider;
 
     address public liquidator;
@@ -43,8 +43,8 @@ contract CCFLConfig is ICCFLConfig, Initializable {
         AggregatorV3Interface[] memory _collateralAggregators,
         IERC20Standard[] memory _aTokens,
         IPoolAddressesProvider _aaveAddressProvider,
-        uint24 _maxLTV,
-        uint24 _liquidationThreshold,
+        uint _maxLTV,
+        uint _liquidationThreshold,
         ICCFLLoan _ccflLoan
     ) external initializer {
         maxLTV = _maxLTV;
@@ -53,16 +53,16 @@ contract CCFLConfig is ICCFLConfig, Initializable {
     }
 
     function setEarnShare(
-        uint24 _borrower,
-        uint24 _platform,
-        uint24 _lender
+        uint _borrower,
+        uint _platform,
+        uint _lender
     ) public onlyOwner {
         earnLender = _lender;
         earnBorrower = _borrower;
         earnPlatform = _platform;
     }
 
-    function getEarnShare() public view returns (uint24, uint24, uint24) {
+    function getEarnShare() public view returns (uint, uint, uint) {
         return (earnLender, earnBorrower, earnPlatform);
     }
 
@@ -77,28 +77,28 @@ contract CCFLConfig is ICCFLConfig, Initializable {
     }
 
     function setThreshold(
-        uint24 _maxLTV,
-        uint24 _liquidationThreshold
+        uint _maxLTV,
+        uint _liquidationThreshold
     ) public onlyOwner {
         maxLTV = _maxLTV;
         liquidationThreshold = _liquidationThreshold;
     }
 
-    function getThreshold() public view returns (uint24, uint24) {
+    function getThreshold() public view returns (uint, uint) {
         return (maxLTV, liquidationThreshold);
     }
 
     function setPenalty(
-        uint24 _platform,
-        uint24 _liquidator,
-        uint24 _lender
+        uint _platform,
+        uint _liquidator,
+        uint _lender
     ) public onlyOwner {
         penaltyLender = _lender;
         penaltyLiquidator = _liquidator;
         penaltyPlatform = _platform;
     }
 
-    function getPenalty() public view returns (uint24, uint24, uint24) {
+    function getPenalty() public view returns (uint, uint, uint) {
         return (penaltyLender, penaltyLiquidator, penaltyPlatform);
     }
 

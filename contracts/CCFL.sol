@@ -230,8 +230,7 @@ contract CCFL is ICCFL, Initializable {
         IERC20Standard _stableCoin,
         IERC20Standard _collateral
     ) public view returns (uint) {
-        (uint24 maxLTV, uint24 liquidationThreshold) = ccflConfig
-            .getThreshold();
+        (uint maxLTV, uint liquidationThreshold) = ccflConfig.getThreshold();
         return ((((_amount * (10 ** _collateral.decimals()) * 10000) *
             getLatestPrice(_stableCoin, true)) /
             (10 ** _stableCoin.decimals())) /
@@ -253,8 +252,7 @@ contract CCFL is ICCFL, Initializable {
         supportedCollateralToken(_collateral)
         onlyUnpaused
     {
-        (uint24 maxLTV, uint24 liquidationThreshold) = ccflConfig
-            .getThreshold();
+        (uint maxLTV, uint liquidationThreshold) = ccflConfig.getThreshold();
         require(
             (_amountCollateral * getLatestPrice(_collateral, false) * maxLTV) /
                 (10 ** _collateral.decimals()) >=
@@ -281,8 +279,7 @@ contract CCFL is ICCFL, Initializable {
     ) public view returns (uint) {
         uint stableCoinPrice = getLatestPrice(_stableCoin, true);
         uint collateralPrice = getLatestPrice(_collateralToken, false);
-        (uint24 maxLTV, uint24 liquidationThreshold) = ccflConfig
-            .getThreshold();
+        (uint maxLTV, uint liquidationThreshold) = ccflConfig.getThreshold();
         uint totalCollaterals = (_amountCollateral *
             collateralPrice *
             liquidationThreshold) /
@@ -334,7 +331,7 @@ contract CCFL is ICCFL, Initializable {
         address loanIns = address(ccflLoan).clone();
         ICCFLLoan cloneSC = ICCFLLoan(loanIns);
         {
-            (uint24 maxLTV, uint24 liquidationThreshold) = ccflConfig
+            (uint maxLTV, uint liquidationThreshold) = ccflConfig
                 .getThreshold();
             IPoolAddressesProvider aaveAddressProvider = ccflConfig
                 .getAaveProvider();
@@ -361,18 +358,15 @@ contract CCFL is ICCFL, Initializable {
         }
 
         {
-            (
-                uint24 earnBorrower,
-                uint24 earnPlatform,
-                uint24 earnLender
-            ) = ccflConfig.getEarnShare();
+            (uint earnBorrower, uint earnPlatform, uint earnLender) = ccflConfig
+                .getEarnShare();
             cloneSC.setEarnShare(earnBorrower, earnPlatform, earnLender);
         }
         {
             (
-                uint24 penaltyPlatform,
-                uint24 penaltyLiquidator,
-                uint24 penaltyLender
+                uint penaltyPlatform,
+                uint penaltyLiquidator,
+                uint penaltyLender
             ) = ccflConfig.getPenalty();
             cloneSC.setPenalty(
                 penaltyPlatform,
@@ -438,8 +432,7 @@ contract CCFL is ICCFL, Initializable {
             Errors.DO_NOT_HAVE_ENOUGH_DEPOSITED_ETH
         );
         wETH.deposit{value: _amountETH}();
-        (uint24 maxLTV, uint24 liquidationThreshold) = ccflConfig
-            .getThreshold();
+        (uint maxLTV, uint liquidationThreshold) = ccflConfig.getThreshold();
         require(
             (_amountETH *
                 getLatestPrice(IERC20Standard(address(wETH)), false) *

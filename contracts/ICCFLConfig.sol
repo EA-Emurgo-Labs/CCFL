@@ -27,12 +27,9 @@ interface ICCFLConfig {
 
     function getAaveProvider() external view returns (IPoolAddressesProvider);
 
-    function setThreshold(
-        uint24 _maxLTV,
-        uint24 _liquidationThreshold
-    ) external;
+    function setThreshold(uint _maxLTV, uint _liquidationThreshold) external;
 
-    function getThreshold() external view returns (uint24, uint24);
+    function getThreshold() external view returns (uint, uint);
 
     function setSwapRouter(
         IV3SwapRouter _swapRouter,
@@ -46,18 +43,18 @@ interface ICCFLConfig {
         returns (IV3SwapRouter, IUniswapV3Factory, IQuoterV2);
 
     function setEarnShare(
-        uint24 _borrower,
-        uint24 _platform,
-        uint24 _lender
+        uint _borrower,
+        uint _platform,
+        uint _lender
     ) external;
 
-    function getEarnShare() external view returns (uint24, uint24, uint24);
+    function getEarnShare() external view returns (uint, uint, uint);
 
     function setPenalty(
-        uint24 _platform,
-        uint24 _liquidator,
-        uint24 _lender
+        uint _platform,
+        uint _liquidator,
+        uint _lender
     ) external;
 
-    function getPenalty() external view returns (uint24, uint24, uint24);
+    function getPenalty() external view returns (uint, uint, uint);
 }
