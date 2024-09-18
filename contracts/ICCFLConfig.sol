@@ -21,44 +21,18 @@ import "./IQuoterV2.sol";
 /// @author
 /// @notice Link/usd
 interface ICCFLConfig {
-    function checkExistElement(
-        IERC20Standard[] memory array,
-        IERC20Standard el
-    ) external pure returns (bool);
-
-    function setPools(
-        IERC20Standard[] memory _ccflPoolStableCoin,
-        AggregatorV3Interface[] memory _poolAggregators,
-        ICCFLPool[] memory _ccflPools
-    ) external;
-
-    function setCCFLLoan(ICCFLLoan _loan) external;
-
-    function setCollaterals(
-        IERC20Standard[] memory _collateralTokens,
-        AggregatorV3Interface[] memory _collateralAggregators,
-        IERC20Standard[] memory _aTokens
-    ) external;
-
     function setAaveProvider(
         IPoolAddressesProvider _aaveAddressProvider
     ) external;
 
-    function setActiveToken(
-        IERC20Standard _token,
-        bool _isActived,
-        bool _isPoolToken
+    function getAaveProvider() external view returns (IPoolAddressesProvider);
+
+    function setThreshold(
+        uint24 _maxLTV,
+        uint24 _liquidationThreshold
     ) external;
 
-    function setThreshold(uint _maxLTV, uint _liquidationThreshold) external;
-
-    function setPenalty(
-        uint _platform,
-        uint _liquidator,
-        uint _lender
-    ) external;
-
-    function getPenalty() external view returns (uint24, uint24, uint24);
+    function getThreshold() external view returns (uint24, uint24);
 
     function setSwapRouter(
         IV3SwapRouter _swapRouter,
@@ -66,20 +40,10 @@ interface ICCFLConfig {
         IQuoterV2 _quoter
     ) external;
 
-    function setWETH(IWETH _iWETH) external;
-
-    function setPlatformAddress(address _liquidator, address _plaform) external;
-
-    function checkMinimalCollateralForLoan(
-        uint _amount,
-        IERC20Standard _stableCoin,
-        IERC20Standard _collateral
-    ) external view returns (uint);
-
-    function addCollateralHealthFactor(
-        uint _loanId,
-        uint _amountCollateral
-    ) external view returns (uint);
+    function getSwapRouter()
+        external
+        view
+        returns (IV3SwapRouter, IUniswapV3Factory, IQuoterV2);
 
     function setEarnShare(
         uint24 _borrower,
@@ -88,4 +52,12 @@ interface ICCFLConfig {
     ) external;
 
     function getEarnShare() external view returns (uint24, uint24, uint24);
+
+    function setPenalty(
+        uint24 _platform,
+        uint24 _liquidator,
+        uint24 _lender
+    ) external;
+
+    function getPenalty() external view returns (uint24, uint24, uint24);
 }
