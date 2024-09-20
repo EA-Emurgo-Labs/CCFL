@@ -6,7 +6,7 @@ import { expect } from "chai";
 import hre from "hardhat";
 import { parseUnits } from "ethers";
 
-describe.skip("CCFL system", function () {
+describe("CCFL system", function () {
   // We define a fixture to reuse the same setup in every test.
   // We use loadFixture to run this setup once, snapshot that state,
   // and reset Hardhat Network to that snapshot in every test.
@@ -138,6 +138,9 @@ describe.skip("CCFL system", function () {
     const mockUniFactory = await MockUniFactory.deploy();
 
     mockUniFactory.setPool(mockUniPool);
+
+    const MockUniQuoter = await hre.ethers.getContractFactory("MockQuoter");
+    const mockUniQuoter = await MockUniQuoter.deploy();
 
     const MockSwapWBTC = await hre.ethers.getContractFactory("MockSwapRouter");
     const mockSwapWBTC = await MockSwapWBTC.deploy();

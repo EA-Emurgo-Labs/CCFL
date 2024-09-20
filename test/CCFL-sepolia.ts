@@ -380,11 +380,11 @@ describe("sepolia", () => {
       withdrawCollateral(BigInt(1));
     });
 
-    it("check health factor", async () => {
+    it.only("check health factor", async () => {
       await getHealthFactor(
         ethers.parseUnits("0.1", 6),
         ethers.parseUnits("0.0005", 8),
-        BigInt(14)
+        BigInt(2)
       );
     });
 
