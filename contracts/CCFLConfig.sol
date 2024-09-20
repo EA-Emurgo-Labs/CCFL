@@ -48,11 +48,7 @@ contract CCFLConfig is ICCFLConfig, Initializable {
         address _platform,
         bool _isEnableETHNative,
         IWETH _wETH
-    )
-        external
-        // ICCFLLoan _ccflLoan
-        initializer
-    {
+    ) external initializer {
         maxLTV = _maxLTV;
         liquidationThreshold = _liquidationThreshold;
         swapRouter = _swapRouter;
@@ -63,7 +59,6 @@ contract CCFLConfig is ICCFLConfig, Initializable {
         platform = _platform;
         isEnableETHNative = _isEnableETHNative;
         wETH = _wETH;
-        // ccflLoan = _ccflLoan;
         owner = msg.sender;
     }
 

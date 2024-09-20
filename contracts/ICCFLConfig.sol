@@ -7,7 +7,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {IPoolAddressesProvider} from "@aave/core-v3/contracts/interfaces/IPoolAddressesProvider.sol";
 import "./IERC20Standard.sol";
 import "@uniswap/swap-router-contracts/contracts/interfaces/IV3SwapRouter.sol";
-import "@uniswap/swap-router-contracts/contracts/interfaces/IQuoterV2.sol";
+import "@uniswap/v3-periphery/contracts/interfaces/IQuoterV2.sol";
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
 import "@aave/core-v3/contracts/misc/interfaces/IWETH.sol";
 import "./helpers/Errors.sol";

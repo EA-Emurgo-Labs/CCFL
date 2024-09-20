@@ -3,7 +3,7 @@ pragma solidity ^0.8.24;
 
 // Uncomment this line to use console.log
 // import "hardhat/console.sol";
-import "./IQuoterV2.sol";
+import "@uniswap/v3-periphery/contracts/interfaces/IQuoterV2.sol";
 
 contract MockQuoter is IQuoterV2 {
     constructor() payable {}

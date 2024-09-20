@@ -1,7 +1,7 @@
 {
   "_format": "hh-sol-artifact-1",
   "contractName": "IQuoterV2",
-  "sourceName": "contracts/IQuoterV2.sol",
+  "sourceName": "@uniswap/v3-periphery/contracts/interfaces/IQuoterV2.sol",
   "abi": [
     {
       "inputs": [

@@ -71,7 +71,8 @@ interface ICCFL {
         IERC20Standard[] memory _collateralTokens,
         AggregatorV3Interface[] memory _collateralAggregators,
         IERC20Standard[] memory _aTokens,
-        ICCFLConfig _ccflConfig
+        ICCFLConfig _ccflConfig,
+        ICCFLLoan _ccflLoan
     ) external;
 
     function setPools(

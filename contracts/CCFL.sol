@@ -91,7 +91,8 @@ contract CCFL is ICCFL, Initializable {
         IERC20Standard[] memory _collateralTokens,
         AggregatorV3Interface[] memory _collateralAggregators,
         IERC20Standard[] memory _aTokens,
-        ICCFLConfig _ccflConfig
+        ICCFLConfig _ccflConfig,
+        ICCFLLoan _ccflLoan
     ) external initializer {
         ccflPoolStableCoins = _ccflPoolStableCoin;
         loandIds = 1;
@@ -111,6 +112,7 @@ contract CCFL is ICCFL, Initializable {
         owner = msg.sender;
         operators[msg.sender] = true;
         ccflConfig = _ccflConfig;
+        ccflLoan = _ccflLoan;
     }
 
     function setCCFLLoan(ICCFLLoan _loan) public onlyOwner {

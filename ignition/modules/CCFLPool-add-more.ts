@@ -2,7 +2,7 @@ import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
 const ProxyAddMorePoolCCFLModule = buildModule(
   "ProxyAddMorePoolCCFLModule",
   (m) => {
-    let ccfl = "0xB07c62E2a4E3da8465fa207965da12787b9188fc";
+    let ccfl = "0xDD20c2e2cf399Cc3c688a0A73241B8e8eA7b6F78";
 
     // "ProxyCCFLModule#DefaultReserveInterestRateStrategy": "0xEC804ffb70aE9aeF7a885bd6C4cAe8a5b65a7C77",
     let usdt = "0xaa8e23fb1079ea71e0a56f48a2aa51851d8433d0";
