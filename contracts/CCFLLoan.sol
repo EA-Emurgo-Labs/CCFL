@@ -1,9 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.24;
-
 import "./ICCFLLoan.sol";
-import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
-import "./helpers/Errors.sol";
 
 /// @title CCFL contract
 /// @author
@@ -53,6 +50,8 @@ contract CCFLLoan is ICCFLLoan, Initializable {
     uint public penaltyLiquidator;
     uint public penaltyLender;
 
+    ICCFLConfig public iCCFLConfig;
+
     modifier onlyOwner() {
         require(msg.sender == owner, Errors.ONLY_THE_OWNER);
         _;
@@ -81,24 +80,23 @@ contract CCFLLoan is ICCFLLoan, Initializable {
     function initialize(
         DataTypes.Loan memory _loan,
         IERC20Standard _collateralToken,
-        IPoolAddressesProvider _aaveAddressProvider,
         IERC20Standard _aToken,
-        uint _ltv,
-        uint _threshold,
         AggregatorV3Interface _priceFeed,
         AggregatorV3Interface _pricePoolFeed,
-        IWETH _iWETH
+        ICCFLConfig _iCCFLConfig
     ) external initializer {
         owner = msg.sender;
+        iCCFLConfig = _iCCFLConfig;
         initLoan = _loan;
         collateralToken = _collateralToken;
-        aaveAddressProvider = _aaveAddressProvider;
-        LTV = _ltv;
-        liquidationThreshold = _threshold;
+        aaveAddressProvider = iCCFLConfig.getAaveProvider();
         aToken = _aToken;
         priceFeed = _priceFeed;
         pricePoolFeed = _pricePoolFeed;
-        wETH = _iWETH;
+        wETH = iCCFLConfig.getWETH();
+        (uint _ltv, uint _threshold) = iCCFLConfig.getThreshold();
+        LTV = _ltv;
+        liquidationThreshold = _threshold;
     }
 
     function supplyLiquidity() public onlyOwner {

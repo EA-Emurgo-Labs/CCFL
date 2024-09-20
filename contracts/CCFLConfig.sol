@@ -1,14 +1,11 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.24;
 import "./ICCFLConfig.sol";
-import "./helpers/Errors.sol";
 
 /// @title CCFL contract
 /// @author
 /// @notice Link/usd
 contract CCFLConfig is ICCFLConfig, Initializable {
-    using Clones for address;
-
     // init for clone loan sc
     uint public maxLTV;
     uint public liquidationThreshold;
@@ -31,7 +28,6 @@ contract CCFLConfig is ICCFLConfig, Initializable {
     address public platform;
     bool isEnableETHNative;
     IWETH public wETH;
-    ICCFLLoan public ccflLoan;
 
     mapping(IERC20Standard => mapping(IERC20Standard => uint24))
         public collateralToStableCoinFee;
@@ -51,9 +47,12 @@ contract CCFLConfig is ICCFLConfig, Initializable {
         address _liquidator,
         address _platform,
         bool _isEnableETHNative,
-        IWETH _wETH,
-        ICCFLLoan _ccflLoan
-    ) external initializer {
+        IWETH _wETH
+    )
+        external
+        // ICCFLLoan _ccflLoan
+        initializer
+    {
         maxLTV = _maxLTV;
         liquidationThreshold = _liquidationThreshold;
         swapRouter = _swapRouter;
@@ -64,7 +63,7 @@ contract CCFLConfig is ICCFLConfig, Initializable {
         platform = _platform;
         isEnableETHNative = _isEnableETHNative;
         wETH = _wETH;
-        ccflLoan = _ccflLoan;
+        // ccflLoan = _ccflLoan;
         owner = msg.sender;
     }
 
@@ -164,13 +163,13 @@ contract CCFLConfig is ICCFLConfig, Initializable {
         return wETH;
     }
 
-    function setCCFLLoan(ICCFLLoan _loan) public onlyOwner {
-        ccflLoan = _loan;
-    }
+    // function setCCFLLoan(ICCFLLoan _loan) public onlyOwner {
+    //     ccflLoan = _loan;
+    // }
 
-    function getCCFLLoan() public view returns (ICCFLLoan) {
-        return ccflLoan;
-    }
+    // function getCCFLLoan() public view returns (ICCFLLoan) {
+    //     return ccflLoan;
+    // }
 
     function setCollateralToStableFee(
         IERC20Standard[] memory _collateral,

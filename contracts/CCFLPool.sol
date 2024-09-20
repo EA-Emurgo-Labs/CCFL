@@ -2,8 +2,6 @@
 pragma solidity ^0.8.24;
 
 import "./ICCFLPool.sol";
-import "./DataTypes.sol";
-import "./helpers/Errors.sol";
 
 /// @title CCFL contract
 /// @author
