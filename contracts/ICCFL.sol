@@ -66,31 +66,14 @@ interface ICCFL {
 
     function initialize(
         IERC20Standard[] memory _ccflPoolStableCoin,
-        AggregatorV3Interface[] memory _poolAggregators,
         ICCFLPool[] memory _ccflPools,
-        IERC20Standard[] memory _collateralTokens,
-        AggregatorV3Interface[] memory _collateralAggregators,
-        IERC20Standard[] memory _aTokens,
         ICCFLConfig _ccflConfig,
         ICCFLLoan _ccflLoan
     ) external;
 
     function setPools(
         IERC20Standard[] memory _ccflPoolStableCoin,
-        AggregatorV3Interface[] memory _poolAggregators,
         ICCFLPool[] memory _ccflPools
-    ) external;
-
-    function setCollaterals(
-        IERC20Standard[] memory _collateralTokens,
-        AggregatorV3Interface[] memory _collateralAggregators,
-        IERC20Standard[] memory _aTokens
-    ) external;
-
-    function setActiveToken(
-        IERC20Standard _token,
-        bool _isActived,
-        bool _isPoolToken
     ) external;
 
     // create loan
@@ -112,11 +95,6 @@ interface ICCFL {
         uint _amount,
         IERC20Standard _stableCoin
     ) external;
-
-    function getLatestPrice(
-        IERC20Standard _stableCoin,
-        bool isPool
-    ) external view returns (uint);
 
     function getHealthFactor(uint _loanId) external view returns (uint);
 
