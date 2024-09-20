@@ -90,7 +90,6 @@ const ProxyCCFLModule = buildModule("ProxyCCFLModule", (m) => {
     proxyAdminOwner,
     true,
     wETH,
-    loan,
   ]);
 
   const proxyCCFLConfig = m.contract(
@@ -139,6 +138,7 @@ const ProxyCCFLModule = buildModule("ProxyCCFLModule", (m) => {
     [wbtcAggr, ethAggr],
     [aWBTC, aWETH],
     proxyCCFLConfig,
+    loan,
   ]);
 
   const proxyCCFL = m.contract(

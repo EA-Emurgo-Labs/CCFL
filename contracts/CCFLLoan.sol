@@ -1,9 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.24;
-
 import "./ICCFLLoan.sol";
-import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
-import "./helpers/Errors.sol";
 
 /// @title CCFL contract
 /// @author
@@ -12,7 +9,6 @@ contract CCFLLoan is ICCFLLoan, Initializable {
     address public owner;
 
     // aave config
-    IPoolAddressesProvider public aaveAddressProvider;
     IERC20Standard public aToken;
     bool public isStakeAave;
 
@@ -23,8 +19,6 @@ contract CCFLLoan is ICCFLLoan, Initializable {
     IQuoterV2 public quoter;
 
     // collateral
-    uint public liquidationThreshold;
-    uint public LTV;
     uint public collateralAmount;
     IERC20Standard public collateralToken;
 
@@ -38,7 +32,6 @@ contract CCFLLoan is ICCFLLoan, Initializable {
     // ccfl sc
     address public ccfl;
     address public platform;
-    IWETH public wETH;
 
     // earn AAVE /10000
     uint public earnPlatform;
@@ -52,6 +45,8 @@ contract CCFLLoan is ICCFLLoan, Initializable {
     uint public penaltyPlatform;
     uint public penaltyLiquidator;
     uint public penaltyLender;
+
+    ICCFLConfig public iCCFLConfig;
 
     modifier onlyOwner() {
         require(msg.sender == owner, Errors.ONLY_THE_OWNER);
@@ -81,24 +76,18 @@ contract CCFLLoan is ICCFLLoan, Initializable {
     function initialize(
         DataTypes.Loan memory _loan,
         IERC20Standard _collateralToken,
-        IPoolAddressesProvider _aaveAddressProvider,
         IERC20Standard _aToken,
-        uint _ltv,
-        uint _threshold,
         AggregatorV3Interface _priceFeed,
         AggregatorV3Interface _pricePoolFeed,
-        IWETH _iWETH
+        ICCFLConfig _iCCFLConfig
     ) external initializer {
         owner = msg.sender;
+        iCCFLConfig = _iCCFLConfig;
         initLoan = _loan;
         collateralToken = _collateralToken;
-        aaveAddressProvider = _aaveAddressProvider;
-        LTV = _ltv;
-        liquidationThreshold = _threshold;
         aToken = _aToken;
         priceFeed = _priceFeed;
         pricePoolFeed = _pricePoolFeed;
-        wETH = _iWETH;
     }
 
     function supplyLiquidity() public onlyOwner {
@@ -107,6 +96,8 @@ contract CCFLLoan is ICCFLLoan, Initializable {
         require(amount > 0, Errors.DO_NOT_HAVE_ASSETS);
         address onBehalfOf = address(this);
         uint16 referralCode = 0;
+        IPoolAddressesProvider aaveAddressProvider = iCCFLConfig
+            .getAaveProvider();
         IPool aavePool = IPool(aaveAddressProvider.getPool());
         asset.approve(address(aavePool), amount);
         aavePool.supply(address(asset), amount, onBehalfOf, referralCode);
@@ -126,6 +117,8 @@ contract CCFLLoan is ICCFLLoan, Initializable {
         IERC20Standard asset = collateralToken;
         uint amount = aToken.balanceOf(address(this));
         require(amount > 0, Errors.DO_NOT_HAVE_ASSETS);
+        IPoolAddressesProvider aaveAddressProvider = iCCFLConfig
+            .getAaveProvider();
         IPool aavePool = IPool(aaveAddressProvider.getPool());
         aavePool.withdraw(address(asset), amount, address(this));
         emit LiquidityWithdrawn(address(this), address(asset), amount);
@@ -164,6 +157,8 @@ contract CCFLLoan is ICCFLLoan, Initializable {
             uint256 healthFactor
         )
     {
+        IPoolAddressesProvider aaveAddressProvider = iCCFLConfig
+            .getAaveProvider();
         IPool aavePool = IPool(aaveAddressProvider.getPool());
         return aavePool.getUserAccountData(user);
     }
@@ -209,8 +204,9 @@ contract CCFLLoan is ICCFLLoan, Initializable {
         IERC20Standard token = collateralToken;
         if (collateralAmountNew > 0) {
             uint collateralPrice = getLatestPrice(token, false);
+            (uint ltv, uint threshold) = iCCFLConfig.getThreshold();
             totalCollaterals +=
-                (collateralAmountNew * collateralPrice * liquidationThreshold) /
+                (collateralAmountNew * collateralPrice * (threshold)) /
                 10000 /
                 (10 ** token.decimals());
         }
@@ -484,6 +480,7 @@ contract CCFLLoan is ICCFLLoan, Initializable {
             Errors.LOAN_IS_NOT_CLOSED_OR_FINALTY
         );
         if (_isETH) {
+            IWETH wETH = iCCFLConfig.getWETH();
             wETH.withdraw(collateralToken.balanceOf(address(this)));
             payable(_receiver).transfer(
                 collateralToken.balanceOf(address(this))

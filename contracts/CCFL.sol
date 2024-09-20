@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.24;
 import "./ICCFL.sol";
-import "@aave/core-v3/contracts/misc/interfaces/IWETH.sol";
-import "./helpers/Errors.sol";
 
 /// @title CCFL contract
 /// @author
@@ -30,6 +28,7 @@ contract CCFL is ICCFL, Initializable {
     mapping(address => uint[]) public userLoans;
 
     ICCFLConfig public ccflConfig;
+    ICCFLLoan public ccflLoan;
 
     modifier onlyOwner() {
         require(msg.sender == owner, Errors.ONLY_THE_OWNER);
@@ -92,7 +91,8 @@ contract CCFL is ICCFL, Initializable {
         IERC20Standard[] memory _collateralTokens,
         AggregatorV3Interface[] memory _collateralAggregators,
         IERC20Standard[] memory _aTokens,
-        ICCFLConfig _ccflConfig
+        ICCFLConfig _ccflConfig,
+        ICCFLLoan _ccflLoan
     ) external initializer {
         ccflPoolStableCoins = _ccflPoolStableCoin;
         loandIds = 1;
@@ -112,6 +112,11 @@ contract CCFL is ICCFL, Initializable {
         owner = msg.sender;
         operators[msg.sender] = true;
         ccflConfig = _ccflConfig;
+        ccflLoan = _ccflLoan;
+    }
+
+    function setCCFLLoan(ICCFLLoan _loan) public onlyOwner {
+        ccflLoan = _loan;
     }
 
     function setPaused(bool _paused) public onlyOwner {
@@ -288,7 +293,7 @@ contract CCFL is ICCFL, Initializable {
         AggregatorV3Interface _pricePoolFeeds = pricePoolFeeds[_stableCoin];
         IERC20Standard token = _collateral;
         // clone a loan SC
-        address loanIns = address(ccflConfig.getCCFLLoan()).clone();
+        address loanIns = address(ccflLoan).clone();
         ICCFLLoan cloneSC = ICCFLLoan(loanIns);
         {
             (uint maxLTV, uint liquidationThreshold) = ccflConfig
@@ -296,13 +301,10 @@ contract CCFL is ICCFL, Initializable {
             cloneSC.initialize(
                 loan,
                 token,
-                ccflConfig.getAaveProvider(),
                 aTokens[token],
-                maxLTV,
-                liquidationThreshold,
                 priceFeeds[token],
                 _pricePoolFeeds,
-                ccflConfig.getWETH()
+                ccflConfig
             );
         }
         cloneSC.setCCFL(address(this));

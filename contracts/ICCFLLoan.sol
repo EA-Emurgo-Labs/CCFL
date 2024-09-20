@@ -3,19 +3,12 @@ pragma solidity ^0.8.24;
 
 // Uncomment this line to use console.log
 import "hardhat/console.sol";
-import "./IERC20Standard.sol";
 import {IPool} from "@aave/core-v3/contracts/interfaces/IPool.sol";
-import {IPoolAddressesProvider} from "@aave/core-v3/contracts/interfaces/IPoolAddressesProvider.sol";
 import "@openzeppelin/contracts/proxy/Clones.sol";
-
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
-import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
-import "./IV3SwapRouter.sol";
 import "@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol";
-
-import "@aave/core-v3/contracts/misc/interfaces/IWETH.sol";
 import "./DataTypes.sol";
-import "./IQuoterV2.sol";
+import "./ICCFLConfig.sol";
 
 interface AggregatorV3Interface {
     function latestRoundData()
@@ -70,13 +63,10 @@ interface ICCFLLoan {
     function initialize(
         DataTypes.Loan memory _loan,
         IERC20Standard _collateralToken,
-        IPoolAddressesProvider _aaveAddressProvider,
         IERC20Standard _aToken,
-        uint _ltv,
-        uint _threshold,
         AggregatorV3Interface _priceFeed,
         AggregatorV3Interface _pricePoolFeed,
-        IWETH _iWETH
+        ICCFLConfig _iCCFLConfig
     ) external;
 
     function closeLoan() external returns (uint256, uint256);

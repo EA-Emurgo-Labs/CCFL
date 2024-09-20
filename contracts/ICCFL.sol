@@ -3,19 +3,10 @@ pragma solidity ^0.8.24;
 
 // Uncomment this line to use console.log
 import "hardhat/console.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts/proxy/Clones.sol";
-import {IPool} from "@aave/core-v3/contracts/interfaces/IPool.sol";
-import {IPoolAddressesProvider} from "@aave/core-v3/contracts/interfaces/IPoolAddressesProvider.sol";
-
-import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
-import "@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol";
 
 import "./ICCFLPool.sol";
 import "./ICCFLLoan.sol";
-import "./IERC20Standard.sol";
-import "./IV3SwapRouter.sol";
-import "./IQuoterV2.sol";
 import "./ICCFLConfig.sol";
 
 /// @title CCFL contract
@@ -80,7 +71,8 @@ interface ICCFL {
         IERC20Standard[] memory _collateralTokens,
         AggregatorV3Interface[] memory _collateralAggregators,
         IERC20Standard[] memory _aTokens,
-        ICCFLConfig _ccflConfig
+        ICCFLConfig _ccflConfig,
+        ICCFLLoan _ccflLoan
     ) external;
 
     function setPools(

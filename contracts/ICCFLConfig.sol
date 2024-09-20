@@ -4,18 +4,13 @@ pragma solidity ^0.8.24;
 // Uncomment this line to use console.log
 import "hardhat/console.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import "@openzeppelin/contracts/proxy/Clones.sol";
-import {IPool} from "@aave/core-v3/contracts/interfaces/IPool.sol";
 import {IPoolAddressesProvider} from "@aave/core-v3/contracts/interfaces/IPoolAddressesProvider.sol";
-
-import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
-import "@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol";
-
-import "./ICCFLPool.sol";
-import "./ICCFLLoan.sol";
 import "./IERC20Standard.sol";
-import "./IV3SwapRouter.sol";
-import "./IQuoterV2.sol";
+import "@uniswap/swap-router-contracts/contracts/interfaces/IV3SwapRouter.sol";
+import "@uniswap/v3-periphery/contracts/interfaces/IQuoterV2.sol";
+import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
+import "@aave/core-v3/contracts/misc/interfaces/IWETH.sol";
+import "./helpers/Errors.sol";
 
 /// @title CCFL contract
 /// @author
@@ -73,9 +68,9 @@ interface ICCFLConfig {
 
     function getWETH() external view returns (IWETH);
 
-    function setCCFLLoan(ICCFLLoan _loan) external;
+    // function setCCFLLoan(ICCFLLoan _loan) external;
 
-    function getCCFLLoan() external view returns (ICCFLLoan);
+    // function getCCFLLoan() external view returns (ICCFLLoan);
 
     function setCollateralToStableFee(
         IERC20Standard[] memory _collateral,
