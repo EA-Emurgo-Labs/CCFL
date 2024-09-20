@@ -126,9 +126,10 @@ describe("CCFL system", function () {
     const MockPoolAddressesProvider = await hre.ethers.getContractFactory(
       "MockPoolAddressesProvider"
     );
-    const mockPoolAddressesProvider = await MockPoolAddressesProvider.deploy(
-      await mockAavePool.getAddress()
-    );
+    const mockPoolAddressesProvider = await MockPoolAddressesProvider.deploy();
+
+    console.log("mockAavePool", await mockAavePool.getAddress());
+    await mockPoolAddressesProvider.setPool(await mockAavePool.getAddress());
 
     const MockUniPool = await hre.ethers.getContractFactory("MockPool");
     const mockUniPool = await MockUniPool.deploy();
@@ -138,12 +139,33 @@ describe("CCFL system", function () {
 
     mockUniFactory.setPool(mockUniPool);
 
+    const MockUniQuoter = await hre.ethers.getContractFactory("MockQuoter");
+    const mockUniQuoter = await MockUniQuoter.deploy();
+
     const MockSwapWBTC = await hre.ethers.getContractFactory("MockSwapRouter");
     const mockSwapWBTC = await MockSwapWBTC.deploy();
 
     const CCFLLoan = await hre.ethers.getContractFactory("CCFLLoan");
     const ccflLoan = await CCFLLoan.deploy();
 
+    const CCFLConfig = await hre.ethers.getContractFactory("CCFLConfig");
+    const ccflConfig = await hre.upgrades.deployProxy(
+      CCFLConfig,
+      [
+        7000,
+        7500,
+        await mockSwap.getAddress(),
+        await mockUniFactory.getAddress(),
+        await mockUniQuoter.getAddress(),
+        await mockPoolAddressesProvider.getAddress(),
+        await liquidator.getAddress(),
+        await platform.getAddress(),
+        true,
+        await wETH9.getAddress(),
+        await ccflLoan.getAddress(),
+      ],
+      { initializer: "initialize" }
+    );
     const CCFL = await hre.ethers.getContractFactory("CCFL");
     const ccfl = await hre.upgrades.deployProxy(
       CCFL,
@@ -151,13 +173,10 @@ describe("CCFL system", function () {
         [await usdc.getAddress()],
         [await mockAggrUSDC.getAddress()],
         [await ccflPool.getAddress()],
-        [await link.getAddress()],
+        [await link.getAddress(), await wETH9.getAddress()],
         [await mockAggr2.getAddress()],
-        [await aToken.getAddress()],
-        await mockPoolAddressesProvider.getAddress(),
-        7000,
-        7500,
-        await ccflLoan.getAddress(),
+        [await aToken.getAddress(), await aToken.getAddress()],
+        await ccflConfig.getAddress(),
       ],
       { initializer: "initialize" }
     );

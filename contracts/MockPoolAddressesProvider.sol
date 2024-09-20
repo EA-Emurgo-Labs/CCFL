@@ -9,7 +9,9 @@ import {IPool, DataTypes} from "@aave/core-v3/contracts/interfaces/IPool.sol";
 contract MockPoolAddressesProvider is IPoolAddressesProvider {
     IPool private pool;
 
-    constructor(IPool _pool) payable {
+    constructor() payable {}
+
+    function setPool(IPool _pool) external {
         pool = _pool;
     }
 

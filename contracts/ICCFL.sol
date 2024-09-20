@@ -16,6 +16,7 @@ import "./ICCFLLoan.sol";
 import "./IERC20Standard.sol";
 import "./IV3SwapRouter.sol";
 import "./IQuoterV2.sol";
+import "./ICCFLConfig.sol";
 
 /// @title CCFL contract
 /// @author
@@ -72,11 +73,6 @@ interface ICCFL {
         IERC20Standard collateral
     );
 
-    function checkExistElement(
-        IERC20Standard[] memory array,
-        IERC20Standard el
-    ) external pure returns (bool);
-
     function initialize(
         IERC20Standard[] memory _ccflPoolStableCoin,
         AggregatorV3Interface[] memory _poolAggregators,
@@ -84,10 +80,7 @@ interface ICCFL {
         IERC20Standard[] memory _collateralTokens,
         AggregatorV3Interface[] memory _collateralAggregators,
         IERC20Standard[] memory _aTokens,
-        IPoolAddressesProvider _aaveAddressProvider,
-        uint _maxLTV,
-        uint _liquidationThreshold,
-        ICCFLLoan _ccflLoan
+        ICCFLConfig _ccflConfig
     ) external;
 
     function setPools(
@@ -96,36 +89,16 @@ interface ICCFL {
         ICCFLPool[] memory _ccflPools
     ) external;
 
-    function setCCFLLoan(ICCFLLoan _loan) external;
-
     function setCollaterals(
         IERC20Standard[] memory _collateralTokens,
         AggregatorV3Interface[] memory _collateralAggregators,
         IERC20Standard[] memory _aTokens
     ) external;
 
-    function setAaveProvider(
-        IPoolAddressesProvider _aaveAddressProvider
-    ) external;
-
     function setActiveToken(
         IERC20Standard _token,
         bool _isActived,
         bool _isPoolToken
-    ) external;
-
-    function setThreshold(uint _maxLTV, uint _liquidationThreshold) external;
-
-    function setPenalty(
-        uint _platform,
-        uint _liquidator,
-        uint _lender
-    ) external;
-
-    function setSwapRouter(
-        IV3SwapRouter _swapRouter,
-        IUniswapV3Factory _factory,
-        IQuoterV2 _quoter
     ) external;
 
     // create loan
@@ -137,8 +110,6 @@ interface ICCFL {
         bool _isYieldGenerating,
         bool _isFiat
     ) external;
-
-    function setWETH(IWETH _iWETH) external;
 
     // withdraw loan
     function withdrawLoan(IERC20Standard _stableCoin, uint _loanId) external;
@@ -160,8 +131,6 @@ interface ICCFL {
     function getLoanAddress(uint _loanId) external view returns (address);
 
     function liquidate(uint _loanId) external;
-
-    function setPlatformAddress(address _liquidator, address _plaform) external;
 
     function addCollateral(
         uint _loanId,
@@ -190,12 +159,6 @@ interface ICCFL {
     ) external view returns (uint);
 
     function getLoanIds(address borrower) external view returns (uint[] memory);
-
-    function setEarnShare(
-        uint _borrower,
-        uint _platform,
-        uint _lender
-    ) external;
 
     function withdrawFiatLoan(
         IERC20Standard _stableCoin,

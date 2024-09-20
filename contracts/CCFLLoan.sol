@@ -18,7 +18,7 @@ contract CCFLLoan is ICCFLLoan, Initializable {
 
     // uniswap config
     IV3SwapRouter public swapRouter;
-    uint24 public constant feeTier = 3000;
+    uint24 public feeTier = 3000;
     IUniswapV3Factory public factory;
     IQuoterV2 public quoter;
 
@@ -72,6 +72,10 @@ contract CCFLLoan is ICCFLLoan, Initializable {
         swapRouter = _swapRouter;
         factory = _factory;
         quoter = _quoter;
+    }
+
+    function setUniFee(uint24 _uniFee) public onlyOwner {
+        if (_uniFee > 0) feeTier = _uniFee;
     }
 
     function initialize(

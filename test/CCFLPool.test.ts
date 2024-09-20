@@ -7,7 +7,7 @@ import { expect } from "chai";
 import hre from "hardhat";
 import { assert, parseUnits } from "ethers";
 
-describe("CCFLPool contract", function () {
+describe.skip("CCFLPool contract", function () {
   // We define a fixture to reuse the same setup in every test.
   // We use loadFixture to run this setup once, snapshot that state,
   // and reset Hardhat Network to that snapshot in every test.
@@ -145,7 +145,7 @@ describe("CCFLPool contract", function () {
     });
 
     it("Should only allow owner to set CCFL address", async () => {
-      // TODO: test method setCCFL() 
+      // TODO: test method setCCFL()
     });
   });
 

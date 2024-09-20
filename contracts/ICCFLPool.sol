@@ -82,4 +82,8 @@ interface ICCFLPool {
     function earnStaking(uint256 _amount) external;
 
     function withdrawByAdmin(IERC20Standard _token, address _receiver) external;
+
+    function setReserveInterestRateStrategy(
+        address _interestRateStrategyAddress
+    ) external;
 }

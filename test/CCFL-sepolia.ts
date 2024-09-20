@@ -2,10 +2,10 @@ import { bigint } from "hardhat/internal/core/params/argumentTypes";
 
 const { ethers } = require("hardhat");
 
-let pool = "0x93B5b99986FAeb328B3944383e6956D299c0CC14";
-let ccfl = "0xB07c62E2a4E3da8465fa207965da12787b9188fc";
+let pool = "0xEF311683AcE00739A23a98d75F95F5c077127B85";
+let ccfl = "0x127d9aC363fDE60d3C0caF5b2E7aF2bc7677e0e6";
 
-let usdtPool = "0xa00Ae2a3aeFd3002EDE22523E12BF28D4676596A";
+let usdtPool = "0x7Ba01b146099Dcac43937123f10B5D92A4C3Ea12";
 
 let usdt = "0xaa8e23fb1079ea71e0a56f48a2aa51851d8433d0";
 let usdc = "0x94a9D9AC8a22534E3FaCa9F4e7F2E2cf85d5E4C8";
@@ -373,18 +373,18 @@ describe("sepolia", () => {
     });
 
     it("repay loan", async () => {
-      repay(BigInt(17), ethers.parseUnits("200", 6));
+      repay(BigInt(1), ethers.parseUnits("200", 6));
     });
 
     it("withdraw collateral", async () => {
-      withdrawCollateral(BigInt(17));
+      withdrawCollateral(BigInt(1));
     });
 
-    it("check health factor", async () => {
+    it.only("check health factor", async () => {
       await getHealthFactor(
         ethers.parseUnits("0.1", 6),
         ethers.parseUnits("0.0005", 8),
-        BigInt(14)
+        BigInt(2)
       );
     });
 
@@ -404,12 +404,12 @@ describe("sepolia", () => {
   });
 
   describe("CCFL usdt", () => {
-    it.only("approve wbtc", async () => {
+    it("approve wbtc", async () => {
       const AMOUNT = ethers.parseUnits("0.1", 8);
       await approveWBTC(AMOUNT);
     });
 
-    it.only("create a loan", async () => {
+    it("create a loan", async () => {
       await createLoanUSDT();
     });
 

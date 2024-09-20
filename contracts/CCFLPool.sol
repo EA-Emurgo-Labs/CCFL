@@ -93,6 +93,12 @@ contract CCFLPool is ICCFLPool, Initializable {
         cap = _cap;
     }
 
+    function setReserveInterestRateStrategy(
+        address _interestRateStrategyAddress
+    ) public onlyOperator {
+        reserve.interestRateStrategyAddress = _interestRateStrategyAddress;
+    }
+
     function getRemainingPool() public view returns (uint amount) {
         return remainingPool;
     }

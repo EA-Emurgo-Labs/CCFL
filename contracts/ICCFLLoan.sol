@@ -125,4 +125,6 @@ interface ICCFLLoan {
         uint _liquidator,
         uint _lender
     ) external;
+
+    function setUniFee(uint24 _uniFee) external;
 }
