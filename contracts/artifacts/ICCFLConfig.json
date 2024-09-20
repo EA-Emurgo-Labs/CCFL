@@ -1,0 +1,409 @@
+{
+	"deploy": {
+		"VM:-": {
+			"linkReferences": {},
+			"autoDeployLib": true
+		},
+		"main:1": {
+			"linkReferences": {},
+			"autoDeployLib": true
+		},
+		"ropsten:3": {
+			"linkReferences": {},
+			"autoDeployLib": true
+		},
+		"rinkeby:4": {
+			"linkReferences": {},
+			"autoDeployLib": true
+		},
+		"kovan:42": {
+			"linkReferences": {},
+			"autoDeployLib": true
+		},
+		"goerli:5": {
+			"linkReferences": {},
+			"autoDeployLib": true
+		},
+		"Custom": {
+			"linkReferences": {},
+			"autoDeployLib": true
+		}
+	},
+	"data": {
+		"bytecode": {
+			"functionDebugData": {},
+			"generatedSources": [],
+			"linkReferences": {},
+			"object": "",
+			"opcodes": "",
+			"sourceMap": ""
+		},
+		"deployedBytecode": {
+			"functionDebugData": {},
+			"generatedSources": [],
+			"immutableReferences": {},
+			"linkReferences": {},
+			"object": "",
+			"opcodes": "",
+			"sourceMap": ""
+		},
+		"gasEstimates": null,
+		"methodIdentifiers": {
+			"getAaveProvider()": "d03f6bac",
+			"getCollateralToStableFee(address,address)": "365bef00",
+			"getEarnShare()": "c2dcadab",
+			"getEnableETHNative()": "9854db02",
+			"getPenalty()": "e56e56db",
+			"getPlatformAddress()": "3c0c4566",
+			"getSwapRouter()": "725c9c49",
+			"getThreshold()": "e75235b8",
+			"getWETH()": "cae5f11e",
+			"setAaveProvider(address)": "38ef6717",
+			"setCollateralToStableFee(address[],address[],uint24[])": "5607c334",
+			"setEarnShare(uint256,uint256,uint256)": "6cb0ab5e",
+			"setEnableETHNative(bool)": "5f499ebc",
+			"setPenalty(uint256,uint256,uint256)": "f3cf4ada",
+			"setPlatformAddress(address,address)": "f8f126ff",
+			"setSwapRouter(address,address,address)": "10ac5c3c",
+			"setThreshold(uint256,uint256)": "b9c36209",
+			"setWETH(address)": "5b769f3c"
+		}
+	},
+	"abi": [
+		{
+			"inputs": [],
+			"name": "getAaveProvider",
+			"outputs": [
+				{
+					"internalType": "contract IPoolAddressesProvider",
+					"name": "",
+					"type": "address"
+				}
+			],
+			"stateMutability": "view",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "contract IERC20Standard",
+					"name": "_collateral",
+					"type": "address"
+				},
+				{
+					"internalType": "contract IERC20Standard",
+					"name": "_stable",
+					"type": "address"
+				}
+			],
+			"name": "getCollateralToStableFee",
+			"outputs": [
+				{
+					"internalType": "uint24",
+					"name": "",
+					"type": "uint24"
+				}
+			],
+			"stateMutability": "view",
+			"type": "function"
+		},
+		{
+			"inputs": [],
+			"name": "getEarnShare",
+			"outputs": [
+				{
+					"internalType": "uint256",
+					"name": "",
+					"type": "uint256"
+				},
+				{
+					"internalType": "uint256",
+					"name": "",
+					"type": "uint256"
+				},
+				{
+					"internalType": "uint256",
+					"name": "",
+					"type": "uint256"
+				}
+			],
+			"stateMutability": "view",
+			"type": "function"
+		},
+		{
+			"inputs": [],
+			"name": "getEnableETHNative",
+			"outputs": [
+				{
+					"internalType": "bool",
+					"name": "",
+					"type": "bool"
+				}
+			],
+			"stateMutability": "view",
+			"type": "function"
+		},
+		{
+			"inputs": [],
+			"name": "getPenalty",
+			"outputs": [
+				{
+					"internalType": "uint256",
+					"name": "",
+					"type": "uint256"
+				},
+				{
+					"internalType": "uint256",
+					"name": "",
+					"type": "uint256"
+				},
+				{
+					"internalType": "uint256",
+					"name": "",
+					"type": "uint256"
+				}
+			],
+			"stateMutability": "view",
+			"type": "function"
+		},
+		{
+			"inputs": [],
+			"name": "getPlatformAddress",
+			"outputs": [
+				{
+					"internalType": "address",
+					"name": "",
+					"type": "address"
+				},
+				{
+					"internalType": "address",
+					"name": "",
+					"type": "address"
+				}
+			],
+			"stateMutability": "view",
+			"type": "function"
+		},
+		{
+			"inputs": [],
+			"name": "getSwapRouter",
+			"outputs": [
+				{
+					"internalType": "contract IV3SwapRouter",
+					"name": "",
+					"type": "address"
+				},
+				{
+					"internalType": "contract IUniswapV3Factory",
+					"name": "",
+					"type": "address"
+				},
+				{
+					"internalType": "contract IQuoterV2",
+					"name": "",
+					"type": "address"
+				}
+			],
+			"stateMutability": "view",
+			"type": "function"
+		},
+		{
+			"inputs": [],
+			"name": "getThreshold",
+			"outputs": [
+				{
+					"internalType": "uint256",
+					"name": "",
+					"type": "uint256"
+				},
+				{
+					"internalType": "uint256",
+					"name": "",
+					"type": "uint256"
+				}
+			],
+			"stateMutability": "view",
+			"type": "function"
+		},
+		{
+			"inputs": [],
+			"name": "getWETH",
+			"outputs": [
+				{
+					"internalType": "contract IWETH",
+					"name": "",
+					"type": "address"
+				}
+			],
+			"stateMutability": "view",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "contract IPoolAddressesProvider",
+					"name": "_aaveAddressProvider",
+					"type": "address"
+				}
+			],
+			"name": "setAaveProvider",
+			"outputs": [],
+			"stateMutability": "nonpayable",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "contract IERC20Standard[]",
+					"name": "_collateral",
+					"type": "address[]"
+				},
+				{
+					"internalType": "contract IERC20Standard[]",
+					"name": "_stable",
+					"type": "address[]"
+				},
+				{
+					"internalType": "uint24[]",
+					"name": "_fee",
+					"type": "uint24[]"
+				}
+			],
+			"name": "setCollateralToStableFee",
+			"outputs": [],
+			"stateMutability": "nonpayable",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "uint256",
+					"name": "_borrower",
+					"type": "uint256"
+				},
+				{
+					"internalType": "uint256",
+					"name": "_platform",
+					"type": "uint256"
+				},
+				{
+					"internalType": "uint256",
+					"name": "_lender",
+					"type": "uint256"
+				}
+			],
+			"name": "setEarnShare",
+			"outputs": [],
+			"stateMutability": "nonpayable",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "bool",
+					"name": "_isActived",
+					"type": "bool"
+				}
+			],
+			"name": "setEnableETHNative",
+			"outputs": [],
+			"stateMutability": "nonpayable",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "uint256",
+					"name": "_platform",
+					"type": "uint256"
+				},
+				{
+					"internalType": "uint256",
+					"name": "_liquidator",
+					"type": "uint256"
+				},
+				{
+					"internalType": "uint256",
+					"name": "_lender",
+					"type": "uint256"
+				}
+			],
+			"name": "setPenalty",
+			"outputs": [],
+			"stateMutability": "nonpayable",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "address",
+					"name": "_liquidator",
+					"type": "address"
+				},
+				{
+					"internalType": "address",
+					"name": "_platform",
+					"type": "address"
+				}
+			],
+			"name": "setPlatformAddress",
+			"outputs": [],
+			"stateMutability": "nonpayable",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "contract IV3SwapRouter",
+					"name": "_swapRouter",
+					"type": "address"
+				},
+				{
+					"internalType": "contract IUniswapV3Factory",
+					"name": "_factory",
+					"type": "address"
+				},
+				{
+					"internalType": "contract IQuoterV2",
+					"name": "_quoter",
+					"type": "address"
+				}
+			],
+			"name": "setSwapRouter",
+			"outputs": [],
+			"stateMutability": "nonpayable",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "uint256",
+					"name": "_maxLTV",
+					"type": "uint256"
+				},
+				{
+					"internalType": "uint256",
+					"name": "_liquidationThreshold",
+					"type": "uint256"
+				}
+			],
+			"name": "setThreshold",
+			"outputs": [],
+			"stateMutability": "nonpayable",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "contract IWETH",
+					"name": "_iWETH",
+					"type": "address"
+				}
+			],
+			"name": "setWETH",
+			"outputs": [],
+			"stateMutability": "nonpayable",
+			"type": "function"
+		}
+	]
+}

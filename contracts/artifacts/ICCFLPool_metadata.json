@@ -1,0 +1,539 @@
+{
+	"compiler": {
+		"version": "0.8.26+commit.8a97fa7a"
+	},
+	"language": "Solidity",
+	"output": {
+		"abi": [
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "lender",
+						"type": "address"
+					},
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "poolAddress",
+						"type": "address"
+					},
+					{
+						"indexed": true,
+						"internalType": "contract IERC20Standard",
+						"name": "stableCoin",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "amount",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "lenderShare",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "totalSupply",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "totalLiquidity",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "remainingPool",
+						"type": "uint256"
+					}
+				],
+				"name": "AddSupply",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "lender",
+						"type": "address"
+					},
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "poolAddress",
+						"type": "address"
+					},
+					{
+						"indexed": true,
+						"internalType": "contract IERC20Standard",
+						"name": "stableCoin",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "amount",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "lenderShare",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "totalSupply",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "totalLiquidity",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "remainingPool",
+						"type": "uint256"
+					}
+				],
+				"name": "WithdrawSupply",
+				"type": "event"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "_user",
+						"type": "address"
+					}
+				],
+				"name": "balanceOf",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "_loanId",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "_amount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "address",
+						"name": "_borrower",
+						"type": "address"
+					},
+					{
+						"internalType": "bool",
+						"name": "_isFiat",
+						"type": "bool"
+					}
+				],
+				"name": "borrow",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "_amount",
+						"type": "uint256"
+					}
+				],
+				"name": "earnStaking",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "_loanId",
+						"type": "uint256"
+					}
+				],
+				"name": "getCurrentLoan",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "getCurrentRate",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "getDebtPool",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "amount",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "getRemainingPool",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "amount",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "getTotalSupply",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "contract IERC20Standard",
+						"name": "_stableCoinAddress",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "interestRateStrategyAddress",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "_cap",
+						"type": "uint256"
+					}
+				],
+				"name": "initialize",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "_loanId",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "_amount",
+						"type": "uint256"
+					}
+				],
+				"name": "liquidatePenalty",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "_loanId",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "_amount",
+						"type": "uint256"
+					}
+				],
+				"name": "repay",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "_ccfl",
+						"type": "address"
+					}
+				],
+				"name": "setCCFL",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "_interestRateStrategyAddress",
+						"type": "address"
+					}
+				],
+				"name": "setReserveInterestRateStrategy",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "_amount",
+						"type": "uint256"
+					}
+				],
+				"name": "supply",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "_amount",
+						"type": "uint256"
+					}
+				],
+				"name": "withdraw",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "contract IERC20Standard",
+						"name": "_token",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "_receiver",
+						"type": "address"
+					}
+				],
+				"name": "withdrawByAdmin",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "_receiver",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "_loanId",
+						"type": "uint256"
+					}
+				],
+				"name": "withdrawLoan",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			}
+		],
+		"devdoc": {
+			"author": "@notice usd",
+			"kind": "dev",
+			"methods": {},
+			"title": "Pool contract",
+			"version": 1
+		},
+		"userdoc": {
+			"kind": "user",
+			"methods": {},
+			"version": 1
+		}
+	},
+	"settings": {
+		"compilationTarget": {
+			"ICCFLPool.sol": "ICCFLPool"
+		},
+		"evmVersion": "cancun",
+		"libraries": {},
+		"metadata": {
+			"bytecodeHash": "ipfs"
+		},
+		"optimizer": {
+			"enabled": false,
+			"runs": 200
+		},
+		"remappings": []
+	},
+	"sources": {
+		"@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol": {
+			"keccak256": "0x631188737069917d2f909d29ce62c4d48611d326686ba6683e26b72a23bfac0b",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://7a61054ae84cd6c4d04c0c4450ba1d6de41e27e0a2c4f1bcdf58f796b401c609",
+				"dweb:/ipfs/QmUvtdp7X1mRVyC3CsHrtPbgoqWaXHp3S1ZR24tpAQYJWM"
+			]
+		},
+		"@openzeppelin/contracts/token/ERC20/IERC20.sol": {
+			"keccak256": "0xc6a8ff0ea489379b61faa647490411b80102578440ab9d84e9a957cc12164e70",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://0ea104e577e63faea3b69c415637e99e755dcbf64c5833d7140c35a714d6d90c",
+				"dweb:/ipfs/Qmau6x4Ns9XdyynRCNNp3RhLqijJjFm7z5fyZazfYFGYdq"
+			]
+		},
+		"@openzeppelin/contracts/utils/math/SafeCast.sol": {
+			"keccak256": "0xe19a4d5f31d2861e7344e8e535e2feafb913d806d3e2b5fe7782741a2a7094fe",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://4aed79c0fa6f0546ed02f2f683e8f77f0fd2ed7eb34d8bbf3d373c9a6d95b13c",
+				"dweb:/ipfs/QmWqVz6UAVqmnWU5pqYPt1o6iDEZyPaBraAA3rKfTTSfYj"
+			]
+		},
+		"DataTypes.sol": {
+			"keccak256": "0x63ef520417db9cca137c12f1285744605422b38e29f3bb241b2354ebd2a44669",
+			"license": "BUSL-1.1",
+			"urls": [
+				"bzz-raw://a137995d588568f79a94892b09be806184376a0ef68f9e6f5be699056141bffd",
+				"dweb:/ipfs/QmRUxibLgKzw2RPcmoi9DnwPkzqGpJFTsqjJsQga58Weof"
+			]
+		},
+		"ICCFLPool.sol": {
+			"keccak256": "0xe3cc45821d8fe86f5443491eeb34a9ef3f6c6b467e60b70a55d02c621a81a594",
+			"license": "UNLICENSED",
+			"urls": [
+				"bzz-raw://6a51f02f61577a860f3cddde30c59716c3356eb01da8f597f19adc03a12e2d5d",
+				"dweb:/ipfs/QmYqBrZv4mzPKvXX3QWUsXigkf6QpCK3HivjZR8qUMaXzN"
+			]
+		},
+		"IERC20Standard.sol": {
+			"keccak256": "0x6de74494535348a285871959d6141adadcb56060fead04ad7baaf21fa5e748dc",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://dce6237b20eeb6103c81e205dac93ba9bf3d057279f6f4c787c0cdde7f84ea9a",
+				"dweb:/ipfs/QmSexRYC5VkuFYHQ9DP5KVwHkPBeMwQBwEjpL1nLsrRLDa"
+			]
+		},
+		"IReserveInterestRateStrategy.sol": {
+			"keccak256": "0x8a17bf2a0d383bf6bea98d2a9d8085c2ebc785484ae5083947e1b4a6cada977c",
+			"license": "AGPL-3.0",
+			"urls": [
+				"bzz-raw://7cef5d2dbeb8ff575e704374d71a426e6710823cccb4f91ec43817ad9068ce9a",
+				"dweb:/ipfs/QmUwDfbbtpDYUiJkCeS6AnjvnhiciSNXo4tKSkZ4oXqods"
+			]
+		},
+		"hardhat/console.sol": {
+			"keccak256": "0xf2560b5386574153057104d19a9e68a32ee912cf23c0c8df1fe9a0607f42d543",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://a63166e036b040826baa513772451a79925daa304b38749100efb089ac07cdc2",
+				"dweb:/ipfs/QmUtMTxUFKU6a5oFXsEJnTPvb3QPb7GDDmSv5yZ1jFHDwR"
+			]
+		},
+		"helpers/Errors.sol": {
+			"keccak256": "0xa5000dfce8044bf4a9a4cc073cb7c831d677b295cef6d4399c90813e49fda4e8",
+			"license": "BUSL-1.1",
+			"urls": [
+				"bzz-raw://5ea64fccd17551ff8f98ef4b9a45f31efcb90870fe4fa36d2680279ffb6e271a",
+				"dweb:/ipfs/QmfVWveHsd3wed1jZPF6fn81J9s1W8NFj4EF8uaPj4rzDW"
+			]
+		},
+		"math/MathUtils.sol": {
+			"keccak256": "0xb94b501d3f13553e3ccb0614d50cb8f449cce5ca2aa80391ce53fe57f4aee74d",
+			"license": "BUSL-1.1",
+			"urls": [
+				"bzz-raw://00deede2ba66edae9bb9e425385d0326fc05f0a6e74a2da3d6f11b29b3a68f97",
+				"dweb:/ipfs/Qme48x29DyqBbKnwmNbtj1zgWBPptsuh87WM3yHQ2ENwJ4"
+			]
+		},
+		"math/PercentageMath.sol": {
+			"keccak256": "0x6a7dcf18e1af47b69c8dd58093b0134e3689bf719ba63eae485d8f9dfc10cac7",
+			"license": "BUSL-1.1",
+			"urls": [
+				"bzz-raw://f1eb7f7813ade11391040b7bf495c8eaaf55780e75d9f2f0f75ce01975b44dfd",
+				"dweb:/ipfs/QmUpXWird3PCkTrTDEVVnwV353L9jHxabEfAfsw57vjWux"
+			]
+		},
+		"math/WadRayMath.sol": {
+			"keccak256": "0x618fe1876e322a10269e4a96e61e516bbbec883cb79e20b508f8010027178f07",
+			"license": "BUSL-1.1",
+			"urls": [
+				"bzz-raw://d2814d57ad47ba13959bf9a108c25374828a370f8d64b5adb7564876927a3a06",
+				"dweb:/ipfs/Qmf9xfz7svNZAzgUHUTAj6gVC7SHiT7S4obfo1Sg1Fwzbx"
+			]
+		}
+	},
+	"version": 1
+}
