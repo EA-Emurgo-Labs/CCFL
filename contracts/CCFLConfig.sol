@@ -73,27 +73,27 @@ contract CCFLConfig is ICCFLConfig, Initializable {
         owner = msg.sender;
     }
 
-    function addPoolCollateral(
-        IERC20Standard[] memory _ccflPoolStableCoin,
-        AggregatorV3Interface[] memory _poolAggregators,
-        IERC20Standard[] memory _collateralTokens,
-        AggregatorV3Interface[] memory _collateralAggregators,
-        IERC20Standard[] memory _aTokens
-    ) public {
-        ccflPoolStableCoins = _ccflPoolStableCoin;
-        for (uint i = 0; i < ccflPoolStableCoins.length; i++) {
-            IERC20Standard token = ccflPoolStableCoins[i];
-            pricePoolFeeds[token] = _poolAggregators[i];
-            ccflActiveCoins[token] = true;
-        }
-        collateralTokens = _collateralTokens;
-        for (uint i = 0; i < collateralTokens.length; i++) {
-            IERC20Standard token = collateralTokens[i];
-            priceFeeds[token] = _collateralAggregators[i];
-            aTokens[token] = _aTokens[i];
-            ccflActiveCoins[token] = true;
-        }
-    }
+    // function addPoolCollateral(
+    //     IERC20Standard[] memory _ccflPoolStableCoin,
+    //     AggregatorV3Interface[] memory _poolAggregators,
+    //     IERC20Standard[] memory _collateralTokens,
+    //     AggregatorV3Interface[] memory _collateralAggregators,
+    //     IERC20Standard[] memory _aTokens
+    // ) public {
+    //     ccflPoolStableCoins = _ccflPoolStableCoin;
+    //     for (uint i = 0; i < ccflPoolStableCoins.length; i++) {
+    //         IERC20Standard token = ccflPoolStableCoins[i];
+    //         pricePoolFeeds[token] = _poolAggregators[i];
+    //         ccflActiveCoins[token] = true;
+    //     }
+    //     collateralTokens = _collateralTokens;
+    //     for (uint i = 0; i < collateralTokens.length; i++) {
+    //         IERC20Standard token = collateralTokens[i];
+    //         priceFeeds[token] = _collateralAggregators[i];
+    //         aTokens[token] = _aTokens[i];
+    //         ccflActiveCoins[token] = true;
+    //     }
+    // }
 
     function getCcflActiveCoins(
         IERC20Standard _tokenAddress
@@ -286,14 +286,6 @@ contract CCFLConfig is ICCFLConfig, Initializable {
     function getWETH() public view returns (IWETH) {
         return wETH;
     }
-
-    // function setCCFLLoan(ICCFLLoan _loan) public onlyOwner {
-    //     ccflLoan = _loan;
-    // }
-
-    // function getCCFLLoan() public view returns (ICCFLLoan) {
-    //     return ccflLoan;
-    // }
 
     function setCollateralToStableFee(
         IERC20Standard[] memory _collateral,
