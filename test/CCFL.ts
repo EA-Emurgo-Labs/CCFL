@@ -513,6 +513,7 @@ describe("CCFL system", function () {
         BigInt(2000e18)
       );
 
+      await wBTC.connect(borrower1).approve(ccfl.getAddress(), BigInt(100e18));
       await ccfl
         .connect(borrower1)
         .addCollateral(BigInt(1), BigInt(100e18), await wBTC.getAddress());

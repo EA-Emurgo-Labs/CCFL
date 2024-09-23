@@ -342,7 +342,7 @@ contract CCFL is ICCFL, Initializable {
         DataTypes.Loan memory info = loan.getLoanInfo();
 
         // get from user to loan
-        _collateral.transferFrom(msg.sender, address(loan), _amountCollateral);
+        _collateral.transferFrom(msg.sender, address(this), _amountCollateral);
 
         // transfer collateral
         _collateral.approve(address(loan), _amountCollateral);
