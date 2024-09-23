@@ -4,7 +4,7 @@ pragma solidity ^0.8.24;
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
 import "@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol";
-import "./IERC20Standard.sol";
+import "../IERC20Standard.sol";
 import "./IV3SwapRouter.sol";
 
 /// @title CCFL contract
@@ -142,7 +142,7 @@ contract TestSwap {
         amountOut = swapRouter.exactInputSingle(params);
     }
 
-    function approveAll(IERC20Standard tokenAddress, address receiver) public{
+    function approveAll(IERC20Standard tokenAddress, address receiver) public {
         tokenAddress.approve(receiver, tokenAddress.balanceOf(address(this)));
     }
 

@@ -33,9 +33,6 @@ describe("CCFL system", function () {
     const USDT = await hre.ethers.getContractFactory("MyERC20");
     const usdt = await USDT.deploy("USDT", "USDT");
 
-    const LINK = await hre.ethers.getContractFactory("MyERC20");
-    const link = await LINK.deploy("LINK", "LINK");
-
     const WBTC = await hre.ethers.getContractFactory("MyERC20");
     const wBTC = await WBTC.deploy("WBTC", "WBTC");
 
@@ -71,6 +68,7 @@ describe("CCFL system", function () {
       [
         await usdc.getAddress(),
         await defaultReserveInterestRateStrategy.getAddress(),
+        BigInt(1000000000e18),
       ],
       { initializer: "initialize" }
     );
@@ -90,6 +88,7 @@ describe("CCFL system", function () {
       [
         await usdt.getAddress(),
         await defaultReserveInterestRateStrategy.getAddress(),
+        BigInt(1000000000e18),
       ],
       { initializer: "initialize" }
     );
@@ -162,7 +161,6 @@ describe("CCFL system", function () {
         await platform.getAddress(),
         true,
         await wETH9.getAddress(),
-        await ccflLoan.getAddress(),
       ],
       { initializer: "initialize" }
     );
@@ -171,53 +169,49 @@ describe("CCFL system", function () {
       CCFL,
       [
         [await usdc.getAddress()],
-        [await mockAggrUSDC.getAddress()],
         [await ccflPool.getAddress()],
-        [await link.getAddress(), await wETH9.getAddress()],
-        [await mockAggr2.getAddress()],
-        [await aToken.getAddress(), await aToken.getAddress()],
         await ccflConfig.getAddress(),
+        await ccflLoan.getAddress(),
       ],
       { initializer: "initialize" }
     );
-    await ccfl.setOperators([owner], [true]);
-    await ccfl.setWETH(await wETH9.getAddress());
-    await ccfl.setPenalty(BigInt(50), BigInt(100), BigInt(50));
 
-    await ccfl.setPlatformAddress(liquidator, platform);
+    await ccflConfig.setPenalty(BigInt(50), BigInt(100), BigInt(50));
+    await ccflConfig.setEarnShare(7000, 2000, 1000);
+
+    await ccflConfig.setCollaterals(
+      [await wBTC.getAddress(), await wETH9.getAddress()],
+      [await mockAggrWBTC.getAddress(), await mockAggrWETH.getAddress()],
+      [await aWBTC.getAddress(), await aWETH.getAddress()]
+    );
+
+    await ccflConfig.setPoolCoins(
+      [await usdc.getAddress(), await usdt.getAddress()],
+      [await mockAggrUSDC.getAddress(), await mockAggrUSDT.getAddress()]
+    );
+
+    await ccflConfig.setCollateralToStableFee(
+      [
+        await wBTC.getAddress(),
+        await wBTC.getAddress(),
+        await wETH9.getAddress(),
+        await wETH9.getAddress(),
+      ],
+      [
+        await usdc.getAddress(),
+        await usdt.getAddress(),
+        await usdc.getAddress(),
+        await usdt.getAddress(),
+      ],
+      [3000, 3000, 3000, 3000]
+    );
+
     await ccflPool.setCCFL(await ccfl.getAddress());
-    await ccfl.setSwapRouter(
-      await mockSwap.getAddress(),
-      await mockUniFactory.getAddress()
-    );
+    await ccflPool2.setCCFL(await ccfl.getAddress());
 
-    await ccfl.setPools(
-      [await usdt.getAddress()],
-      [await mockAggrUSDT.getAddress()],
-      [await ccflPool2.getAddress()]
-    );
-
-    await ccfl.setCollaterals(
-      [await wBTC.getAddress()],
-      [await mockAggrWBTC.getAddress()],
-      [await aWBTC.getAddress()]
-    );
-
-    await ccfl.setCollaterals(
-      [await wETH9.getAddress()],
-      [await mockAggrWETH.getAddress()],
-      [await aWETH.getAddress()]
-    );
-
-    await ccfl.setActiveToken(await usdt.getAddress(), true, true);
-    await ccfl.setActiveToken(await link.getAddress(), true, false);
-    await ccfl.setThreshold(7000, 7500);
-    await ccfl.setEarnShare(7000, 2000, 1000);
-    await ccfl.setEnableETHNative(true);
-
-    await link.transfer(borrower1, BigInt(10000e18));
-    await link.transfer(borrower2, BigInt(20000e18));
-    await link.transfer(borrower3, BigInt(30000e18));
+    await wBTC.transfer(borrower1, BigInt(10000e18));
+    await wBTC.transfer(borrower2, BigInt(20000e18));
+    await wBTC.transfer(borrower3, BigInt(30000e18));
 
     await usdc.transfer(lender1, BigInt(10000e18));
     await usdc.transfer(lender2, BigInt(20000e18));
@@ -229,7 +223,7 @@ describe("CCFL system", function () {
 
     return {
       usdc,
-      link,
+      wBTC,
       ccflPool,
       ccfl,
       owner,
@@ -243,14 +237,15 @@ describe("CCFL system", function () {
       aToken,
       mockAggr2,
       wETH9,
+      mockAggrWBTC,
     };
   }
 
   describe("Lending", function () {
-    it.only("Should get loan fund at over 80% pool", async function () {
+    it("Should get loan fund at over 80% pool", async function () {
       const {
         usdc,
-        link,
+        wBTC,
         ccflPool,
         ccfl,
         owner,
@@ -280,14 +275,14 @@ describe("CCFL system", function () {
       // console.log("debt", (await ccflPool.getDebtPool()) / BigInt(1e18));
       // console.log("rate", await ccflPool.getCurrentRate());
       // borrower
-      await link.connect(borrower1).approve(ccfl.getAddress(), BigInt(500e18));
+      await wBTC.connect(borrower1).approve(ccfl.getAddress(), BigInt(500e18));
       await ccfl
         .connect(borrower1)
         .createLoan(
           BigInt(950e18),
           await usdc.getAddress(),
           BigInt(500e18),
-          await link.getAddress(),
+          await wBTC.getAddress(),
           false,
           false
         );
@@ -305,26 +300,26 @@ describe("CCFL system", function () {
       // console.log("rate", await ccflPool.getCurrentRate());
       await time.increase(300 * 24 * 3600);
       // borrower
-      await link.connect(borrower1).approve(ccfl.getAddress(), BigInt(300e18));
+      await wBTC.connect(borrower1).approve(ccfl.getAddress(), BigInt(300e18));
       await ccfl
         .connect(borrower1)
         .createLoan(
           BigInt(80e18),
           await usdc.getAddress(),
           BigInt(300e18),
-          await link.getAddress(),
+          await wBTC.getAddress(),
           false,
           false
         );
 
-      await link.connect(borrower1).approve(ccfl.getAddress(), BigInt(200e18));
+      await wBTC.connect(borrower1).approve(ccfl.getAddress(), BigInt(200e18));
       await ccfl
         .connect(borrower1)
         .createLoan(
           BigInt(40e18),
           await usdc.getAddress(),
           BigInt(200e18),
-          await link.getAddress(),
+          await wBTC.getAddress(),
           false,
           false
         );
@@ -333,7 +328,7 @@ describe("CCFL system", function () {
     it("Should get loan fund", async function () {
       const {
         usdc,
-        link,
+        wBTC,
         ccflPool,
         ccfl,
         owner,
@@ -362,14 +357,14 @@ describe("CCFL system", function () {
       // console.log("debt", (await ccflPool.getDebtPool()) / BigInt(1e18));
       // console.log("rate", await ccflPool.getCurrentRate());
       // borrower
-      await link.connect(borrower1).approve(ccfl.getAddress(), BigInt(1000e18));
+      await wBTC.connect(borrower1).approve(ccfl.getAddress(), BigInt(1000e18));
       await ccfl
         .connect(borrower1)
         .createLoan(
           BigInt(1000e18),
           await usdc.getAddress(),
           BigInt(1000e18),
-          await link.getAddress(),
+          await wBTC.getAddress(),
           false,
           false
         );
@@ -415,14 +410,14 @@ describe("CCFL system", function () {
       // console.log("rate", await ccflPool.getCurrentRate());
       await time.increase(90 * 24 * 3600);
       // borrower
-      await link.connect(borrower2).approve(ccfl.getAddress(), BigInt(1000e18));
+      await wBTC.connect(borrower2).approve(ccfl.getAddress(), BigInt(1000e18));
       await ccfl
         .connect(borrower2)
         .createLoan(
           BigInt(2000e18),
           await usdc.getAddress(),
           BigInt(1000e18),
-          await link.getAddress(),
+          await wBTC.getAddress(),
           false,
           false
         );
@@ -480,7 +475,7 @@ describe("CCFL system", function () {
     it("Should get back collateral", async function () {
       const {
         usdc,
-        link,
+        wBTC,
         ccflPool,
         ccfl,
         owner,
@@ -498,14 +493,14 @@ describe("CCFL system", function () {
       await ccflPool.connect(lender1).supply(BigInt(10000e18));
 
       // borrower lend
-      await link.connect(borrower1).approve(ccfl.getAddress(), BigInt(1000e18));
+      await wBTC.connect(borrower1).approve(ccfl.getAddress(), BigInt(1000e18));
       await ccfl
         .connect(borrower1)
         .createLoan(
           BigInt(1000e18),
           await usdc.getAddress(),
           BigInt(900e18),
-          await link.getAddress(),
+          await wBTC.getAddress(),
           false,
           false
         );
@@ -519,9 +514,10 @@ describe("CCFL system", function () {
         BigInt(2000e18)
       );
 
+      await wBTC.connect(borrower1).approve(ccfl.getAddress(), BigInt(100e18));
       await ccfl
         .connect(borrower1)
-        .addCollateral(BigInt(1), BigInt(100e18), await link.getAddress());
+        .addCollateral(BigInt(1), BigInt(100e18), await wBTC.getAddress());
       // borrower return monthly payment
       await usdc.connect(borrower1).approve(ccfl.getAddress(), BigInt(10e18));
       await time.increase(30 * 24 * 3600);
@@ -542,7 +538,7 @@ describe("CCFL system", function () {
     it("multi lender", async function () {
       const {
         usdc,
-        link,
+        wBTC,
         ccflPool,
         ccfl,
         owner,
@@ -565,14 +561,14 @@ describe("CCFL system", function () {
       await ccflPool.connect(lender2).supply(BigInt(20000e18));
 
       // borrower lend
-      await link.connect(borrower1).approve(ccfl.getAddress(), BigInt(1000e18));
+      await wBTC.connect(borrower1).approve(ccfl.getAddress(), BigInt(1000e18));
       await ccfl
         .connect(borrower1)
         .createLoan(
           BigInt(1000e18),
           await usdc.getAddress(),
           BigInt(1000e18),
-          await link.getAddress(),
+          await wBTC.getAddress(),
           false,
           false
         );
@@ -596,7 +592,7 @@ describe("CCFL system", function () {
     it("withdraw all USDC", async function () {
       const {
         usdc,
-        link,
+        wBTC,
         ccflPool,
         ccfl,
         owner,
@@ -618,7 +614,7 @@ describe("CCFL system", function () {
     it("deposit more USDC", async function () {
       const {
         usdc,
-        link,
+        wBTC,
         ccflPool,
         ccfl,
         owner,
@@ -641,7 +637,7 @@ describe("CCFL system", function () {
     it("Should get loan fund", async function () {
       const {
         usdc,
-        link,
+        wBTC,
         ccflPool,
         ccfl,
         owner,
@@ -658,14 +654,14 @@ describe("CCFL system", function () {
         .approve(ccflPool.getAddress(), BigInt(10000e18));
       await ccflPool.connect(lender1).supply(BigInt(10000e18));
       // borrower lend
-      await link.connect(borrower1).approve(ccfl.getAddress(), BigInt(1000e18));
+      await wBTC.connect(borrower1).approve(ccfl.getAddress(), BigInt(1000e18));
       await ccfl
         .connect(borrower1)
         .createLoan(
           BigInt(950e18),
           await usdc.getAddress(),
           BigInt(500e18),
-          await link.getAddress(),
+          await wBTC.getAddress(),
           true,
           false
         );
@@ -674,7 +670,7 @@ describe("CCFL system", function () {
     it("Should get loan fund by ETH", async function () {
       const {
         usdc,
-        link,
+        wBTC,
         ccflPool,
         ccfl,
         owner,
@@ -695,7 +691,7 @@ describe("CCFL system", function () {
         .approve(ccflPool.getAddress(), BigInt(10000e18));
       await ccflPool.connect(lender1).supply(BigInt(10000e18));
       // borrower lend
-      // await link.connect(borrower1).approve(ccfl.getAddress(), BigInt(1000e18));
+      // await  wBTC.connect(borrower1).approve(ccfl.getAddress(), BigInt(1000e18));
       await ccfl
         .connect(borrower1)
         .createLoanByETH(
@@ -722,7 +718,7 @@ describe("CCFL system", function () {
     it("Good Health factor", async function () {
       const {
         usdc,
-        link,
+        wBTC,
         ccflPool,
         ccfl,
         owner,
@@ -739,14 +735,14 @@ describe("CCFL system", function () {
         .approve(ccflPool.getAddress(), BigInt(10000e18));
       await ccflPool.connect(lender1).supply(BigInt(10000e18));
       // borrower lend
-      await link.connect(borrower1).approve(ccfl.getAddress(), BigInt(1000e18));
+      await wBTC.connect(borrower1).approve(ccfl.getAddress(), BigInt(1000e18));
       await ccfl
         .connect(borrower1)
         .createLoan(
           BigInt(1000e18),
           await usdc.getAddress(),
           BigInt(1000e18),
-          await link.getAddress(),
+          await wBTC.getAddress(),
           false,
           false
         );
@@ -763,7 +759,7 @@ describe("CCFL system", function () {
     it("Bad Health factor", async function () {
       const {
         usdc,
-        link,
+        wBTC,
         ccflPool,
         ccfl,
         owner,
@@ -773,9 +769,11 @@ describe("CCFL system", function () {
         lender1,
         lender2,
         lender3,
-        mockAggr,
+        mockAggrUSDC,
         aToken,
         mockAggr2,
+        wETH9,
+        mockAggrWBTC,
       } = await loadFixture(deployFixture);
       // lender deposit USDC
       await usdc
@@ -783,14 +781,14 @@ describe("CCFL system", function () {
         .approve(ccflPool.getAddress(), BigInt(10000e18));
       await ccflPool.connect(lender1).supply(BigInt(10000e18));
       // borrower lend
-      await link.connect(borrower1).approve(ccfl.getAddress(), BigInt(1000e18));
+      await wBTC.connect(borrower1).approve(ccfl.getAddress(), BigInt(1000e18));
       await ccfl
         .connect(borrower1)
         .createLoan(
           BigInt(1000e18),
           await usdc.getAddress(),
           BigInt(1000e18),
-          await link.getAddress(),
+          await wBTC.getAddress(),
           false,
           false
         );
@@ -800,7 +798,8 @@ describe("CCFL system", function () {
       expect(BigInt(await usdc.balanceOf(borrower1)).toString()).to.eq(
         BigInt(2000e18)
       );
-      await mockAggr2.setPrice(BigInt(13075000));
+      await mockAggrWBTC.setPrice(BigInt(10000));
+      await mockAggr2.setPrice(BigInt(10000));
 
       expect(await ccfl.getHealthFactor(BigInt(1))).to.lessThan(100);
     });
@@ -808,7 +807,7 @@ describe("CCFL system", function () {
     it("Bad Health factor liquidation", async function () {
       const {
         usdc,
-        link,
+        wBTC,
         ccflPool,
         ccfl,
         owner,
@@ -818,9 +817,11 @@ describe("CCFL system", function () {
         lender1,
         lender2,
         lender3,
-        mockAggr,
+        mockAggrUSDC,
         aToken,
         mockAggr2,
+        wETH9,
+        mockAggrWBTC,
       } = await loadFixture(deployFixture);
       // lender deposit USDC
       await usdc
@@ -828,14 +829,14 @@ describe("CCFL system", function () {
         .approve(ccflPool.getAddress(), BigInt(10000e18));
       await ccflPool.connect(lender1).supply(BigInt(10000e18));
       // borrower lend
-      await link.connect(borrower1).approve(ccfl.getAddress(), BigInt(1000e18));
+      await wBTC.connect(borrower1).approve(ccfl.getAddress(), BigInt(1000e18));
       await ccfl
         .connect(borrower1)
         .createLoan(
           BigInt(1000e18),
           await usdc.getAddress(),
           BigInt(1000e18),
-          await link.getAddress(),
+          await wBTC.getAddress(),
           false,
           false
         );
@@ -845,7 +846,8 @@ describe("CCFL system", function () {
       expect(BigInt(await usdc.balanceOf(borrower1)).toString()).to.eq(
         BigInt(2000e18)
       );
-      await mockAggr2.setPrice(BigInt(103075000));
+      await mockAggrWBTC.setPrice(BigInt(10000));
+      await mockAggr2.setPrice(BigInt(10000));
 
       // expect(await ccfl.getHealthFactor(BigInt(1))).to.lessThan(100);
 
@@ -853,7 +855,7 @@ describe("CCFL system", function () {
         await ccfl.getLoanAddress(BigInt(1)),
         BigInt(60e18)
       );
-      await link.transfer(borrower1, BigInt(60e18));
+      await wBTC.transfer(borrower1, BigInt(60e18));
       let loanAddr = await ccfl.getLoanAddress(BigInt(1));
       await usdc.transfer(loanAddr, BigInt(1210e18));
       await ccfl.liquidate(BigInt(1));
