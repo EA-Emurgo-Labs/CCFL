@@ -1,6 +1,7 @@
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
 const ProxyCCFLModule = buildModule("ProxyCCFLModule", (m) => {
   let usdc = "0x94a9D9AC8a22534E3FaCa9F4e7F2E2cf85d5E4C8";
+  let usdt = "0xaa8e23fb1079ea71e0a56f48a2aa51851d8433d0";
   let wbtc = "0x29f2D40B0605204364af54EC677bD022dA425d03";
   let wETH = "0xC558DBdd856501FCd9aaF1E62eae57A9F0629a3c";
   let aWBTC = "0x1804Bf30507dc2EB3bDEbbbdd859991EAeF6EefF";
@@ -36,9 +37,16 @@ const ProxyCCFLModule = buildModule("ProxyCCFLModule", (m) => {
   const proxyAdminOwner = m.getAccount(0);
 
   const ccflPool = m.contract("CCFLPool");
+  const ccflPoolUSDT = m.contract("CCFLPool", [], { id: "ccflPoolUSDT" });
 
   const dataPool = m.encodeFunctionCall(ccflPool, "initialize", [
     usdc,
+    defaultReserveInterestRateStrategy,
+    100000000000000,
+  ]);
+
+  const dataPoolUSDT = m.encodeFunctionCall(ccflPoolUSDT, "initialize", [
+    usdt,
     defaultReserveInterestRateStrategy,
     100000000000000,
   ]);
@@ -59,6 +67,27 @@ const ProxyCCFLModule = buildModule("ProxyCCFLModule", (m) => {
   const proxyAdminPool = m.contractAt("ProxyAdmin", proxyAdminAddressPool, {
     id: "proxyAdminPool",
   });
+
+  const proxyUSDTPool = m.contract(
+    "TransparentUpgradeableProxy",
+    [ccflPool, proxyAdminOwner, dataPoolUSDT],
+    { id: "proxyPoolUSDT" }
+  );
+
+  const proxyAdminUSDTAddressPool = m.readEventArgument(
+    proxyUSDTPool,
+    "AdminChanged",
+    "newAdmin",
+    { id: "proxyAdminAddressPoolUSDT" }
+  );
+
+  const proxyAdminPoolUSDT = m.contractAt(
+    "ProxyAdmin",
+    proxyAdminUSDTAddressPool,
+    {
+      id: "proxyAdminPoolUSDT",
+    }
+  );
 
   const loan = m.contract("CCFLLoan");
 
@@ -122,21 +151,35 @@ const ProxyCCFLModule = buildModule("ProxyCCFLModule", (m) => {
     BigInt(100),
     BigInt(50),
   ]);
+
   m.call(ccflConfigProxyRemap, "setEarnShare", [
     BigInt(7000),
     BigInt(2000),
     BigInt(1000),
   ]);
 
-  const ccfl = m.contract("CCFL");
-
-  const data = m.encodeFunctionCall(ccfl, "initialize", [
-    [usdc],
-    [usdcAggr],
-    [proxyPool],
+  m.call(ccflConfigProxyRemap, "setCollaterals", [
     [wbtc, wETH],
     [wbtcAggr, ethAggr],
     [aWBTC, aWETH],
+  ]);
+
+  m.call(ccflConfigProxyRemap, "setPoolCoins", [
+    [usdc, usdt],
+    [usdcAggr, usdcAggr],
+  ]);
+
+  m.call(ccflConfigProxyRemap, "setCollateralToStableFee", [
+    [wbtc, wbtc, wETH, wETH],
+    [usdc, usdt, usdc, usdt],
+    [3000, 3000, 3000, 3000],
+  ]);
+
+  const ccfl = m.contract("CCFL");
+
+  const data = m.encodeFunctionCall(ccfl, "initialize", [
+    [usdc, usdt],
+    [proxyPool, proxyUSDTPool],
     proxyCCFLConfig,
     loan,
   ]);
@@ -161,13 +204,22 @@ const ProxyCCFLModule = buildModule("ProxyCCFLModule", (m) => {
   const ccflPoolProxyRemap = m.contractAt("CCFLPool", proxyPool, {
     id: "ccflPoolProxyRemap",
   });
-  const ccflProxyRemap = m.contractAt("CCFL", proxyCCFL, {
-    id: "ccflproxyRemap",
+
+  const ccflPoolUSDTProxyRemap = m.contractAt("CCFLPool", proxyUSDTPool, {
+    id: "ccflPoolUSDTProxyRemap",
   });
 
-  m.call(ccflPoolProxyRemap, "setCCFL", [ccflProxyRemap]);
+  m.call(ccflPoolProxyRemap, "setCCFL", [proxyCCFL]);
 
-  return { proxyAdminCCFL, proxyCCFL, proxyAdminPool, proxyPool };
+  m.call(ccflPoolUSDTProxyRemap, "setCCFL", [proxyCCFL]);
+
+  return {
+    proxyAdminCCFL,
+    proxyCCFL,
+    proxyAdminPool,
+    proxyPool,
+    proxyUSDTPool,
+  };
 });
 
 export default ProxyCCFLModule;
