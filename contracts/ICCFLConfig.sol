@@ -12,6 +12,19 @@ import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
 import "@aave/core-v3/contracts/misc/interfaces/IWETH.sol";
 import "./helpers/Errors.sol";
 
+interface AggregatorV3Interface {
+    function latestRoundData()
+        external
+        view
+        returns (
+            uint80 roundId,
+            int256 answer,
+            uint256 startedAt,
+            uint256 updatedAt,
+            uint80 answeredInRound
+        );
+}
+
 /// @title CCFL contract
 /// @author
 /// @notice Link/usd
@@ -82,4 +95,17 @@ interface ICCFLConfig {
         IERC20Standard _collateral,
         IERC20Standard _stable
     ) external view returns (uint24);
+
+    function getCcflActiveCoins(
+        IERC20Standard _tokenAddress
+    ) external view returns (bool);
+
+    function getLatestPrice(
+        IERC20Standard _stableCoin,
+        bool isPool
+    ) external view returns (uint);
+
+    function getAtoken(
+        IERC20Standard _collateral
+    ) external view returns (IERC20Standard);
 }

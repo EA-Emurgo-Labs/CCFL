@@ -2,9 +2,9 @@ import { bigint } from "hardhat/internal/core/params/argumentTypes";
 
 const { ethers } = require("hardhat");
 
-let pool = "0x55A60534c16E1039E4BDf2E437bCc8419e4551D9";
-let ccfl = "0xDD20c2e2cf399Cc3c688a0A73241B8e8eA7b6F78";
-let usdtPool = "0x9352EC98DA4896C7eDfBa230E94ccaF1e4e1DbAd";
+let pool = "0x85fee6E739d55E05E9d5Ed42735613aAA27156da";
+let ccfl = "0x330D11c8ee18c860D08F91783d8ba44A60854AaD";
+let usdtPool = "0x81381F4c77E4f75345d96A5fdd6E0eFf58c14871";
 
 // let ccfl = "0xB07c62E2a4E3da8465fa207965da12787b9188fc";
 // let usdtPool = "0xa00Ae2a3aeFd3002EDE22523E12BF28D4676596A";
@@ -306,6 +306,14 @@ async function getMinimumCollateral(usdcAmount: any) {
   const signer = await ethers.provider.getSigner();
   console.log("signer", await signer.getAddress());
 
+  const aggrWBTC = await ethers.getContractAt(
+    "MockAggregator",
+    "0x2B1EdE85Ea8105e638429a9B3Ec621d1A7939597",
+    signer
+  );
+
+  console.log(await aggrWBTC.latestRoundData());
+
   const iUsdc = await ethers.getContractAt("ICCFL", ccfl, signer);
 
   const minimal = await iUsdc.checkMinimalCollateralForLoan(
@@ -400,7 +408,6 @@ describe("sepolia", () => {
     });
 
     it("get minimal wbtc", async () => {
-      // await changeWbtcprice(60000e8);
       await getMinimumCollateral(1e6);
     });
   });

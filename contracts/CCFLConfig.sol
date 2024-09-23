@@ -32,6 +32,17 @@ contract CCFLConfig is ICCFLConfig, Initializable {
     mapping(IERC20Standard => mapping(IERC20Standard => uint24))
         public collateralToStableCoinFee;
 
+    IERC20Standard[] public ccflPoolStableCoins;
+
+    mapping(IERC20Standard => bool) public ccflActiveCoins;
+
+    // init for clone loan sc
+    IERC20Standard[] public collateralTokens;
+
+    mapping(IERC20Standard => IERC20Standard) public aTokens;
+    mapping(IERC20Standard => AggregatorV3Interface) public priceFeeds;
+    mapping(IERC20Standard => AggregatorV3Interface) public pricePoolFeeds;
+
     modifier onlyOwner() {
         require(msg.sender == owner, Errors.ONLY_THE_OWNER);
         _;
@@ -60,6 +71,124 @@ contract CCFLConfig is ICCFLConfig, Initializable {
         isEnableETHNative = _isEnableETHNative;
         wETH = _wETH;
         owner = msg.sender;
+    }
+
+    // function addPoolCollateral(
+    //     IERC20Standard[] memory _ccflPoolStableCoin,
+    //     AggregatorV3Interface[] memory _poolAggregators,
+    //     IERC20Standard[] memory _collateralTokens,
+    //     AggregatorV3Interface[] memory _collateralAggregators,
+    //     IERC20Standard[] memory _aTokens
+    // ) public {
+    //     ccflPoolStableCoins = _ccflPoolStableCoin;
+    //     for (uint i = 0; i < ccflPoolStableCoins.length; i++) {
+    //         IERC20Standard token = ccflPoolStableCoins[i];
+    //         pricePoolFeeds[token] = _poolAggregators[i];
+    //         ccflActiveCoins[token] = true;
+    //     }
+    //     collateralTokens = _collateralTokens;
+    //     for (uint i = 0; i < collateralTokens.length; i++) {
+    //         IERC20Standard token = collateralTokens[i];
+    //         priceFeeds[token] = _collateralAggregators[i];
+    //         aTokens[token] = _aTokens[i];
+    //         ccflActiveCoins[token] = true;
+    //     }
+    // }
+
+    function getCcflActiveCoins(
+        IERC20Standard _tokenAddress
+    ) public view returns (bool) {
+        return ccflActiveCoins[_tokenAddress];
+    }
+
+    function setActiveToken(
+        IERC20Standard _token,
+        bool _isActived,
+        bool _isPoolToken
+    ) public onlyOwner {
+        if (_isPoolToken) {
+            require(
+                checkExistElement(ccflPoolStableCoins, _token) == true,
+                Errors.TOKEN_IS_NOT_EXISTED
+            );
+            ccflActiveCoins[_token] = _isActived;
+        } else {
+            require(
+                checkExistElement(collateralTokens, _token) == true,
+                Errors.TOKEN_IS_NOT_EXISTED
+            );
+            ccflActiveCoins[_token] = _isActived;
+        }
+    }
+
+    function setCollaterals(
+        IERC20Standard[] memory _collateralTokens,
+        AggregatorV3Interface[] memory _collateralAggregators,
+        IERC20Standard[] memory _aTokens
+    ) public onlyOwner {
+        for (uint i = 0; i < _collateralTokens.length; i++) {
+            IERC20Standard token = _collateralTokens[i];
+            if (checkExistElement(collateralTokens, token) == false)
+                collateralTokens.push(token);
+            priceFeeds[token] = _collateralAggregators[i];
+            aTokens[token] = _aTokens[i];
+            ccflActiveCoins[token] = true;
+        }
+    }
+
+    function checkExistElement(
+        IERC20Standard[] memory array,
+        IERC20Standard el
+    ) public pure returns (bool) {
+        bool isExist = false;
+        // check _tokenAddress is valid
+        for (uint i = 0; i < array.length; i++) {
+            if (array[i] == el) {
+                isExist = true;
+                break;
+            }
+        }
+        return isExist;
+    }
+
+    function setPoolCoins(
+        IERC20Standard[] memory _ccflPoolStableCoin,
+        AggregatorV3Interface[] memory _poolAggregators
+    ) public onlyOwner {
+        for (uint i = 0; i < _ccflPoolStableCoin.length; i++) {
+            IERC20Standard token = _ccflPoolStableCoin[i];
+            if (checkExistElement(ccflPoolStableCoins, token) == false)
+                ccflPoolStableCoins.push(token);
+            pricePoolFeeds[token] = _poolAggregators[i];
+            ccflActiveCoins[token] = true;
+        }
+    }
+
+    function getLatestPrice(
+        IERC20Standard _stableCoin,
+        bool isPool
+    ) public view returns (uint) {
+        if (isPool == false) {
+            (
+                uint80 roundID,
+                int256 price,
+                uint256 startedAt,
+                uint256 timeStamp,
+                uint80 answeredInRound
+            ) = priceFeeds[_stableCoin].latestRoundData();
+            // for LINK / USD price is scaled up by 10 ** 8
+            return uint(price);
+        } else {
+            (
+                uint80 roundID,
+                int256 price,
+                uint256 startedAt,
+                uint256 timeStamp,
+                uint80 answeredInRound
+            ) = pricePoolFeeds[_stableCoin].latestRoundData();
+            // for LINK / USD price is scaled up by 10 ** 8
+            return uint(price);
+        }
     }
 
     function setEarnShare(
@@ -158,14 +287,6 @@ contract CCFLConfig is ICCFLConfig, Initializable {
         return wETH;
     }
 
-    // function setCCFLLoan(ICCFLLoan _loan) public onlyOwner {
-    //     ccflLoan = _loan;
-    // }
-
-    // function getCCFLLoan() public view returns (ICCFLLoan) {
-    //     return ccflLoan;
-    // }
-
     function setCollateralToStableFee(
         IERC20Standard[] memory _collateral,
         IERC20Standard[] memory _stable,
@@ -180,5 +301,11 @@ contract CCFLConfig is ICCFLConfig, Initializable {
         IERC20Standard _stable
     ) public view returns (uint24) {
         return collateralToStableCoinFee[_collateral][_stable];
+    }
+
+    function getAtoken(
+        IERC20Standard _collateral
+    ) public view returns (IERC20Standard) {
+        return aTokens[_collateral];
     }
 }
