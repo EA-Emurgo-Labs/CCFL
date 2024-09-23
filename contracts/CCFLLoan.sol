@@ -349,7 +349,10 @@ contract CCFLLoan is ICCFLLoan, Initializable {
         // get all collateral from aave
         if (isStakeAave) {
             IERC20Standard aToken = iCCFLConfig.getAtoken(collateralToken);
-            initLoan.closedAmount = aToken.balanceOf(address(this));
+            initLoan.closedAmount =
+                (aToken.balanceOf(address(this)) *
+                    (10 ** collateralToken.decimals())) /
+                (10 ** aToken.decimals());
             withdrawLiquidity(earnPlatform, earnBorrower, earnLender);
         }
 
@@ -436,6 +439,7 @@ contract CCFLLoan is ICCFLLoan, Initializable {
 
     function updateCollateral(uint amount) external onlyOwner {
         collateralAmount += amount;
+        collateralToken.transferFrom(ccfl, address(this), amount);
     }
 
     function closeLoan() public onlyOwner returns (uint256, uint256) {
@@ -450,7 +454,10 @@ contract CCFLLoan is ICCFLLoan, Initializable {
         initLoan.closedAmount = initLoan.amount;
         if (isStakeAave) {
             IERC20Standard aToken = iCCFLConfig.getAtoken(collateralToken);
-            initLoan.closedAmount = aToken.balanceOf(address(this));
+            initLoan.closedAmount =
+                (aToken.balanceOf(address(this)) *
+                    (10 ** collateralToken.decimals())) /
+                (10 ** aToken.decimals());
             withdrawLiquidity(earnPlatform, earnBorrower, earnLender);
         }
 
@@ -503,7 +510,9 @@ contract CCFLLoan is ICCFLLoan, Initializable {
     function getYieldEarned(uint _earnBorrower) public view returns (uint) {
         IERC20Standard aToken = iCCFLConfig.getAtoken(collateralToken);
         uint current = aToken.balanceOf(address(this));
-        uint earned = current - collateralAmount;
+        uint earned = (current * (10 ** collateralToken.decimals())) /
+            (10 ** aToken.decimals()) -
+            collateralAmount;
         return (earned * _earnBorrower) / 10000;
     }
 

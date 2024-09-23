@@ -248,21 +248,25 @@ contract CCFL is ICCFL, Initializable {
 
         if (_isETH == false) {
             // transfer collateral
-            cloneSC.updateCollateral(_amountCollateral);
             _collateral.transferFrom(
                 msg.sender,
-                address(loanIns),
+                address(this),
                 _amountCollateral
             );
+
+            _collateral.approve(address(loanIns), _amountCollateral);
+
+            cloneSC.updateCollateral(_amountCollateral);
         } else {
             // transfer collateral
-            cloneSC.updateCollateral(_amountCollateral);
             // get from user to loan
             IWETH wETH = ccflConfig.getWETH();
-            IERC20Standard(address(wETH)).transfer(
+            IERC20Standard(address(wETH)).approve(
                 address(loanIns),
                 _amountCollateral
             );
+
+            cloneSC.updateCollateral(_amountCollateral);
         }
 
         if (_isYieldGenerating == true) cloneSC.supplyLiquidity();
@@ -337,11 +341,12 @@ contract CCFL is ICCFL, Initializable {
 
         DataTypes.Loan memory info = loan.getLoanInfo();
 
-        // transfer collateral
-        loan.updateCollateral(_amountCollateral);
         // get from user to loan
-
         _collateral.transferFrom(msg.sender, address(loan), _amountCollateral);
+
+        // transfer collateral
+        _collateral.approve(address(loan), _amountCollateral);
+        loan.updateCollateral(_amountCollateral);
 
         if (loan.getIsYeild() == true) {
             loan.supplyLiquidity();
@@ -372,10 +377,8 @@ contract CCFL is ICCFL, Initializable {
         DataTypes.Loan memory info = loan.getLoanInfo();
 
         // transfer collateral
+        IERC20Standard(address(wETH)).approve(address(loan), _amountETH);
         loan.updateCollateral(_amountETH);
-        // get from user to loan
-
-        IERC20Standard(address(wETH)).transfer(address(loan), _amountETH);
 
         if (loan.getIsYeild() == true) {
             loan.supplyLiquidity();
