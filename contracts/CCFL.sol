@@ -328,7 +328,7 @@ contract CCFL is ICCFL, Initializable {
             IERC20Standard(address(wETH)),
             _isYieldGenerating,
             _isFiat,
-            false
+            true
         );
     }
 

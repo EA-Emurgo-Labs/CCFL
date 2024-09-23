@@ -4,10 +4,10 @@ pragma solidity ^0.8.24;
 // Uncomment this line to use console.log
 // import "hardhat/console.sol";
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
-import "@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol";
+import "./IV3SwapRouter.sol";
 import "@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol";
 
-contract MockSwapRouter is ISwapRouter {
+contract MockSwapRouter is IV3SwapRouter {
     constructor() payable {}
 
     function uniswapV3SwapCallback(
@@ -25,18 +25,18 @@ contract MockSwapRouter is ISwapRouter {
     function exactInput(
         ExactInputParams calldata params
     ) external payable override returns (uint256 amountOut) {
-        return 0;
+        return params.amountIn;
     }
 
     function exactOutputSingle(
         ExactOutputSingleParams calldata params
     ) external payable override returns (uint256 amountIn) {
-        return 0;
+        return params.amountOut;
     }
 
     function exactOutput(
         ExactOutputParams calldata params
     ) external payable override returns (uint256 amountIn) {
-        return 0;
+        return params.amountOut;
     }
 }

@@ -237,6 +237,7 @@ describe("CCFL system", function () {
       aToken,
       mockAggr2,
       wETH9,
+      mockAggrWBTC,
     };
   }
 
@@ -768,9 +769,11 @@ describe("CCFL system", function () {
         lender1,
         lender2,
         lender3,
-        mockAggr,
+        mockAggrUSDC,
         aToken,
         mockAggr2,
+        wETH9,
+        mockAggrWBTC,
       } = await loadFixture(deployFixture);
       // lender deposit USDC
       await usdc
@@ -795,7 +798,8 @@ describe("CCFL system", function () {
       expect(BigInt(await usdc.balanceOf(borrower1)).toString()).to.eq(
         BigInt(2000e18)
       );
-      await mockAggr2.setPrice(BigInt(13075000));
+      await mockAggrWBTC.setPrice(BigInt(10000));
+      await mockAggr2.setPrice(BigInt(10000));
 
       expect(await ccfl.getHealthFactor(BigInt(1))).to.lessThan(100);
     });
@@ -813,9 +817,11 @@ describe("CCFL system", function () {
         lender1,
         lender2,
         lender3,
-        mockAggr,
+        mockAggrUSDC,
         aToken,
         mockAggr2,
+        wETH9,
+        mockAggrWBTC,
       } = await loadFixture(deployFixture);
       // lender deposit USDC
       await usdc
@@ -840,7 +846,8 @@ describe("CCFL system", function () {
       expect(BigInt(await usdc.balanceOf(borrower1)).toString()).to.eq(
         BigInt(2000e18)
       );
-      await mockAggr2.setPrice(BigInt(103075000));
+      await mockAggrWBTC.setPrice(BigInt(10000));
+      await mockAggr2.setPrice(BigInt(10000));
 
       // expect(await ccfl.getHealthFactor(BigInt(1))).to.lessThan(100);
 
