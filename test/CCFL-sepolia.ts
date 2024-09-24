@@ -2,9 +2,9 @@ import { bigint } from "hardhat/internal/core/params/argumentTypes";
 
 const { ethers } = require("hardhat");
 
-let pool = "0x85fee6E739d55E05E9d5Ed42735613aAA27156da";
-let ccfl = "0x330D11c8ee18c860D08F91783d8ba44A60854AaD";
-let usdtPool = "0x81381F4c77E4f75345d96A5fdd6E0eFf58c14871";
+let pool = "0x0Bf6868f8E100c142BA1304435cBDdfF3e6416F3";
+let ccfl = "0x023CE898cB9E07688594014dd7F05b82844AfbBa";
+let usdtPool = "0xeaE813a7eb9A003ba5e8905F977c578c53aea5E5";
 
 // let ccfl = "0xB07c62E2a4E3da8465fa207965da12787b9188fc";
 // let usdtPool = "0xa00Ae2a3aeFd3002EDE22523E12BF28D4676596A";
@@ -332,7 +332,7 @@ async function getMinimumCollateral(usdcAmount: any) {
   console.log(`Got ${estimateHeathFactor} health-factor`);
 }
 
-describe.skip("sepolia", () => {
+describe("sepolia", () => {
   describe("CCFL Pool", () => {
     it("approve usdc", async () => {
       const AMOUNT = ethers.parseUnits("600", 6);
@@ -360,12 +360,12 @@ describe.skip("sepolia", () => {
   });
 
   describe("CCFL", () => {
-    it("approve wbtc", async () => {
+    it.only("approve wbtc", async () => {
       const AMOUNT = ethers.parseUnits("0.1", 8);
       await approveWBTC(AMOUNT);
     });
 
-    it("create a loan", async () => {
+    it.only("create a loan", async () => {
       await createLoan();
     });
 
