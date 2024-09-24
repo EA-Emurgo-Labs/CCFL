@@ -40,7 +40,6 @@ library DataTypes {
 
     struct Loan {
         uint loanId;
-        bool isPaid;
         uint amount;
         bool isClosed;
         address borrower;

@@ -216,16 +216,8 @@ contract CCFL is ICCFL, Initializable {
         loan.borrower = msg.sender;
         loan.amount = _amount;
         loan.loanId = loandIds;
-        loan.isPaid = false;
         loan.stableCoin = _stableCoin;
         loan.isFiat = _isFiat;
-        // borrow loan on pool
-        ccflPools[_stableCoin].borrow(
-            loan.loanId,
-            loan.amount,
-            loan.borrower,
-            loan.isFiat
-        );
 
         IERC20Standard token = _collateral;
         // clone a loan SC
@@ -273,8 +265,13 @@ contract CCFL is ICCFL, Initializable {
         loans[loandIds] = cloneSC;
         userLoans[msg.sender].push(loandIds);
 
-        ccflPools[_stableCoin].withdrawLoan(loan.borrower, loan.loanId);
-        cloneSC.setPaid();
+        // borrow loan on pool
+        ccflPools[_stableCoin].borrow(
+            loan.loanId,
+            loan.amount,
+            loan.borrower,
+            loan.isFiat
+        );
 
         emit CreateLoan(
             msg.sender,

@@ -72,10 +72,6 @@ contract CCFLLoan is ICCFLLoan, Initializable {
         isStakeAave = true;
     }
 
-    function setPaid() public onlyOwner {
-        initLoan.isPaid = true;
-    }
-
     function withdrawLiquidity(
         uint _earnPlatform,
         uint _earnBorrower,

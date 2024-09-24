@@ -39,8 +39,6 @@ interface ICCFLPool {
         uint remainingPool
     );
 
-    function withdrawLoan(address _receiver, uint _loanId) external;
-
     function setCCFL(address _ccfl) external;
 
     function getRemainingPool() external view returns (uint amount);

@@ -72,8 +72,6 @@ interface ICCFLLoan {
 
     function withdrawAllCollateral(address _receiver, bool _isETH) external;
 
-    function setPaid() external;
-
     function getYieldEarned(uint _earnBorrower) external view returns (uint);
 
     function getIsYeild() external view returns (bool);

@@ -116,24 +116,6 @@ contract CCFLPool is ICCFLPool, Initializable {
                 (10 ** stableCoinAddress.decimals())) / uint128(WadRayMath.RAY);
     }
 
-    // Modifier to check token allowance
-    // modifier checkUsdAllowance(uint amount) {
-    //     require(
-    //         stableCoinAddress.allowance(msg.sender, address(this)) >= amount,
-    //         "Error"
-    //     );
-    //     _;
-    // }
-
-    function withdrawLoan(
-        address _receiver,
-        uint _loanId
-    ) public onlyCCFL onlyUnpaused {
-        require(loans[_loanId].isPaid == false, Errors.THE_LOAN_IS_PAID);
-        loans[_loanId].isPaid = true;
-        stableCoinAddress.transfer(_receiver, loans[_loanId].amount);
-    }
-
     receive() external payable {}
 
     function cache() internal view returns (DataTypes.ReserveCache memory) {
@@ -342,6 +324,7 @@ contract CCFLPool is ICCFLPool, Initializable {
         updateInterestRates(0, rayAmount);
         totalLiquidity -= rayAmount.rayDiv(reserveCache.nextLiquidityIndex);
         remainingPool -= _amount;
+        stableCoinAddress.transfer(_borrower, loans[_loanId].amount);
     }
 
     function repay(uint _loanId, uint256 _amount) public onlyCCFL onlyUnpaused {
