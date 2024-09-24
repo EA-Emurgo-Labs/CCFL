@@ -273,6 +273,9 @@ contract CCFL is ICCFL, Initializable {
         loans[loandIds] = cloneSC;
         userLoans[msg.sender].push(loandIds);
 
+        ccflPools[_stableCoin].withdrawLoan(loan.borrower, loan.loanId);
+        cloneSC.setPaid();
+
         emit CreateLoan(
             msg.sender,
             address(loans[loandIds]),
@@ -391,33 +394,6 @@ contract CCFL is ICCFL, Initializable {
             IERC20Standard(address(wETH)),
             true
         );
-    }
-
-    // withdraw loan
-    function withdrawLoan(IERC20Standard _stableCoin, uint _loanId) public {
-        ICCFLLoan loan = loans[_loanId];
-        DataTypes.Loan memory info = loan.getLoanInfo();
-        require(
-            info.borrower == msg.sender && info.isFiat == false,
-            Errors.IS_NOT_OWNER_LOAN
-        );
-        ccflPools[_stableCoin].withdrawLoan(info.borrower, _loanId);
-        loan.setPaid();
-
-        emit WithdrawLoan(msg.sender, info);
-    }
-
-    function withdrawFiatLoan(
-        IERC20Standard _stableCoin,
-        uint _loanId
-    ) public onlyOperator onlyUnpaused {
-        ICCFLLoan loan = loans[_loanId];
-        DataTypes.Loan memory info = loan.getLoanInfo();
-        require(info.isFiat == true, Errors.ONLY_FIAT_LOAN);
-        ccflPools[_stableCoin].withdrawLoan(msg.sender, _loanId);
-        loan.setPaid();
-
-        emit WithdrawLoan(msg.sender, info);
     }
 
     // repay loan

@@ -433,9 +433,7 @@ describe("CCFL system", function () {
       // );
       // console.log("debt", (await ccflPool.getDebtPool()) / BigInt(1e18));
       // console.log("rate", await ccflPool.getCurrentRate());
-      await ccfl
-        .connect(borrower1)
-        .withdrawLoan(await usdc.getAddress(), BigInt(1));
+
       expect(BigInt(await usdc.balanceOf(borrower1)).toString()).to.eq(
         BigInt(2000e18)
       );
@@ -507,9 +505,6 @@ describe("CCFL system", function () {
 
       await time.increase(30 * 24 * 3600);
 
-      await ccfl
-        .connect(borrower1)
-        .withdrawLoan(await usdc.getAddress(), BigInt(1));
       expect(BigInt(await usdc.balanceOf(borrower1)).toString()).to.eq(
         BigInt(2000e18)
       );
@@ -572,9 +567,7 @@ describe("CCFL system", function () {
           false,
           false
         );
-      await ccfl
-        .connect(borrower1)
-        .withdrawLoan(await usdc.getAddress(), BigInt(1));
+
       expect(BigInt(await usdc.balanceOf(borrower1)).toString()).to.eq(
         BigInt(2000e18)
       );
@@ -746,9 +739,7 @@ describe("CCFL system", function () {
           false,
           false
         );
-      await ccfl
-        .connect(borrower1)
-        .withdrawLoan(await usdc.getAddress(), BigInt(1));
+
       expect(BigInt(await usdc.balanceOf(borrower1)).toString()).to.eq(
         BigInt(2000e18)
       );
@@ -792,9 +783,7 @@ describe("CCFL system", function () {
           false,
           false
         );
-      await ccfl
-        .connect(borrower1)
-        .withdrawLoan(await usdc.getAddress(), BigInt(1));
+
       expect(BigInt(await usdc.balanceOf(borrower1)).toString()).to.eq(
         BigInt(2000e18)
       );
@@ -840,9 +829,7 @@ describe("CCFL system", function () {
           false,
           false
         );
-      await ccfl
-        .connect(borrower1)
-        .withdrawLoan(await usdc.getAddress(), BigInt(1));
+
       expect(BigInt(await usdc.balanceOf(borrower1)).toString()).to.eq(
         BigInt(2000e18)
       );

@@ -23,8 +23,6 @@ interface ICCFL {
         bool isETH
     );
 
-    event WithdrawLoan(address indexed borrower, DataTypes.Loan loanInfo);
-
     event AddCollateral(
         address indexed borrower,
         DataTypes.Loan loanInfo,
@@ -86,9 +84,6 @@ interface ICCFL {
         bool _isFiat
     ) external;
 
-    // withdraw loan
-    function withdrawLoan(IERC20Standard _stableCoin, uint _loanId) external;
-
     // repay loan
     function repayLoan(
         uint _loanId,
@@ -129,11 +124,6 @@ interface ICCFL {
     ) external view returns (uint);
 
     function getLoanIds(address borrower) external view returns (uint[] memory);
-
-    function withdrawFiatLoan(
-        IERC20Standard _stableCoin,
-        uint _loanId
-    ) external;
 
     function createLoanByETH(
         uint _amount,
