@@ -472,11 +472,6 @@
 						"type": "uint256"
 					},
 					{
-						"internalType": "bool",
-						"name": "isPaid",
-						"type": "bool"
-					},
-					{
 						"internalType": "uint256",
 						"name": "amount",
 						"type": "uint256"
@@ -799,24 +794,6 @@
 				"type": "function"
 			},
 			{
-				"inputs": [
-					{
-						"internalType": "address",
-						"name": "_receiver",
-						"type": "address"
-					},
-					{
-						"internalType": "uint256",
-						"name": "_loanId",
-						"type": "uint256"
-					}
-				],
-				"name": "withdrawLoan",
-				"outputs": [],
-				"stateMutability": "nonpayable",
-				"type": "function"
-			},
-			{
 				"stateMutability": "payable",
 				"type": "receive"
 			}
@@ -897,27 +874,27 @@
 			]
 		},
 		"CCFLPool.sol": {
-			"keccak256": "0xc599400f782374ce82b76c21b17cfdbfee0b527301fccc7ffe01d9a8626afc9a",
+			"keccak256": "0x703d85751e187ce7aab7f649e9311bfca2dad32c1bbfc87a060ab78afbd5278d",
 			"license": "UNLICENSED",
 			"urls": [
-				"bzz-raw://e04ed92c3a433fbf1eccf3443e98f94547962249780ccedbe54bdb4e6735cbd7",
-				"dweb:/ipfs/QmSjNRfymqXLzLcDpHUNDhpmTX8eUHLQWnQ8HHmcUtXmdq"
+				"bzz-raw://6c4b57aa374f80a1784a1ee5c4815dfb2eb26472efba89d1ee1006e146a994f6",
+				"dweb:/ipfs/QmNgmkWBG3cSW8BqrgPwMxfYXnwMP11XbNkb4SH3VJQ9zu"
 			]
 		},
 		"DataTypes.sol": {
-			"keccak256": "0x63ef520417db9cca137c12f1285744605422b38e29f3bb241b2354ebd2a44669",
+			"keccak256": "0x6dbf55986495d5b174f9ea78195ba71885c5b7a6c0c850eb94f919263db9cd27",
 			"license": "BUSL-1.1",
 			"urls": [
-				"bzz-raw://a137995d588568f79a94892b09be806184376a0ef68f9e6f5be699056141bffd",
-				"dweb:/ipfs/QmRUxibLgKzw2RPcmoi9DnwPkzqGpJFTsqjJsQga58Weof"
+				"bzz-raw://265c7770668c77f38229dc34b5a7498a2e9942dde10451ef7d24f86b530d6ce8",
+				"dweb:/ipfs/QmXVRGNcbiBPnGUEfs8iXiLPCgPYSiAXWNUfwKvowRn8YZ"
 			]
 		},
 		"ICCFLPool.sol": {
-			"keccak256": "0xe3cc45821d8fe86f5443491eeb34a9ef3f6c6b467e60b70a55d02c621a81a594",
+			"keccak256": "0xdf8c87794525b2708e6d0d2025799c839e221aaa86a19a9a278da26497cc0008",
 			"license": "UNLICENSED",
 			"urls": [
-				"bzz-raw://6a51f02f61577a860f3cddde30c59716c3356eb01da8f597f19adc03a12e2d5d",
-				"dweb:/ipfs/QmYqBrZv4mzPKvXX3QWUsXigkf6QpCK3HivjZR8qUMaXzN"
+				"bzz-raw://76df990dec0e81cf4452b12c0e187509b71f9273bb7ff5d56e80dcddefc740ef",
+				"dweb:/ipfs/QmPy8CDqF7pJAejEaodDHLYAPH5miKXpeaeKE2JawTGMT5"
 			]
 		},
 		"IERC20Standard.sol": {
