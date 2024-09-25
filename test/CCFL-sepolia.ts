@@ -360,12 +360,12 @@ describe("sepolia", () => {
   });
 
   describe("CCFL", () => {
-    it.only("approve wbtc", async () => {
+    it("approve wbtc", async () => {
       const AMOUNT = ethers.parseUnits("0.1", 8);
       await approveWBTC(AMOUNT);
     });
 
-    it.only("create a loan", async () => {
+    it("create a loan", async () => {
       await createLoan();
     });
 
@@ -373,8 +373,8 @@ describe("sepolia", () => {
       await createLoanNoStake();
     });
 
-    it("get current loan", async () => {
-      getCurrentLoan(BigInt(6));
+    it.only("get current loan", async () => {
+      getCurrentLoan(BigInt(5));
     });
 
     it("approve usdc", async () => {
@@ -394,7 +394,7 @@ describe("sepolia", () => {
       await getHealthFactor(
         ethers.parseUnits("0.1", 6),
         ethers.parseUnits("0.0005", 8),
-        BigInt(2)
+        BigInt(1)
       );
     });
 
@@ -447,7 +447,7 @@ describe("sepolia", () => {
       await getHealthFactor(
         ethers.parseUnits("0.1", 6),
         ethers.parseUnits("0.0005", 8),
-        BigInt(14)
+        BigInt(2)
       );
     });
 
