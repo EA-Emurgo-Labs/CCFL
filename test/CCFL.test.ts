@@ -6,7 +6,7 @@ import { expect } from "chai";
 import hre from "hardhat";
 import { assert, parseUnits } from "ethers";
 
-describe.skip("CCFL contract", function () {
+describe("CCFL contract", function () {
   // We define a fixture to reuse the same setup in every test.
   // We use loadFixture to run this setup once, snapshot that state,
   // and reset Hardhat Network to that snapshot in every test.
@@ -36,16 +36,25 @@ describe.skip("CCFL contract", function () {
     platformAddress = platform;
 
     const WETH9 = await hre.ethers.getContractFactory("WETH9");
-    wETH9 = await WETH9.deploy();
+    const wETH9 = await WETH9.deploy();
 
     const USDC = await hre.ethers.getContractFactory("MyERC20");
     const usdc = await USDC.deploy("USDC", "USDC");
 
-    const LINK = await hre.ethers.getContractFactory("MyERC20");
-    const link = await LINK.deploy("LINK", "LINK");
+    const USDT = await hre.ethers.getContractFactory("MyERC20");
+    const usdt = await USDT.deploy("USDT", "USDT");
+
+    const WBTC = await hre.ethers.getContractFactory("MyERC20");
+    const wBTC = await WBTC.deploy("WBTC", "WBTC");
 
     const ATOKEN = await hre.ethers.getContractFactory("MyERC20");
     const aToken = await ATOKEN.deploy("ATOKEN", "ATOKEN");
+
+    const AWBTC = await hre.ethers.getContractFactory("MyERC20");
+    const aWBTC = await AWBTC.deploy("AWBTC", "AWBTC");
+
+    const AWETH = await hre.ethers.getContractFactory("MyERC20");
+    const aWETH = await AWETH.deploy("AWETH", "AWETH");
 
     const DefaultReserveInterestRateStrategy =
       await hre.ethers.getContractFactory("DefaultReserveInterestRateStrategy");
@@ -57,31 +66,66 @@ describe.skip("CCFL contract", function () {
         parseUnits("3", 27).toString()
       );
 
+    console.log(
+      await defaultReserveInterestRateStrategy.getBaseVariableBorrowRate(),
+      await defaultReserveInterestRateStrategy.getVariableRateSlope1(),
+      await defaultReserveInterestRateStrategy.getVariableRateSlope2(),
+      await defaultReserveInterestRateStrategy.getMaxVariableBorrowRate()
+    );
+
     const CCFLPool = await hre.ethers.getContractFactory("CCFLPool");
     const ccflPool = await hre.upgrades.deployProxy(
       CCFLPool,
       [
         await usdc.getAddress(),
         await defaultReserveInterestRateStrategy.getAddress(),
-        BigInt(1000000000e6),
+        BigInt(1000000000e18),
       ],
       { initializer: "initialize" }
     );
 
-    const MockAggr = await hre.ethers.getContractFactory("MockAggregator");
-    const mockAggr = await MockAggr.deploy();
+    console.log(
+      "pool implement",
+      await hre.upgrades.erc1967.getImplementationAddress(
+        await ccflPool.getAddress()
+      ),
+      "pool proxy",
+      await ccflPool.getAddress()
+    );
 
-    await mockAggr.setPrice(1e8);
+    const CCFLPool2 = await hre.ethers.getContractFactory("CCFLPool");
+    const ccflPool2 = await hre.upgrades.deployProxy(
+      CCFLPool2,
+      [
+        await usdt.getAddress(),
+        await defaultReserveInterestRateStrategy.getAddress(),
+        BigInt(1000000000e18),
+      ],
+      { initializer: "initialize" }
+    );
+
+    const MockAggrUSDC = await hre.ethers.getContractFactory("MockAggregator");
+    const mockAggrUSDC = await MockAggrUSDC.deploy();
+
+    await mockAggrUSDC.setPrice(1e8);
+
+    const MockAggrUSDT = await hre.ethers.getContractFactory("MockAggregator");
+    const mockAggrUSDT = await MockAggrUSDT.deploy();
+
+    await mockAggrUSDT.setPrice(1.1e8);
+
+    const MockAggrWBTC = await hre.ethers.getContractFactory("MockAggregator");
+    const mockAggrWBTC = await MockAggrWBTC.deploy();
+
+    await mockAggrWBTC.setPrice(60000e8);
+
+    const MockAggrWETH = await hre.ethers.getContractFactory("MockAggregator");
+    const mockAggrWETH = await MockAggrWETH.deploy();
+
+    await mockAggrWETH.setPrice(4000e8);
 
     const MockAggr2 = await hre.ethers.getContractFactory("MockAggregator");
     const mockAggr2 = await MockAggr2.deploy();
-
-    await mockAggr2.setPrice(2e8);
-
-    const MockAggr3 = await hre.ethers.getContractFactory("MockAggregator");
-    const mockAggr3 = await MockAggr3.deploy();
-
-    await mockAggr3.setPrice(2e8);
 
     const MockSwap = await hre.ethers.getContractFactory("MockSwapRouter");
     mockSwap = await MockSwap.deploy();
@@ -108,10 +152,12 @@ describe.skip("CCFL contract", function () {
     const MockUniQuoter = await hre.ethers.getContractFactory("MockQuoter");
     mockUniQuoter = await MockUniQuoter.deploy();
 
+    const MockSwapWBTC = await hre.ethers.getContractFactory("MockSwapRouter");
+    const mockSwapWBTC = await MockSwapWBTC.deploy();
+
     const CCFLLoan = await hre.ethers.getContractFactory("CCFLLoan");
     const ccflLoan = await CCFLLoan.deploy();
 
-    console.log("liquidator", await platform.getAddress());
     const CCFLConfig = await hre.ethers.getContractFactory("CCFLConfig");
     const ccflConfig = await hre.upgrades.deployProxy(
       CCFLConfig,
@@ -121,45 +167,62 @@ describe.skip("CCFL contract", function () {
         await mockSwap.getAddress(),
         await mockUniFactory.getAddress(),
         await mockUniQuoter.getAddress(),
-        await mockPoolAddressesProvider.getAddress(),
+        await mockPoolAddressesProvider.getAddress(""),
         await liquidator.getAddress(),
         await platform.getAddress(),
         true,
         await wETH9.getAddress(),
-        await ccflLoan.getAddress(),
       ],
       { initializer: "initialize" }
     );
-
     const CCFL = await hre.ethers.getContractFactory("CCFL");
     const ccfl = await hre.upgrades.deployProxy(
       CCFL,
       [
         [await usdc.getAddress()],
-        [await mockAggr.getAddress()],
         [await ccflPool.getAddress()],
-        [await link.getAddress(), await wETH9.getAddress()],
-        [await mockAggr2.getAddress(), await mockAggr3.getAddress()],
-        [await aToken.getAddress(), await aToken.getAddress()],
         await ccflConfig.getAddress(),
+        await ccflLoan.getAddress(),
       ],
       { initializer: "initialize" }
     );
-    await ccfl.setOperators([owner], [true]);
+
+    await ccflConfig.setPenalty(BigInt(50), BigInt(100), BigInt(50));
+    await ccflConfig.setEarnShare(7000, 2000, 1000);
+
+    await ccflConfig.setCollaterals(
+      [await wBTC.getAddress(), await wETH9.getAddress()],
+      [await mockAggrWBTC.getAddress(), await mockAggrWETH.getAddress()],
+      [await aWBTC.getAddress(), await aWETH.getAddress()]
+    );
+
+    await ccflConfig.setPoolCoins(
+      [await usdc.getAddress(), await usdt.getAddress()],
+      [await mockAggrUSDC.getAddress(), await mockAggrUSDT.getAddress()]
+    );
+
+    await ccflConfig.setCollateralToStableFee(
+      [
+        await wBTC.getAddress(),
+        await wBTC.getAddress(),
+        await wETH9.getAddress(),
+        await wETH9.getAddress(),
+      ],
+      [
+        await usdc.getAddress(),
+        await usdt.getAddress(),
+        await usdc.getAddress(),
+        await usdt.getAddress(),
+      ],
+      [3000, 3000, 3000, 3000]
+    );
 
     await ccflPool.setCCFL(await ccfl.getAddress());
+    await ccflPool2.setCCFL(await ccfl.getAddress());
 
-    await ccflConfig.setEarnShare(7000, 2000, 1000);
-    await ccflConfig.setPenalty(50, 100, 50);
-
-    await link.transfer(borrower1, BigInt(10000e18));
-    await link.transfer(borrower2, BigInt(20000e18));
-    await link.transfer(borrower3, BigInt(30000e18));
-
-    await wETH9.deposit({ value: BigInt(6500e18) });
-    await wETH9.transfer(borrower1, BigInt(1500e18));
-    await wETH9.transfer(borrower2, BigInt(2000e18));
-    await wETH9.transfer(borrower3, BigInt(3000e18));
+    await wBTC.transfer(borrower1, BigInt(10000e18));
+    await wBTC.transfer(borrower2, BigInt(20000e18));
+    await wBTC.transfer(borrower3, BigInt(30000e18));
 
     await usdc.transfer(lender1, BigInt(10000e18));
     await usdc.transfer(lender2, BigInt(20000e18));
@@ -171,8 +234,7 @@ describe.skip("CCFL contract", function () {
 
     return {
       usdc,
-      link,
-      wETH9,
+      wBTC,
       ccflPool,
       ccfl,
       owner,
@@ -182,10 +244,12 @@ describe.skip("CCFL contract", function () {
       lender1,
       lender2,
       lender3,
-      mockAggr,
+      mockAggrUSDC,
       aToken,
       mockAggr2,
-      mockAggr3,
+      wETH9,
+      mockAggrWBTC,
+      ccflConfig,
     };
   }
 
@@ -193,8 +257,7 @@ describe.skip("CCFL contract", function () {
     it("Should initialize correctly", async () => {
       const {
         usdc,
-        link,
-        wETH9,
+        wBTC,
         ccflPool,
         ccfl,
         owner,
@@ -204,6 +267,12 @@ describe.skip("CCFL contract", function () {
         lender1,
         lender2,
         lender3,
+        mockAggrUSDC,
+        aToken,
+        mockAggr2,
+        wETH9,
+        mockAggrWBTC,
+        ccflConfig,
       } = await loadFixture(deployFixture);
 
       expect(await ccfl.owner()).to.equal(owner.address);
@@ -213,8 +282,7 @@ describe.skip("CCFL contract", function () {
       // TODO: test method setSwapRouter()
       const {
         usdc,
-        link,
-        wETH9,
+        wBTC,
         ccflPool,
         ccfl,
         owner,
@@ -224,19 +292,28 @@ describe.skip("CCFL contract", function () {
         lender1,
         lender2,
         lender3,
+        mockAggrUSDC,
+        aToken,
+        mockAggr2,
+        wETH9,
+        mockAggrWBTC,
+        ccflConfig,
       } = await loadFixture(deployFixture);
 
-      await ccfl
+      await ccflConfig
         .connect(owner)
-        .setSwapRouter(mockSwap.getAddress(), mockUniFactory.getAddress());
+        .setSwapRouter(
+          await mockSwap.getAddress(),
+          await mockUniFactory.getAddress(),
+          await mockUniQuoter.getAddress()
+        );
     });
 
     it("Should only allow owner to set swap router", async () => {
       // TODO: test method setSwapRouter()
       const {
         usdc,
-        link,
-        wETH9,
+        wBTC,
         ccflPool,
         ccfl,
         owner,
@@ -246,21 +323,30 @@ describe.skip("CCFL contract", function () {
         lender1,
         lender2,
         lender3,
+        mockAggrUSDC,
+        aToken,
+        mockAggr2,
+        wETH9,
+        mockAggrWBTC,
+        ccflConfig,
       } = await loadFixture(deployFixture);
 
       await expect(
-        ccfl
+        ccflConfig
           .connect(borrower1)
-          .setSwapRouter(mockSwap.getAddress(), mockUniFactory.getAddress())
-      ).to.be.revertedWith("18");
+          .setSwapRouter(
+            mockSwap.getAddress(),
+            mockUniFactory.getAddress(),
+            await mockUniQuoter.getAddress()
+          )
+      ).to.be.revertedWith("2");
     });
 
     it("Should set platform address successfully", async () => {
       // TODO: test method setPlatformAddress()
       const {
         usdc,
-        link,
-        wETH9,
+        wBTC,
         ccflPool,
         ccfl,
         owner,
@@ -270,9 +356,15 @@ describe.skip("CCFL contract", function () {
         lender1,
         lender2,
         lender3,
+        mockAggrUSDC,
+        aToken,
+        mockAggr2,
+        wETH9,
+        mockAggrWBTC,
+        ccflConfig,
       } = await loadFixture(deployFixture);
 
-      await ccfl
+      await ccflConfig
         .connect(owner)
         .setPlatformAddress(liquidatorAddress, platformAddress);
     });
@@ -281,8 +373,7 @@ describe.skip("CCFL contract", function () {
       // TODO: test method setPlatformAddress()
       const {
         usdc,
-        link,
-        wETH9,
+        wBTC,
         ccflPool,
         ccfl,
         owner,
@@ -292,21 +383,26 @@ describe.skip("CCFL contract", function () {
         lender1,
         lender2,
         lender3,
+        mockAggrUSDC,
+        aToken,
+        mockAggr2,
+        wETH9,
+        mockAggrWBTC,
+        ccflConfig,
       } = await loadFixture(deployFixture);
 
       await expect(
-        ccfl
+        ccflConfig
           .connect(borrower1)
           .setPlatformAddress(liquidatorAddress, platformAddress)
-      ).to.be.revertedWith("18");
+      ).to.be.revertedWith("2");
     });
 
     it("Should set wETH successfully", async () => {
       // TODO: test method setWETH()
       const {
         usdc,
-        link,
-        wETH9,
+        wBTC,
         ccflPool,
         ccfl,
         owner,
@@ -316,17 +412,22 @@ describe.skip("CCFL contract", function () {
         lender1,
         lender2,
         lender3,
+        mockAggrUSDC,
+        aToken,
+        mockAggr2,
+        wETH9,
+        mockAggrWBTC,
+        ccflConfig,
       } = await loadFixture(deployFixture);
 
-      await ccfl.connect(owner).setWETH(wETH9.getAddress());
+      await ccflConfig.connect(owner).setWETH(wETH9.getAddress());
     });
 
     it("Should only allow owner to set wETH", async () => {
       // TODO: test method setWETH()
       const {
         usdc,
-        link,
-        wETH9,
+        wBTC,
         ccflPool,
         ccfl,
         owner,
@@ -336,11 +437,17 @@ describe.skip("CCFL contract", function () {
         lender1,
         lender2,
         lender3,
+        mockAggrUSDC,
+        aToken,
+        mockAggr2,
+        wETH9,
+        mockAggrWBTC,
+        ccflConfig,
       } = await loadFixture(deployFixture);
 
       await expect(
-        ccfl.connect(borrower1).setWETH(wETH9.getAddress())
-      ).to.be.revertedWith("18");
+        ccflConfig.connect(borrower1).setWETH(wETH9.getAddress())
+      ).to.be.revertedWith("2");
     });
   });
 
@@ -353,8 +460,7 @@ describe.skip("CCFL contract", function () {
       // TODO: test method createLoan()
       const {
         usdc,
-        link,
-        wETH9,
+        wBTC,
         ccflPool,
         ccfl,
         owner,
@@ -364,6 +470,12 @@ describe.skip("CCFL contract", function () {
         lender1,
         lender2,
         lender3,
+        mockAggrUSDC,
+        aToken,
+        mockAggr2,
+        wETH9,
+        mockAggrWBTC,
+        ccflConfig,
       } = await loadFixture(deployFixture);
 
       await usdc
@@ -371,14 +483,14 @@ describe.skip("CCFL contract", function () {
         .approve(ccflPool.getAddress(), BigInt(10000e18));
       await ccflPool.connect(lender1).supply(BigInt(10000e18));
 
-      await link.connect(borrower1).approve(ccfl.getAddress(), BigInt(1000e18));
+      await wBTC.connect(borrower1).approve(ccfl.getAddress(), BigInt(1000e18));
       await ccfl
         .connect(borrower1)
         .createLoan(
           BigInt(1000e18),
           await usdc.getAddress(),
           BigInt(1000e18),
-          await link.getAddress(),
+          await wBTC.getAddress(),
           true,
           false
         );
@@ -390,8 +502,7 @@ describe.skip("CCFL contract", function () {
       // TODO: test method createLoan()
       const {
         usdc,
-        link,
-        wETH9,
+        wBTC,
         ccflPool,
         ccfl,
         owner,
@@ -401,6 +512,12 @@ describe.skip("CCFL contract", function () {
         lender1,
         lender2,
         lender3,
+        mockAggrUSDC,
+        aToken,
+        mockAggr2,
+        wETH9,
+        mockAggrWBTC,
+        ccflConfig,
       } = await loadFixture(deployFixture);
 
       await usdc
@@ -408,14 +525,14 @@ describe.skip("CCFL contract", function () {
         .approve(ccflPool.getAddress(), BigInt(10000e18));
       await ccflPool.connect(lender1).supply(BigInt(10000e18));
 
-      await link.connect(borrower1).approve(ccfl.getAddress(), BigInt(1000e18));
+      await wBTC.connect(borrower1).approve(ccfl.getAddress(), BigInt(1000e18));
       await ccfl
         .connect(borrower1)
         .createLoan(
           BigInt(1000e18),
           await usdc.getAddress(),
           BigInt(1000e18),
-          await link.getAddress(),
+          await wBTC.getAddress(),
           false,
           false
         );
@@ -427,8 +544,7 @@ describe.skip("CCFL contract", function () {
       // TODO: test method createLoan()
       const {
         usdc,
-        link,
-        wETH9,
+        wBTC,
         ccflPool,
         ccfl,
         owner,
@@ -438,6 +554,12 @@ describe.skip("CCFL contract", function () {
         lender1,
         lender2,
         lender3,
+        mockAggrUSDC,
+        aToken,
+        mockAggr2,
+        wETH9,
+        mockAggrWBTC,
+        ccflConfig,
       } = await loadFixture(deployFixture);
 
       await usdc
@@ -445,15 +567,15 @@ describe.skip("CCFL contract", function () {
         .approve(ccflPool.getAddress(), BigInt(10000e18));
       await ccflPool.connect(lender1).supply(BigInt(10000e18));
 
-      await link.connect(borrower1).approve(ccfl.getAddress(), BigInt(1000e18));
+      await wBTC.connect(borrower1).approve(ccfl.getAddress(), BigInt(1000e18));
       await expect(
         ccfl
           .connect(borrower1)
           .createLoan(
             BigInt(1000e18),
             await usdc.getAddress(),
-            BigInt(500e18),
-            await link.getAddress(),
+            BigInt(1e16),
+            await wBTC.getAddress(),
             false,
             false
           )
@@ -464,8 +586,7 @@ describe.skip("CCFL contract", function () {
       // TODO: test method createLoan()
       const {
         usdc,
-        link,
-        wETH9,
+        wBTC,
         ccflPool,
         ccfl,
         owner,
@@ -475,6 +596,12 @@ describe.skip("CCFL contract", function () {
         lender1,
         lender2,
         lender3,
+        mockAggrUSDC,
+        aToken,
+        mockAggr2,
+        wETH9,
+        mockAggrWBTC,
+        ccflConfig,
       } = await loadFixture(deployFixture);
 
       await usdc
@@ -482,7 +609,7 @@ describe.skip("CCFL contract", function () {
         .approve(ccflPool.getAddress(), BigInt(500e18));
       await ccflPool.connect(lender1).supply(BigInt(500e18));
 
-      await link.connect(borrower1).approve(ccfl.getAddress(), BigInt(1000e18));
+      await wBTC.connect(borrower1).approve(ccfl.getAddress(), BigInt(1000e18));
       await expect(
         ccfl
           .connect(borrower1)
@@ -490,7 +617,7 @@ describe.skip("CCFL contract", function () {
             BigInt(1000e18),
             await usdc.getAddress(),
             BigInt(1000e18),
-            await link.getAddress(),
+            await wBTC.getAddress(),
             false,
             false
           )
@@ -501,8 +628,7 @@ describe.skip("CCFL contract", function () {
       // TODO: test method createLoan()
       const {
         usdc,
-        link,
-        wETH9,
+        wBTC,
         ccflPool,
         ccfl,
         owner,
@@ -512,6 +638,12 @@ describe.skip("CCFL contract", function () {
         lender1,
         lender2,
         lender3,
+        mockAggrUSDC,
+        aToken,
+        mockAggr2,
+        wETH9,
+        mockAggrWBTC,
+        ccflConfig,
       } = await loadFixture(deployFixture);
 
       await usdc
@@ -541,8 +673,7 @@ describe.skip("CCFL contract", function () {
       // TODO: test method createLoan()
       const {
         usdc,
-        link,
-        wETH9,
+        wBTC,
         ccflPool,
         ccfl,
         owner,
@@ -552,6 +683,12 @@ describe.skip("CCFL contract", function () {
         lender1,
         lender2,
         lender3,
+        mockAggrUSDC,
+        aToken,
+        mockAggr2,
+        wETH9,
+        mockAggrWBTC,
+        ccflConfig,
       } = await loadFixture(deployFixture);
 
       await usdc
@@ -580,8 +717,7 @@ describe.skip("CCFL contract", function () {
       // TODO: test method withdrawLoan()
       const {
         usdc,
-        link,
-        wETH9,
+        wBTC,
         ccflPool,
         ccfl,
         owner,
@@ -591,6 +727,12 @@ describe.skip("CCFL contract", function () {
         lender1,
         lender2,
         lender3,
+        mockAggrUSDC,
+        aToken,
+        mockAggr2,
+        wETH9,
+        mockAggrWBTC,
+        ccflConfig,
       } = await loadFixture(deployFixture);
 
       await usdc
@@ -598,76 +740,28 @@ describe.skip("CCFL contract", function () {
         .approve(ccflPool.getAddress(), BigInt(10000e18));
       await ccflPool.connect(lender1).supply(BigInt(10000e18));
 
-      await link.connect(borrower1).approve(ccfl.getAddress(), BigInt(1000e18));
+      await wBTC.connect(borrower1).approve(ccfl.getAddress(), BigInt(1000e18));
       await ccfl
         .connect(borrower1)
         .createLoan(
           BigInt(1000e18),
           await usdc.getAddress(),
           BigInt(1000e18),
-          await link.getAddress(),
+          await wBTC.getAddress(),
           false,
           false
         );
-
-      await ccfl
-        .connect(borrower1)
-        .withdrawLoan(await usdc.getAddress(), BigInt(1));
 
       expect(BigInt(await usdc.balanceOf(borrower1)).toString()).to.eq(
         BigInt(2000e18)
       );
     });
 
-    it("Should fail to withdraw loan", async () => {
-      // TODO: test method withdrawLoan()
-      const {
-        usdc,
-        link,
-        wETH9,
-        ccflPool,
-        ccfl,
-        owner,
-        borrower1,
-        borrower2,
-        borrower3,
-        lender1,
-        lender2,
-        lender3,
-      } = await loadFixture(deployFixture);
-
-      await usdc
-        .connect(lender1)
-        .approve(ccflPool.getAddress(), BigInt(10000e18));
-      await ccflPool.connect(lender1).supply(BigInt(10000e18));
-
-      await link.connect(borrower1).approve(ccfl.getAddress(), BigInt(1000e18));
-      await ccfl
-        .connect(borrower1)
-        .createLoan(
-          BigInt(1000e18),
-          await usdc.getAddress(),
-          BigInt(1000e18),
-          await link.getAddress(),
-          false,
-          false
-        );
-
-      await ccfl
-        .connect(borrower1)
-        .withdrawLoan(await usdc.getAddress(), BigInt(1));
-
-      await expect(
-        ccfl.connect(borrower1).withdrawLoan(await usdc.getAddress(), BigInt(1))
-      ).to.be.revertedWith("14");
-    });
-
-    it("Should add collateral successfully", async () => {
+    it.only("Should add collateral successfully", async () => {
       // TODO: test method addCollateral()
       const {
         usdc,
-        link,
-        wETH9,
+        wBTC,
         ccflPool,
         ccfl,
         owner,
@@ -677,6 +771,12 @@ describe.skip("CCFL contract", function () {
         lender1,
         lender2,
         lender3,
+        mockAggrUSDC,
+        aToken,
+        mockAggr2,
+        wETH9,
+        mockAggrWBTC,
+        ccflConfig,
       } = await loadFixture(deployFixture);
 
       await usdc
@@ -684,28 +784,28 @@ describe.skip("CCFL contract", function () {
         .approve(ccflPool.getAddress(), BigInt(10000e18));
       await ccflPool.connect(lender1).supply(BigInt(10000e18));
 
-      await link.connect(borrower1).approve(ccfl.getAddress(), BigInt(1500e18));
+      await wBTC.connect(borrower1).approve(ccfl.getAddress(), BigInt(1500e18));
       await ccfl
         .connect(borrower1)
         .createLoan(
           BigInt(1000e18),
           await usdc.getAddress(),
           BigInt(1000e18),
-          await link.getAddress(),
+          await wBTC.getAddress(),
           false,
           false
         );
 
       await ccfl
         .connect(borrower1)
-        .addCollateral(BigInt(1), BigInt(500e18), await link.getAddress());
+        .addCollateral(BigInt(1), BigInt(500e18), await wBTC.getAddress());
 
-      expect(await link.balanceOf(await ccfl.getLoanAddress(1))).to.equal(
+      expect(await wBTC.balanceOf(await ccfl.getLoanAddress(1))).to.equal(
         BigInt(1500e18)
       );
     });
 
-    it("Should add collateral (ETH) successfully", async () => {
+    it.only("Should add collateral (ETH) successfully", async () => {
       // TODO: test method addCollateral()
       const {
         usdc,

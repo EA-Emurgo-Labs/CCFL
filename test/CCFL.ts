@@ -156,7 +156,7 @@ describe("CCFL system", function () {
         await mockSwap.getAddress(),
         await mockUniFactory.getAddress(),
         await mockUniQuoter.getAddress(),
-        await mockPoolAddressesProvider.getAddress(),
+        await mockPoolAddressesProvider.getAddress(""),
         await liquidator.getAddress(),
         await platform.getAddress(),
         true,
