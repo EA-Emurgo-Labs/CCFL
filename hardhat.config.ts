@@ -4,7 +4,8 @@ import "@openzeppelin/hardhat-upgrades";
 import "solidity-coverage";
 import "hardhat-gas-reporter";
 require("dotenv").config();
-const { API_URL, PRIVATE_KEY, ETHERSCAN_API_KEY } = process.env;
+const { API_URL, PRIVATE_KEY, ETHERSCAN_API_KEY, HOLESKY_API_URL } =
+  process.env;
 
 const config: HardhatUserConfig = {
   solidity: {
@@ -21,6 +22,10 @@ const config: HardhatUserConfig = {
     hardhat: {},
     sepolia: {
       url: API_URL,
+      accounts: [`0x${PRIVATE_KEY}`],
+    },
+    holesky: {
+      url: HOLESKY_API_URL,
       accounts: [`0x${PRIVATE_KEY}`],
     },
   },

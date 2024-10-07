@@ -69,7 +69,7 @@ async function mintPosition() {
     tickUpper:
       nearestUsableTick(state.tick, immutables.tickSpacing) +
       immutables.tickSpacing * 10,
-    amount0: ethers.parseUnits("0.001", WBTC.decimals).toString(),
+    amount0: ethers.parseUnits("1000", USDC.decimals).toString(),
     useFullPrecision: true,
   });
 
@@ -82,14 +82,15 @@ async function mintPosition() {
     ethers.formatUnits(newPosition.amount1.quotient.toString(), WETH.decimals)
   );
 
-  const blockNumber = await provider.getBlockNumber();
+  // const blockNumber = await provider.getBlockNumber();
+  const blockTimestamp = (await provider.getBlock("latest")).timestamp;
 
   const { calldata, value } = NonfungiblePositionManager.addCallParameters(
     newPosition,
     {
       slippageTolerance: new Percent(50, 1000),
       recipient: wallet.address,
-      deadline: 1728289608 + 20000000,
+      deadline: blockTimestamp + 20000000,
     }
   );
 
