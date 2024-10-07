@@ -373,7 +373,7 @@ describe.skip("sepolia", () => {
       await createLoanNoStake();
     });
 
-    it.only("get current loan", async () => {
+    it("get current loan", async () => {
       getCurrentLoan(BigInt(5));
     });
 

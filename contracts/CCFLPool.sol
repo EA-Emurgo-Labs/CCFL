@@ -277,9 +277,10 @@ contract CCFLPool is ICCFLPool, Initializable {
         remainingPool -= _amount;
         stableCoinAddress.transfer(msg.sender, _amount);
 
-        if (depositWithdrawAmount[msg.sender] > _amount)
-            depositWithdrawAmount[msg.sender] -= _amount;
-        else depositWithdrawAmount[msg.sender] = 0;
+        uint256 totalUnscale = (total.rayMul(reserve.liquidityIndex) *
+            (10 ** stableCoinAddress.decimals())) / uint128(WadRayMath.RAY);
+        if (totalUnscale < depositWithdrawAmount[msg.sender])
+            depositWithdrawAmount[msg.sender] -= totalUnscale;
 
         emit WithdrawSupply(
             msg.sender,

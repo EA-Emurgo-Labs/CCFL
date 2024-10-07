@@ -1,0 +1,115 @@
+{
+	"compiler": {
+		"version": "0.6.12+commit.27d51765"
+	},
+	"language": "Solidity",
+	"output": {
+		"abi": [
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "_token",
+						"type": "address"
+					}
+				],
+				"name": "getMinter",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "_token",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "_to",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "_amount",
+						"type": "uint256"
+					}
+				],
+				"name": "mint",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "payable",
+				"type": "function"
+			}
+		],
+		"devdoc": {
+			"author": "Aave*",
+			"kind": "dev",
+			"methods": {
+				"getMinter(address)": {
+					"details": "Returns the Minter of a _token",
+					"params": {
+						"_token": "The token address"
+					},
+					"returns": {
+						"_0": "The Minter*"
+					}
+				},
+				"mint(address,address,uint256)": {
+					"details": "Proxy function to mint _token, calling its Minter",
+					"params": {
+						"_token": "The amount to mint"
+					},
+					"returns": {
+						"_0": "The amount minted*"
+					}
+				}
+			},
+			"title": "Faucet",
+			"version": 1
+		},
+		"userdoc": {
+			"kind": "user",
+			"methods": {},
+			"notice": "proxy contract, with mapping token => minter contract and proxy mint() function",
+			"version": 1
+		}
+	},
+	"settings": {
+		"compilationTarget": {
+			"test/IFaucet.sol": "IFaucet"
+		},
+		"evmVersion": "istanbul",
+		"libraries": {},
+		"metadata": {
+			"bytecodeHash": "ipfs"
+		},
+		"optimizer": {
+			"enabled": false,
+			"runs": 200
+		},
+		"remappings": []
+	},
+	"sources": {
+		"test/IFaucet.sol": {
+			"keccak256": "0x4c2b44b4dbb2607052781a4f72640c27efaf79be02a75448da94a38cff959a0e",
+			"urls": [
+				"bzz-raw://e0be5d67ca599603e3dd281bcecf98fb80c16774c417dae385273b85a3f7e376",
+				"dweb:/ipfs/QmTUATE1P2ewsqkePC8jqd8rFDRxqWy5buyrRwrJJxRRug"
+			]
+		}
+	},
+	"version": 1
+}
