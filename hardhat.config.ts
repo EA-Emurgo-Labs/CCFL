@@ -32,15 +32,15 @@ const config: HardhatUserConfig = {
   etherscan: {
     apiKey: ETHERSCAN_API_KEY,
   },
-  gasReporter: {
-    enabled: true,
-    currency: "USD", // currency to show
-    outputFile: "gas-report.txt", // optional
-    noColors: true, //optional
-    coinmarketcap: process.env.COINMARKETCAP_API_KEY, //to fetch gas data
-    gasPriceApi: `https://api.etherscan.io/api?module=proxy&action=eth_gasPrice&apikey=${ETHERSCAN_API_KEY}`,
-    token: "ETH", // for polygon blockchain(optional).
-  },
+  // gasReporter: {
+  //   enabled: true,
+  //   currency: "USD", // currency to show
+  //   outputFile: "gas-report.txt", // optional
+  //   noColors: true, //optional
+  //   coinmarketcap: process.env.COINMARKETCAP_API_KEY, //to fetch gas data
+  //   gasPriceApi: `https://api.etherscan.io/api?module=proxy&action=eth_gasPrice&apikey=${ETHERSCAN_API_KEY}`,
+  //   token: "ETH", // for polygon blockchain(optional).
+  // },
   mocha: {
     timeout: 100000000,
   },
