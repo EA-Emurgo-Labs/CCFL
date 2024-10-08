@@ -1,0 +1,233 @@
+{
+  "_format": "hh-sol-artifact-1",
+  "contractName": "MockSwapRouter",
+  "sourceName": "contracts/test/MockSwapRouter.sol",
+  "abi": [
+    {
+      "inputs": [],
+      "stateMutability": "payable",
+      "type": "constructor"
+    },
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "bytes",
+              "name": "path",
+              "type": "bytes"
+            },
+            {
+              "internalType": "address",
+              "name": "recipient",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "amountIn",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "amountOutMinimum",
+              "type": "uint256"
+            }
+          ],
+          "internalType": "struct IV3SwapRouter.ExactInputParams",
+          "name": "params",
+          "type": "tuple"
+        }
+      ],
+      "name": "exactInput",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "amountOut",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "payable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "address",
+              "name": "tokenIn",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "tokenOut",
+              "type": "address"
+            },
+            {
+              "internalType": "uint24",
+              "name": "fee",
+              "type": "uint24"
+            },
+            {
+              "internalType": "address",
+              "name": "recipient",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "amountIn",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "amountOutMinimum",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint160",
+              "name": "sqrtPriceLimitX96",
+              "type": "uint160"
+            }
+          ],
+          "internalType": "struct IV3SwapRouter.ExactInputSingleParams",
+          "name": "params",
+          "type": "tuple"
+        }
+      ],
+      "name": "exactInputSingle",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "amountOut",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "payable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "bytes",
+              "name": "path",
+              "type": "bytes"
+            },
+            {
+              "internalType": "address",
+              "name": "recipient",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "amountOut",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "amountInMaximum",
+              "type": "uint256"
+            }
+          ],
+          "internalType": "struct IV3SwapRouter.ExactOutputParams",
+          "name": "params",
+          "type": "tuple"
+        }
+      ],
+      "name": "exactOutput",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "amountIn",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "payable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "address",
+              "name": "tokenIn",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "tokenOut",
+              "type": "address"
+            },
+            {
+              "internalType": "uint24",
+              "name": "fee",
+              "type": "uint24"
+            },
+            {
+              "internalType": "address",
+              "name": "recipient",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "amountOut",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "amountInMaximum",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint160",
+              "name": "sqrtPriceLimitX96",
+              "type": "uint160"
+            }
+          ],
+          "internalType": "struct IV3SwapRouter.ExactOutputSingleParams",
+          "name": "params",
+          "type": "tuple"
+        }
+      ],
+      "name": "exactOutputSingle",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "amountIn",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "payable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "int256",
+          "name": "amount0Delta",
+          "type": "int256"
+        },
+        {
+          "internalType": "int256",
+          "name": "amount1Delta",
+          "type": "int256"
+        },
+        {
+          "internalType": "bytes",
+          "name": "data",
+          "type": "bytes"
+        }
+      ],
+      "name": "uniswapV3SwapCallback",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "bytecode": "0x60806040526101fe806100136000396000f3fe60806040526004361061005a5760003560e01c80635023b4df116100435780635023b4df1461005f578063b858183f14610086578063fa461e331461009b57600080fd5b806304e45aaf1461005f57806309b8134614610086575b600080fd5b61007461006d3660046100d6565b6080013590565b60405190815260200160405180910390f35b61007461009436600461010b565b6040013590565b3480156100a757600080fd5b506100bc6100b6366004610148565b50505050565b005b600060e082840312156100d057600080fd5b50919050565b600060e082840312156100e857600080fd5b6100f283836100be565b9392505050565b6000608082840312156100d057600080fd5b60006020828403121561011d57600080fd5b813567ffffffffffffffff81111561013457600080fd5b610140848285016100f9565b949350505050565b6000806000806060858703121561015e57600080fd5b8435935060208501359250604085013567ffffffffffffffff8082111561018457600080fd5b818701915087601f83011261019857600080fd5b8135818111156101a757600080fd5b8860208285010111156101b957600080fd5b9598949750506020019450505056fea2646970667358221220e8d97008a285a84e9bc346375539bda61b07d7ae8577e52213ee7adf960cd08f64736f6c63430008180033",
+  "deployedBytecode": "0x60806040526004361061005a5760003560e01c80635023b4df116100435780635023b4df1461005f578063b858183f14610086578063fa461e331461009b57600080fd5b806304e45aaf1461005f57806309b8134614610086575b600080fd5b61007461006d3660046100d6565b6080013590565b60405190815260200160405180910390f35b61007461009436600461010b565b6040013590565b3480156100a757600080fd5b506100bc6100b6366004610148565b50505050565b005b600060e082840312156100d057600080fd5b50919050565b600060e082840312156100e857600080fd5b6100f283836100be565b9392505050565b6000608082840312156100d057600080fd5b60006020828403121561011d57600080fd5b813567ffffffffffffffff81111561013457600080fd5b610140848285016100f9565b949350505050565b6000806000806060858703121561015e57600080fd5b8435935060208501359250604085013567ffffffffffffffff8082111561018457600080fd5b818701915087601f83011261019857600080fd5b8135818111156101a757600080fd5b8860208285010111156101b957600080fd5b9598949750506020019450505056fea2646970667358221220e8d97008a285a84e9bc346375539bda61b07d7ae8577e52213ee7adf960cd08f64736f6c63430008180033",
+  "linkReferences": {},
+  "deployedLinkReferences": {}
+}
